@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<activityRootModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm4="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm5="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/ModelStore" xmlns:dm9="http://schemas.microsoft.com/dsltools/LogicalClassDesigner" xmlns:dm10="http://schemas.microsoft.com/VisualStudio/TeamArchitect/SequenceDesigner" xmlns:dm11="http://schemas.microsoft.com/dsltools/SimpleShapesModel" dslVersion="1.0.0.0" Id="2778c3c8-83ee-43a8-b654-64b06d0cfab0" name="Activity1" linkedPackageId="1f30a367-f091-4226-aa29-bf7787e0075b" xmlns="http://schemas.microsoft.com/VisualStudio/TeamArchitect/ActivityDesigner">
+  <profileInstances>
+    <packageHasProfileInstances Id="d65c37e5-728a-4058-9233-f29f79d5de7a">
+      <profileInstance Id="b219397e-543d-423e-be5b-b563737294ee" name="StandardProfileL2">
+        <elementDefinition Id="e34d544e-0fea-4ed6-ac5e-1b74119ac791" />
+      </profileInstance>
+      <elementDefinition Id="0caec977-1f8c-4ba3-a7db-8cc9ad9cc73b" />
+    </packageHasProfileInstances>
+    <packageHasProfileInstances Id="278ff6f9-be37-4b67-a257-5b0813db8219">
+      <profileInstance Id="ff96a6c6-09f9-4aac-8309-074a99052e70" name="StandardProfileL3">
+        <elementDefinition Id="532ea607-fb19-44b8-8502-3351b05452be" />
+      </profileInstance>
+      <elementDefinition Id="29349502-908c-4fda-9054-c48619c59ed0" />
+    </packageHasProfileInstances>
+  </profileInstances>
+  <packagedElements>
+    <activityRootModelHasActivity>
+      <activity Id="b0f364fe-2589-413d-800e-1ac971b95a8a" name="Activity1" isAbstract="false" isLeaf="false" isActiveClass="false" isReentrant="false" isReadOnly="false" isSingleExecution="false">
+        <elementDefinition Id="b3b2a428-da8c-4df3-8629-61cd43058bee" />
+        <nodes>
+          <initialNode Id="3d38ac94-e227-4ec9-8212-976f40d2cce9" name="Initial1" isLeaf="false">
+            <elementDefinition Id="c9c52978-ccfc-46e3-a4eb-19a2826041a9" />
+            <objectFlowTargets>
+              <objectFlow Id="a73975b4-c585-44df-9dcb-4f91fa71cace" isLeaf="false" isMulticast="false" isMultireceive="false">
+                <objectNodeMoniker Id="b553ded1-2fe9-4b6b-bdb9-b619f02c45df" LastKnownName="营业员" />
+                <elementDefinition Id="45084b03-45bc-4772-894d-26528e8bdc2d" />
+              </objectFlow>
+            </objectFlowTargets>
+          </initialNode>
+          <objectNode Id="b553ded1-2fe9-4b6b-bdb9-b619f02c45df" name="营业员" isLeaf="false" ordering="Unordered" isControlType="false">
+            <elementDefinition Id="94262688-af5d-4b4b-8ab5-03aeda2fb227" />
+            <objectFlowTargets>
+              <objectFlow Id="dd1e5b79-35c7-4342-9401-b48f426a688e" isLeaf="false" isMulticast="false" isMultireceive="false">
+                <opaqueActionMoniker Id="08c6c86d-6a14-473c-a52e-4158254d7e78" LastKnownName="提交订单" />
+                <elementDefinition Id="48b00bb1-e9d6-48e2-99f6-09c2c6660068" />
+              </objectFlow>
+            </objectFlowTargets>
+            <upperBound>
+              <literalInteger Id="d5063c01-6f21-4874-a1b7-f544db4e7d2a" name="2147483647" value="2147483647">
+                <elementDefinition Id="44ecf849-1fa7-4c86-8673-577238fa24de" />
+              </literalInteger>
+            </upperBound>
+          </objectNode>
+          <opaqueAction Id="08c6c86d-6a14-473c-a52e-4158254d7e78" name="提交订单" isLeaf="false">
+            <elementDefinition Id="34e7252b-af45-4280-ab77-ebbb3e22d21f" />
+            <objectFlowTargets>
+              <objectFlow Id="4c36f6f5-8d64-4e7b-ae88-45ae05bf2184" isLeaf="false" isMulticast="false" isMultireceive="false">
+                <objectNodeMoniker Id="463da35e-4ae3-4149-8822-722ea1aff397" LastKnownName="Object1" />
+                <elementDefinition Id="a8af053a-a10e-410c-ac96-eeb295eae34d" />
+              </objectFlow>
+            </objectFlowTargets>
+          </opaqueAction>
+          <objectNode Id="463da35e-4ae3-4149-8822-722ea1aff397" name="Object1" isLeaf="false" ordering="Unordered" isControlType="false">
+            <elementDefinition Id="4e584e24-e096-452c-b02b-8aa229a75636" />
+            <upperBound>
+              <literalInteger Id="048e5d5f-8699-42e1-8c91-ea23a0022e89" name="2147483647" value="2147483647">
+                <elementDefinition Id="041e789e-2db0-4252-bb3f-7b86f416847b" />
+              </literalInteger>
+            </upperBound>
+          </objectNode>
+        </nodes>
+      </activity>
+    </activityRootModelHasActivity>
+  </packagedElements>
+  <package Id="1f30a367-f091-4226-aa29-bf7787e0075b" name="ModelingProject1">
+    <elementDefinition Id="e9c55ba1-b9ac-4440-99be-9a9366353053" />
+  </package>
+</activityRootModel>

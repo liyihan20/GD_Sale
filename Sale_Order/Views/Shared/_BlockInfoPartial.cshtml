@@ -1,0 +1,45 @@
+﻿@{
+    Layout = null;
+    List<Sale_Order.Models.BlockOrder> blocks = (List<Sale_Order.Models.BlockOrder>)ViewData["blockInfo"];
+}
+
+@*挂起信息*@
+    @if (blocks!=null && blocks.Count() > 0)
+    { 
+        <div data-options="region:'north',title:'订单挂起信息',split:true" style="background: #fafafa; height: 74px;
+            padding: 3px 10px;">
+            <table style="border: 0;  text-align: center" cellspacing="0">
+                <tr style="font-weight:bold;">
+                    <td style="width: 100px;border-bottom:1px solid;">
+                        审核步骤
+                    </td>
+                    <td style="width: 80px;border-bottom:1px solid;">
+                        操作人
+                    </td>
+                    <td style="width: 120px;border-bottom:1px solid;">
+                        挂起时间
+                    </td>
+                    <td style="width:500px;border-bottom:1px solid;">
+                        挂起原因
+                    </td>
+                </tr>
+                @foreach (var blo in blocks)
+                {
+                <tr>
+                    <td>
+                        @blo.step_name
+                    </td>
+                    <td>
+                        @blo.User.real_name
+                    </td>
+                    <td>
+                        @(((DateTime)(blo.block_time)).ToString("yyyy-MM-dd HH:mm"))
+                    </td>
+                    <td>
+                        @blo.reason
+                    </td>
+                </tr>
+                }
+            </table>
+        </div>
+    }

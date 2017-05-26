@@ -1,0 +1,131 @@
+﻿<script type="text/javascript">
+
+$(function(){
+    $("#big_type").combobox({
+            onSelect: function (record) {
+                var account=$("#account").combobox("getValue");
+                var in_out=$("#in_out").combobox("getValue");
+                $.post("@Url.Content("~/Items/getProductTypeByBigType")", { bigType: record.value,account:account,in_out:in_out },
+                    function (data) {
+                        $('#product_type').combobox("loadData",data);
+                    }, "json"
+                );
+            }            
+        });
+});
+function getNumber(){
+    var account=$("#account").combobox("getValue");
+    var big_type=$("#big_type").combobox("getValue");
+    var product_type=$("#product_type").combobox("getValue");
+    var in_out=$("#in_out").combobox("getValue");
+    $.post("@Url.Content("~/Authority/getNextOrderNumber")", { big_type: big_type,account:account,product_type:product_type,in_out:in_out },
+                    function (data) {
+                        if(data.suc){
+                            $('#order_number').val(data.result);
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: '获取订单编号成功'
+                            });
+                        }else{
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: data.result
+                            });
+                        }
+                        
+                    }, "json"
+                );
+}
+
+function returnNumber(){
+    var return_number=$("#return_number").val();
+    if($.trim(return_number)==""){
+        alert("编号不能为空");
+        return;
+    }else{        
+        $.post("@Url.Content("~/Authority/returnOrderNumber")",{return_number:return_number},
+        function(data){
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: data
+            });
+        },"json");
+    }
+}
+</script>
+<div id="GetNumber" class="easyui-panel" title="获取订单编号" style="width: 800px; height: 90px;
+    padding: 5px 10px">
+    <table>
+        <tr>
+            <td>
+                帐套
+            </td>
+            <td>
+                内外销:
+            </td>
+            <td>
+                产品大类:
+            </td>
+            <td>
+                产品小类:
+            </td>
+            <td>
+                订单编号：
+            </td>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="easyui-combobox" id="account" name="account" style="width: 80px" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 60,
+                        editable:false,
+                        value:'opto',
+		                data: [{
+			                label: '光电',
+			                value: 'opto'
+		                },{
+			                label: '半导体',
+			                value: 'semi'
+		                }]" />
+            </td>
+            <td>
+                <input class="easyui-combobox" id="in_out" name="in_out" style="width: 80px" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 60,
+                        editable:false,
+                        value:'in',
+		                data: [{
+			                label: '内销',
+			                value: 'in'
+		                },{
+			                label: '外销',
+			                value: 'out'
+		                }]" />
+            </td>
+            <td>
+                <input class="easyui-combobox" id="big_type" name="big_type" style="width: 100px" panelHeight= "120", valuefield="value" textfield="label" url="@Url.Content("~/Items/getBigType")"/>
+            </td>
+            <td>
+                <input class="easyui-combobox" id="product_type" name="product_type" style="width: 80px"
+                    valuefield="value" textfield="text" panelHeight= "140"/>
+            </td>
+            <td>
+                <input type="text" readonly="readonly" id="order_number" name="order_number" style="width: 120px" />
+            </td>
+            <td>
+                <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="getNumber()">获取编号</a>
+            </td>
+        </tr>
+    </table>
+</div>
+<div id="returnNumber" class="easyui-panel" title="回收订单编号" style="width: 800px; height: 70px;
+    padding: 5px 10px">
+    订单编号：
+    <input type="text" id="return_number" name="return_number" style="width: 100px" />
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="returnNumber()">回收编号</a>
+</div>

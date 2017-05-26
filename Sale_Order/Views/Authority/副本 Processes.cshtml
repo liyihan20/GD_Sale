@@ -1,0 +1,287 @@
+﻿<script type="text/javascript">
+
+    $(function () {
+        
+        $("#tbPro").datagrid({
+            title:"流程管理",
+            url:"@Url.Content("~/Authority/getProcesses")",
+            fit:true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'id', title: 'ID', width: 120,hidden: true },
+                        { field: 'order_type', title: '流程编码', width: 120, align: "center" },
+                        { field: 'order_type_name', title: '订单类型', width: 120, align: "center" },                        
+                        { field: 'begin_time', title: '生效时间', width: 120, align: "center" },
+                        { field: 'end_time', title: '失效时间', width: 120, align: "center" },
+                        { field: 'modify_time', title: '修改时间', width: 120, align: "center" },
+                        { field: 'is_finish', title: '是否启用', width: 120, align: "center",
+                            styler: function(value,row,index){
+				                if (value == "已启用"){
+					                return 'color:green;';
+				                }else{
+                                    return 'color:red;';
+                                }
+			                }
+                         },
+                        { field: 'info', title: '说明', width: 240, align: "left" }
+                    ]],
+             toolbar: [{
+                text: "新建流程",
+                iconCls: 'icon-add',
+                handler: addProc
+            }, '-', {
+                text: "编辑流程",
+                iconCls: 'icon-edit',
+                handler: editProc
+            }, '-', {
+                text: "启用-禁用流程",
+                iconCls: 'icon-ok',
+                handler: function(){
+                    var row = $('#tbPro').datagrid('getSelected');
+                    if(!row){return;}
+                    $.post("@Url.Content("~/Authority/toggleProc")",{id:row.id},function(data){
+                        if(!data.suc){
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: data.msg
+                            });
+                        }else{
+                            $('#tbPro').datagrid('reload'); 
+                        }
+                    });
+                }
+            }]
+        });
+
+        $("#tbDet").datagrid({
+            title:"流程信息",
+            height:"280",            
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'step', title: '审批步骤', width: 120, align: "center" },
+                        { field: 'step_name', title: '步骤名称', width: 120, align: "center" },
+                        { field: 'step_type', title: '步骤类型', width: 120, align: "center",
+                            formatter: function(value,row,index){
+				                if (value == "0"){
+					                return '0_固定人员';
+				                }else if(value == '1'){
+                                    return '1_部门负责人';
+                                }else if(value=='2'){
+                                    return '2_下单时事业部负责人';
+                                }else if(value=='3'){
+                                    return '3_通过办事处关联';
+                                }else if(value=='4'){
+                                    return '4_退货_事业部客服';
+                                }else if(value=='5'){
+                                    return '5_退货_事业部计划';
+                                }else if(value=='6'){
+                                    return '6_退货_事业部品质';
+                                }else if(value=='7'){
+                                    return '7_退货_事业部出货组';
+                                }else if(value=='8'){
+                                    return '8_退货_办事处审核';
+                                }else if(value=='9'){
+                                    return '9_退货_主管审核';
+                                }
+			                }
+                         },
+                         { field: 'auditor', title: '审批人', width: 120, align: "center" },
+                         { field: 'can_modify', title: '修改权限', width: 120, align: "center" }
+                    ]],
+             toolbar: [{
+                text: "新建步骤",
+                iconCls: 'icon-add',
+                handler: addDet
+            }, '-', {
+                text: "编辑步骤",
+                iconCls: 'icon-edit',
+                handler: editDet
+            }, '-', {
+                text: "删除步骤",
+                iconCls: 'icon-remove',
+                handler: function(){
+                    var row = $('#tbDet').datagrid('getSelected');
+                    if(!row){return;}
+                    $('#tbDet').datagrid("deleteRow",$('#tbDet').datagrid("getRowIndex",row));
+                }
+            }]
+        });
+    });
+
+    var url;
+    var pro_id=-1;
+    function addProc(){
+        $("#fm").form("clear");
+        $('#tbDet').datagrid('loadData', { total: 0, rows: [] });
+        $("#pro_dlg").dialog("setTitle","新增流程").dialog("open");
+        pro_id=-1;
+    }
+    function editProc(){
+        var row = $('#tbPro').datagrid('getSelected');
+        if(!row){return;}
+        $("#proc_type").val(row.order_type);        
+        $("#begin_time").datebox("setValue",row.begin_time);
+        $("#end_time").datebox("setValue",row.end_time);
+        $("#info").val(row.info);
+        $("#tbDet").datagrid({url:"@Url.Content("~/Authority/getProDets")",queryParams:{id:row.id} });
+        $("#pro_dlg").dialog("setTitle","编辑流程").dialog("open");
+        pro_id=row.id;
+    }
+    function saveProc(){
+        var proc_type=$("#proc_type").val();
+        var begin_time=$("#begin_time").datebox("getValue");
+        var end_time=$("#end_time").datebox("getValue");        
+        var info=$("#info").val();
+        var step=new Array();
+        var step_name=new Array();
+        var step_type=new Array();
+        var auditor=new Array();
+        var can_modify=new Array();
+        var rows=$("#tbDet").datagrid("getRows");
+        for(var i=0;i<rows.length;i++){
+            step[i]=rows[i].step;
+            step_name[i]=rows[i].step_name;
+            step_type[i]=rows[i].step_type;
+            auditor[i]=rows[i].auditor;
+            can_modify[i]=rows[i].can_modify;
+        }
+        $.post("@Url.Content("~/Authority/saveProcess")",{
+            proc_type:proc_type,
+            begin_time:begin_time,
+            end_time:end_time,
+            pro_id:pro_id,
+            step:step,
+            step_name:step_name,
+            step_type:step_type,
+            auditor:auditor,
+            can_modify:can_modify,
+            info:info
+        },function(data){
+            if(data.suc)
+            {
+                $("#pro_dlg").dialog("close");
+                $('#tbPro').datagrid('reload'); 
+            }else{
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: data.msg
+                });
+            }
+        });
+
+    }
+
+    var row_index;
+    function addDet(){
+        row_index=-1;
+        $("#det_fm").form("clear");
+        $("#det_dlg").dialog("setTitle","新建步骤").dialog("open");
+    }
+    function editDet(){
+        var row = $('#tbDet').datagrid('getSelected');
+        if(!row){return;}
+        row_index=$('#tbDet').datagrid("getRowIndex",row);
+        $("#det_fm").form("load",row);
+        $("#det_dlg").dialog("setTitle","编辑步骤").dialog("open");
+    }
+    function saveDet(){
+        if(!$('#fm').form('validate')){
+            return;
+        }
+        var this_row={
+                step:$("#step").numberbox("getValue"),
+                step_name:$("#step_name").val(),
+                step_type:$("#step_type").combobox("getValue"),
+                auditor:$("#auditor").combobox("getValue"),
+                can_modify:$("#can_modify").combobox("getValue")
+            };        
+        if(row_index==-1){
+            $("#tbDet").datagrid("appendRow",this_row);
+        }else {
+            $("#tbDet").datagrid("updateRow",{index:row_index,row:this_row});
+        }
+        $("#det_dlg").dialog("close");
+    }
+
+</script>
+<table id="tbPro">
+</table>
+<div id="pro_dlg" class="easyui-dialog" style="width: 700px; padding: 10px 5px"
+    closed="true" modal="true" buttons="#pro-buttons">
+    <div class="ftitle">
+        流程明细</div>
+    <form id="fm" method="post">
+    <div style="text-align: center">
+        流程类型:
+        <input class="easyui-validatebox" name="proc_type" id="proc_type" style="width: 90px;"/>           
+        生效时间：
+        <input id="begin_time" name="begin_time" class="easyui-datebox" style="width: 90px" />
+        失效时间：
+        <input id="end_time" name="end_time" class="easyui-datebox" style="width: 90px" /><br />
+        说明：<input id="info" name="info" class="easyui-validatebox" style="width: 500px" />
+    </div>
+    <br />
+    <table id="tbDet">
+    </table>
+    </form>
+</div>
+<div id="pro-buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveProc()">@Html.Lang("save")</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#pro_dlg').dialog('close')">@Html.Lang("cancel")</a>
+</div>
+<div id="det_dlg" class="easyui-dialog" style="width: 360px; height: 280px; padding: 10px 20px"
+    closed="true" buttons="#det-buttons">
+    <div class="ftitle">
+        步骤信息</div>
+    <form id="det_fm" method="post">
+    <div class="fitem">
+        <label>
+            审批步骤:</label>
+        <input id="step" name="step" class="easyui-numberbox" min="1" max="20" style="width: 140px;"
+            require="true" />
+    </div>
+    <div class="fitem">
+        <label>
+            步骤名称:</label>
+        <input type="text" id="step_name" name="step_name" style="width: 140px;" require="true" />
+    </div>
+    <div class="fitem">
+        <label>
+            步骤类型:</label>
+        <select class="easyui-combobox" name="step_type" id="step_type" style="width: 140px;"
+            panelheight="100px" require="true">
+            <option value="0">0_固定人员</option>
+            <option value="1">1_部门负责人</option>
+            <option value="2">2_事业部关联</option>
+            <option value="3">3_通过办事处关联</option>
+            <option value="4">4_退货_事业部客服</option>
+            <option value="5">5_退货_事业部计划</option>
+            <option value="6">6_退货_事业部品质</option>
+            <option value="7">7_退货_事业部出货组</option>
+            <option value="8">8_退货_办事处审核</option>
+            <option value="9">9_退货_主管审核</option>
+        </select>
+    </div>
+    <div class="fitem">
+        <label>审批人:</label>
+        <input id="auditor" name="auditor" class="easyui-combobox" url="@Url.Content("~/Items/getSysUsers")" valuefield="name" textfield="name" style="width:140px;"/>
+    </div>
+    <div class="fitem">
+        <label>
+            可否修改:</label>
+        <select class="easyui-combobox" name="can_modify" id="can_modify" style="width: 140px;"
+            panelheight="60px" require="true">
+            <option value="Y">YES</option>
+            <option value="N">NO</option>
+        </select>
+    </div>
+    </form>
+</div>
+<div id="det-buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveDet()">@Html.Lang("save")</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#det_dlg').dialog('close')">@Html.Lang("cancel")</a>
+</div>

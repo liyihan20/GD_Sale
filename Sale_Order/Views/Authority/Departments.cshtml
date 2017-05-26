@@ -1,0 +1,214 @@
+﻿<script type="text/javascript">  
+
+    var url;
+    function newDep() {
+        $('#dep_dlg').dialog('open').dialog('setTitle', '@Html.Lang("new_dep")');
+        $('#fm').form('clear');
+        url = 'saveDepartment';
+    }
+    function editDep() {
+        var row = $('#dep_dg').datagrid('getSelected');
+        if (row) {
+            $('#dep_dlg').dialog('open').dialog('setTitle', '@Html.Lang("eidt_dep")');
+            $('#fm').form('load', row);
+            url = 'updateDepartment/' + row.id;
+        }
+    }
+    function saveDep() {
+        $('#fm').form('submit', {
+            url: '' + url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {                
+                var result = eval('(' + data + ')');
+                if (result.success) {
+                    $('#dep_dlg').dialog('close');      // close the dialog   
+                    $('#dep_dg').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }  
+    function removeDep(){
+        var row = $('#dep_dg').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_delete")?', function(r){
+	            if (r){
+                    $.post("@Url.Content("~/Authority/removeDep")",{depId:row.id},function(data){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: data.msg
+                        });
+                        if(data.suc){
+                            $('#dep_dg').datagrid('reload'); 
+                        }
+                    });
+                }
+            });
+        }
+    }
+    function qq(value,name){   
+        $('#dep_dg').datagrid('load',{
+        value: value,
+        name: name   
+        });
+    } 
+
+//    var depID;
+//    function openExaminer(){
+//        var row = $('#dep_dg').datagrid('getSelected');
+//        if (row) {
+//            depID=row.id;
+//            $('#dg_examiner').datagrid({ url: 'getExaminerByDep', queryParams: { id: row.id} });
+//            $('#dlg_examiner').dialog('open').dialog('setTitle', row.name);
+//        }
+//    }
+
+//    var step;
+//    function addEx(s){
+//        step=s;
+//        $('#dep_tree').tree({ url: 'getPeopleInADepTree?depId=' + depID + '&step=' + step });
+//        $('#dlg_add_people').dialog('open').dialog('setTitle', '@Html.Lang("add") @Html.Lang("examiner")');
+//        $('#dep_tree').tree('reload');
+//    }
+
+//    function saveTreeCallBack(s) {
+//        $.post("addExaminerInDep", { depId: depID, users: s, step: step },
+//                function (data) {
+//                    var result = eval('(' + data + ')');
+//                    if (result.success) {
+//                        $('#dg_examiner').datagrid('reload');    // reload the user data   
+//                    } else {
+//                        $.messager.show({
+//                            title: '@Html.Lang("tip")',
+//                            msg: result.msg
+//                        });
+//                    }
+//                });
+//    }
+
+//    $(function () {
+//        $('#dg_examiner').datagrid({
+//            title: '@Html.Lang("examiner") @Html.Lang("list")',
+//            fit: 'true',
+//            fitColumns: true,
+//            rownumbers: true,
+//            columns: [[
+//                        { field: 'ck', checkbox: 'true' },
+//    					{ field: 'name', title: '@Html.Lang("name")', width: 80, align: 'center' },
+//                        { field: 'department', title: '@Html.Lang("department")', width: 100, align: 'center' },
+//    					{ field: 'examiner', title: '@Html.Lang("examiner")', width: 80 }
+//    				]],
+//            toolbar: [{
+//                type:'menubutton',
+//                text: "@Html.Lang("add") @Html.Lang("examiner")",
+//                iconCls: 'icon-add',
+//                menu: '#menu_examiner'
+//            }, '-', {
+//                text: "@Html.Lang("remove") @Html.Lang("examiner")",
+//                iconCls: 'icon-remove',
+//                handler: function () {
+//                    var charges = $('#dg_examiner').datagrid('getChecked');                                     
+//                    var charge = '';
+//                    for (var i = 0; i < charges.length; i++) {
+//                        if (charge != '') charge += ',';
+//                        charge += charges[i].id;
+//                    }
+//                    if(charge=='') return;
+//                    $.post("removeChargesInDep", { chas: charge },
+//                        function (data) {
+//                            var result = eval('(' + data + ')');
+//                            if (result.success) {
+//                                $('#dg_examiner').datagrid('reload');
+//                            } else {
+//                                $.messager.show({
+//                                    title: '@Html.Lang("tip")',
+//                                    msg: result.msg
+//                                });
+//                            }
+//                        });
+//                }
+//            }],
+//            rowStyler: function (index, row) {
+//                if (row.step == 1) {
+//                    return 'background-color:#9CCAEA;';
+//                } else if (row.step == 2) {
+//                    return 'background-color:#93A1D9;';
+//                } else if (row.step == 3) {
+//                    return 'background-color:#70B5AF;';
+//                } else if (row.step == 4) {
+//                    return 'background-color:#318DA0;';
+//                }
+//            }
+//        });
+//    });
+   
+</script>
+
+<table id="dep_dg" title="@Html.Lang("department") @Html.Lang("list")" class="easyui-datagrid" fit="true"  
+        url="getDepartments"
+        toolbar="#toolbar" 
+        rownumbers="true" fitColumns="true" singleSelect="true" pagination="true" pageSize="40">  
+    <thead>  
+        <tr>  
+            <th field="name" width="50" align="center">名称</th>
+            <th field="dep_no" width="50" align="center">编码</th>
+            <th field="dep_type" width="100" align="center">类型</th> 
+            @*<th field="exam" width="40" align="center">@Html.Lang("examiner")</th> *@
+        </tr>  
+    </thead>  
+</table>  
+<div id="toolbar">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newDep()">@Html.Lang("new_dep")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editDep()">@Html.Lang("eidt_dep")</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeDep()">@Html.Lang("remove_dep")</a>
+    @*<a href="#" class="easyui-linkbutton" iconCls="icon-examiner" plain="true" onclick="openExaminer()">@Html.Lang("examiner")</a>*@
+    <input id="ss" class="easyui-searchbox" style="width:220px"  searcher="qq" menu="#mm" prompt="@Html.Lang("please_input")" />           
+    <div id="mm" style="width:100px">  
+        <div name="name">@Html.Lang("name")</div> 
+    </div>  
+</div>  
+    
+<div id="dep_dlg" class="easyui-dialog" style="width:400px;height:260px;padding:10px 20px"  
+        closed="true" buttons="#dlg-buttons">  
+    <div class="ftitle">@Html.Lang("department") @Html.Lang("info")</div>  
+    <form id="fm" method="post">  
+        <div class="fitem">  
+            <label>@Html.Lang("name"):</label>  
+            <input name="name" class="easyui-validatebox" required="true"/>  
+        </div> 
+        <div class="fitem">  
+            <label>类型:</label>  
+            <input name="dep_type" class="easyui-combobox" data-options="
+                panelHeight:'auto',
+		        valueField: 'name',
+		        textField: 'name',
+		        url: '@Url.Content("~/Items/getDepsType")'"/>  
+        </div>
+    </form>  
+</div>  
+
+<div id="dlg-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveDep()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dep_dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+
+@*<div id="dlg_examiner" class="easyui-dialog" style="width:600px;height:400px;"closed="true" modal="true" data-options="onClose:function(){$('#dep_dg').datagrid('reload')}">
+    <table id="dg_examiner"></table>
+</div>
+
+<div id="menu_examiner" style="width:170px;">
+    <div onclick="addEx(1)">@Html.Lang("audit_1")</div>
+    <div onclick="addEx(2)">@Html.Lang("audit_2")</div>
+    <div class="menu-sep"></div>
+    <div onclick="addEx(3)">@Html.Lang("audit_3")</div>
+    <div onclick="addEx(4)">@Html.Lang("audit_4")</div>
+</div>
+
+@Html.Partial("_UserTreePartial")*@
+

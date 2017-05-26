@@ -1,0 +1,141 @@
+﻿<script type="text/javascript">
+
+    $(function(){
+         $("#rel_dg").datagrid({
+            //title:"事业部审核人管理",
+            fit:true, 
+            url:"getAuditorRelations",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            toolbar:"#toolbar",
+            columns: [[
+                        { field: 'id', title: 'id', width: 120, align: "center",hidden:"true" },
+                        { field: 'step_value', title: 'step_value', width: 120, align: "center",hidden:"true" },
+                        { field: 'auditor_id', title: 'auditor_id', width: 120, align: "center",hidden:"true" },
+                        { field: 'department_id', title: 'department_id', width: 120, align: "center",hidden:"true" },
+                        { field: 'step_name', title: '步骤名称', width: 120, align: "center" },  
+                        { field: 'relate_type', title: '关联类型', width: 120, align: "center" }, 
+                        { field: 'department_name', title: '关联部门名称', width: 120, align: "center"},                        
+                        { field: 'auditor_name', title: '审核人', width: 120, align: "center" }                        
+                    ]]
+        });
+
+        $("#relateType").combobox({
+            onChange: function (newValue, oldValue) {  
+                    $.post("@Url.Content("~/Items/getRelateDeps")", {dep_type:newValue},
+                        function (data) {
+                            $('#relateValue').combobox("loadData",data);
+                        }, "json"
+                    );
+            }            
+        });
+
+    }); 
+
+
+    var url;
+    function newRel() {
+        $('#rel_dlg').dialog('open').dialog('setTitle', '新建关系');
+        $('#fm').form('clear');
+        url = 'saveAuditorRelation';
+    }
+    function editRel() {
+        var row = $('#rel_dg').datagrid('getSelected');
+        if (row) {
+            $('#rel_dlg').dialog('open').dialog('setTitle', '编辑关系');
+            $('#fm').form('load', row);
+            $("#stepValue").combobox("setValue",row.step_value);
+            $("#relateType").combobox("setValue",row.relate_type);
+            $("#relateValue").combobox("setValue",row.department_id);
+            $("#auditor").combobox("setValue",row.auditor_id);
+            url = 'updateAuditorRelation/' + row.id;
+        }
+    }
+    function saveRel() {
+        var stepName=$("#stepValue").combobox("getText");
+        $('#fm').form('submit', {
+            url: '' + url,
+            onSubmit: function (param) {
+                param.stepName=stepName;
+                return $(this).form('validate');
+            },
+            success: function (data) {                
+                var result = eval('(' + data + ')');
+                if (result.suc) {
+                    $('#rel_dlg').dialog('close');      // close the dialog   
+                    $('#rel_dg').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }  
+    function removeRel(){
+        var row = $('#rel_dg').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_delete")?', function(r){
+	            if (r){
+                    $.post("@Url.Content("~/Authority/RemoveAuditorRelation")",{id:row.id},function(data){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: data.msg
+                        });
+                        if(data.suc){
+                            $('#rel_dg').datagrid('reload'); 
+                        }
+                    });
+                }
+            });
+        }
+    }
+    function qq(value,name){   
+        $('#rel_dg').datagrid('load',{
+        value: value,   
+        name: name   
+        });
+    } 
+   
+</script>
+
+<table id="rel_dg"></table>  
+<div id="toolbar">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newRel()">新建关系</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editRel()">编辑关系</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeRel()">删除关系</a>
+    <input id="ss" class="easyui-searchbox" style="width:220px"  searcher="qq" menu="#mm" prompt="@Html.Lang("please_input")" /> 
+    <div id="mm" style="width:100px">  
+        <div name="name">搜索内容</div>  
+    </div>  
+</div>  
+    
+<div id="rel_dlg" class="easyui-dialog" style="width:400px;height:260px;padding:10px 20px"  
+        closed="true" buttons="#dlg-buttons">  
+    <div class="ftitle">事业部---审核人关系维护</div>  
+    <form id="fm" method="post">
+        <div class="fitem">  
+            <label>步骤名称:</label>  
+            <input class="easyui-combobox" name="stepValue" id="stepValue" valuefield="id" textfield="name" style="width: 160px;" panelheight="140px" url="@Url.Content("~/Items/getProcessStepName")" />            
+        </div> 
+        <div class="fitem">  
+            <label>关联类型:</label>  
+            <input class="easyui-combobox" id="relateType" name="relateType" valuefield="id" textfield="name" url="@Url.Content("~/Items/getProcessRelationType")" style="width: 160px;"/>
+        </div>
+        <div class="fitem">  
+            <label>关联部门名称:</label>  
+            <input class="easyui-combobox" id="relateValue" name="relateValue" style="width: 160px;" valuefield="id" textfield="name" panelheight="150px" />
+        </div>
+        <div class="fitem">  
+            <label>审核人:</label>  
+            <input name="auditor" id="auditor" class="easyui-combobox" url="@Url.Content("~/Items/getSysUsers")" valuefield="id" textfield="name" style="width: 160px;"/> 
+        </div>
+    </form>  
+</div>  
+
+<div id="dlg-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveRel()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#rel_dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div> 

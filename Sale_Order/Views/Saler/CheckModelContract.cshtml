@@ -1,0 +1,522 @@
+﻿@using Sale_Order.Models;
+@{
+    ModelContract cmc = (ModelContract)ViewData["mc"];
+}
+<script type="text/javascript">
+
+    $(function () {
+        $("#order_div input[type='text']").attr("readonly", "readonly");
+        $("#order_div textarea").attr("readonly", "readonly");
+    });
+
+</script>
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+    <div data-options="region:'center'">        
+        <div id="order_div" class="easyui-panel" title="@Html.Lang("check_create_model_contract")" style="width: 840px; padding: 10px;
+    background: #fafafa;+position: relative;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                    @if (4 == cmc.step_version)
+                    { 
+                        <tr>
+                            <td>
+                                单据编号:
+                            </td>
+                            <td>
+                                <input type="text" style="width:115px" value="@cmc.old_bill_no"/>
+                            </td>
+                            @for (var i = 0; i < 6; i++)
+                            { 
+                                <td>
+                                </td>
+                            }
+                        </tr>
+                    }
+                    <tr>
+                        <td>
+                            下单日期:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@(((DateTime)cmc.bill_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            产品类别:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px"  value="@cmc.product_type"/>
+                        </td>
+                        <td>
+                            模单类型:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.model_type" />
+                        </td>
+                        <td>
+                            系统流水号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:115px" value="@cmc.sys_no"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            办事处/代理:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.agency_name"/>
+                        </td>
+                        <td>
+                            营业工程师:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.clerk_name"/>
+                        </td>
+                        <td>
+                            联系电话:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px"  value="@cmc.clerk_phone" />
+                        </td>
+                        <td>
+                            EMAIL:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.clerk_email" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            对应项目组:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.project_team"/>
+                        </td>
+                        <td>
+                            事业部:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.bus_dep" />                    
+                        </td>
+                        <td>
+                            报价员:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.quotation_clerk_name" />
+                        </td>
+                        <td>
+                            报价编号:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.quote_num"/>
+                        </td>
+                    </tr>
+                    <tr>                    
+                        <td>
+                            币别:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.currency_name" />
+                        </td>
+                        <td>
+                            支付方式:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.clear_way"/>
+                        </td>
+                        <td>
+                            交货日期:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@(cmc.fetch_date == null ? "" : ((DateTime)cmc.fetch_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            交货地点:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.fetch_add_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            贸易类型:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.trade_type_name" />
+                        </td>
+                        <td>
+                            产品型号:
+                        </td>
+                        <td colspan="3">
+                            <input type="text" style="width: 300px" value="@cmc.product_model" />
+                        </td>
+                        <td>
+                            购货单位:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.customer_name" />
+                        </td>
+                    </tr>
+                    <tr>                    
+                        <td>
+                            方案公司:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.plan_firm_name" />
+                        </td>
+                        <td>
+                            终端客户:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.zz_customer_name" />
+                        </td>
+                        <td>
+                            海外客户:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.oversea_customer_name" />
+                        </td>
+                        <td>
+                            样品数量:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.qty" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            单价:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.price" />
+                        </td>
+                        <td>
+                            开改模费:
+                        </td>
+                        <td colspan="3">
+                            收费
+                            <input type="text" style="width: 100px" value="@cmc.charge" />
+                            &nbsp;
+                            免费
+                            <input type="text" style="width: 100px" value="@cmc.free" />                            
+                        </td>
+                        <td colspan="2">
+                            @if (!string.IsNullOrWhiteSpace(cmc.count_in_bus_dep))
+                            { 
+                                <input type="checkbox" name="count_in_bus_dep" value="计入事业部" checked="checked" disabled="disabled" /><span>计入事业部</span>
+                            }
+                            else
+                            {
+                                <input type="checkbox" name="count_in_bus_dep" value="计入事业部" disabled="disabled" /><span>计入事业部</span>
+                            }
+                            &nbsp;
+                            @if (!string.IsNullOrWhiteSpace(cmc.special_model))
+                            { 
+                                <input type="checkbox" name="special_model" value="特殊开模单"  checked="checked" disabled="disabled" /><span>特殊开模单</span>
+                            }
+                            else
+                            {
+                                <input type="checkbox" name="special_model" value="特殊开模单" disabled="disabled" /><span>特殊开模单</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            产品用途:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px"  value="@cmc.product_use"/>
+                        </td>
+                        <td>
+                            客户机型:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.project_name" />
+                        </td>
+                        <td>
+                            出图编号:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.pic_number" />
+                        </td>
+                        <td>
+                            出图版本号:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.pic_version" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            样品用途:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.sample_use"/>
+                        </td>
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.User.real_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            备注:
+                        </td>
+                        <td colspan="7">
+                            <textarea cols="84" rows="2" style="margin: 0;">@cmc.comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            客户主板平台商或DSP型号:
+                            <input type="text" style="width: 220px" value="@cmc.DSP_model" />
+                        </td>
+                        <td>
+                            智能手机:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.is_smart_phone"/>
+                        </td>
+                        <td>
+                            应用系统:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.app_system" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            产品行业分类:
+                            <input type="text" style="width: 260px" value="@cmc.product_classification"/>
+                        </td>
+                        <td colspan="4">                            
+                            客户首次小批量订单时间及订单数量:
+                            <input type="text" style="width: 140px" value="@cmc.first_batch" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            客户第二次小批量订单时间及订单数量:
+                            <input type="text" style="width: 140px" value="@cmc.second_batch" />
+                        </td>
+                        <td colspan="4">
+                            客户第三次小批量订单时间及订单数量:
+                            <input type="text" style="width: 140px" value="@cmc.third_batch" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            客户大批量生产开始时间:
+                            <input type="text" style="width: 115px;" value="@(cmc.batch_start_date == null ? "" : ((DateTime)cmc.batch_start_date).ToString("yyyy-MM-dd"))" />
+                            &nbsp;结束时间:
+                            <input type="text" style="width: 115px" value="@(cmc.batch_finish_date == null ? "" : ((DateTime)cmc.batch_finish_date).ToString("yyyy-MM-dd"))" />
+                            &nbsp;每月产量:
+                            <input type="text" style="width: 115px;" value="@cmc.batch_quantity" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            客样:
+                            <input type="text" style="width: 60px" value="@cmc.has_customer_sample" />
+                            @if ("有".Equals(cmc.has_customer_sample))
+                            {
+                            <span id="customer_sample_span">
+                                是否完全跟同客样:
+                                <input type="text" style="width: 60px" value="@cmc.same_with_customer_sample" />
+                                @if ("否".Equals(cmc.same_with_customer_sample))
+                                {
+                                 <span id="customer_sample_diff_span">
+                                    客户软件更改:
+                                    <input type="text" style="width: 80px" value="@cmc.soflware_can_change"/>
+                                    原理:
+                                    <input type="text" style="width: 100px" value="@cmc.theory"/>
+                                    结构:
+                                    <input type="text" style="width: 100px" value="@cmc.structure"/>
+                                 </span>          
+                                }        
+                            </span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            手机显示模组由Truly提供：
+                            <input type="text" style="width: 90px" value="@cmc.display_module_by_truly" />
+                             &nbsp;&nbsp;
+                             @if ("是".Equals(cmc.display_module_by_truly))
+                             {
+                             <span id="display_module_model_span">
+                                型号为:
+                                <input type="text" style="width: 300px" value="@cmc.display_module_model" />
+                             </span>
+                             }
+                             else if ("否".Equals(cmc.display_module_by_truly))
+                             {
+                             <span id="display_module_reason_span">
+                                原因为:
+                                <input type="text" style="width: 300px" value="@cmc.display_module_reason" />
+                             </span>
+                             }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            带摄像功能:
+                            <input type="text" style="width: 240px" value="@cmc.video_by_truly" />
+                            @if ("带摄像功能，摄像头由TRULY提供".Equals(cmc.video_by_truly))
+                            {
+                            <span id="has_video_function_model_span">
+                                型号为:<input type="text" style="width: 300px" value="@cmc.video_model" />
+                            </span>
+                            }
+                            else if ("带摄像功能，摄像头不是TRULY提供".Equals(cmc.video_by_truly))
+                            {
+                            <span id="has_video_function_reason_span">
+                                原因为:<input type="text" style="width: 300px" value="@cmc.video_reason" />
+                            </span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            带触摸屏:
+                            <input type="text" style="width: 240px" value="@cmc.panel_by_truly" />
+                            @if ("带触摸屏，触摸屏由TRULY提供".Equals(cmc.panel_by_truly))
+                            {
+                            <span id="has_touch_panel_model_span">
+                                型号为:<input type="text" style="width: 300px" value="@cmc.panel_model" />
+                            </span>
+                            }
+                            else if ("带触摸屏，触摸屏不是TRULY提供".Equals(cmc.panel_by_truly))
+                            {                            
+                            <span id="has_touch_panel_reason_span">
+                                原因为:<input type="text" style="width: 300px" value="@cmc.panel_reason" />
+                            </span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            触摸屏类型:
+                            &nbsp;
+                            四线电阻式TP
+                            <input type="text" style="width: 70px" value="@cmc.four_TP" />
+                            &nbsp;
+                            Touch Window
+                            <input type="text" style="width: 70px" value="@cmc.touch_window" />
+                            &nbsp;
+                            五线电阻式触摸屏
+                            <input type="text" style="width: 70px" value="@cmc.five_TP" />
+                            &nbsp;
+                            电容式触摸屏
+                            <input type="text" style="width: 70px" value="@cmc.cap_touch_panle" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            捆绑方式:
+                            <input type="text" style="width: 110px" value="@cmc.display_panel_by_truly" />
+                            @if ("捆绑信利显示屏".Equals(cmc.display_panel_by_truly))
+                            {
+                            <span id="display_panel_truly_span">
+                                对应信利显示模块型号:
+                                <input type="text" style="width: 100px" value="@cmc.truly_display_panel_model" />
+                                对应报价编号:
+                                <input type="text" style="width: 80px" value="@cmc.display_panel_quatation_no" />
+                                对应营业工程师:
+                                <input type="text" style="width: 80px" value="@cmc.display_panel_clerk" />                                
+                            </span>
+                            }
+                        </td>
+                    </tr>                    
+                    <tr>
+                        <td>
+                            环保要求:
+                        </td>
+                        <td colspan="7">
+                            <input type="text" style="width: 100px" value="@cmc.env_demand" />
+                            @if ("特殊标准:".Equals(cmc.env_demand))
+                            {
+                            <span id="env_special_span">
+                                <input type="text" style="width: 180px" value="@cmc.env_special" />
+                            </span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            计划生产时间:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px;" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))"/>
+                        </td>
+                        <td>
+                            结束时间:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@(cmc.plan_finish_date == null ? "" : ((DateTime)cmc.plan_finish_date).ToString("yyyy-MM-dd"))"/>
+                        </td>
+                        <td>
+                            每月产量:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px;" value="@string.Concat(cmc.estimated_quantity," K")" />
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            竞争对手:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.competitor" />
+                        </td>
+                        <td>
+                            竞争对手卖价:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 115px" value="@cmc.competitor_price" />
+                        </td>
+                        <td colspan="4">
+                            竞争对手的配置(TFT和IC型号):
+                            <input type="text" style="width: 115px" value="@cmc.competitor_configuration" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            工程内容:
+                        </td>
+                        <td colspan="7">
+                            <textarea cols="84" rows="2" style="margin: 0;">@cmc.engineer_content</textarea>
+                        </td>
+                    </tr>
+                    @if ("改模".Equals(cmc.model_type))
+                    {
+                    <tr id="modify_model_tr">
+                        <td>
+                            是否已下:
+                        </td>
+                        <td colspan="7">
+                            <input type="text" style="width: 115px" value="@cmc.modify_model_has_bill" />
+                            已备料/已生产的处理方式:
+                            <input type="text" style="width: 115px" value="@cmc.modify_model_has_bill_deal_way" />
+                        </td>
+                    </tr>
+                    }
+                </table>
+                <div id="downloadPanel">
+                    <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
+                    title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + cmc.sys_no)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

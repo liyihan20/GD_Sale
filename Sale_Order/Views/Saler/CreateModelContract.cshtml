@@ -1,0 +1,1067 @@
+﻿@using Sale_Order.Models;
+@{
+    ModelContract cmc = (ModelContract)ViewData["cm"];
+}
+<script type="text/javascript">
+
+    $(function () {
+
+        $("#customer_sample_span").hide();
+        $("#customer_sample_diff_span").hide();
+        $("#display_module_model_span").hide();
+        $("#display_module_reason_span").hide();
+        $("#has_video_function_model_span").hide();
+        $("#has_video_function_reason_span").hide();
+        $("#has_touch_panel_model_span").hide();
+        $("#has_touch_panel_reason_span").hide();
+        $("#display_panel_truly_span").hide();
+        $("#env_special_span").hide();
+        $("#modify_model_tr").hide();
+
+        $("#currency").combobox({
+            onSelect: function (record) {
+                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
+                    function (data) {
+                        $('#exchange').numberbox('setValue', data);
+                    }, "json"
+                );
+            }
+        });
+
+        $("#model_type").combobox({
+            onChange: function(newValue,oldValue){
+                if(newValue=="改模"){
+                    $("#modify_model_tr").show();
+                }else{
+                    $("#modify_model_tr").hide();
+                }
+            }
+        });
+        $("#has_customer_sample").combobox({
+            onChange: function(newValue,oldValue){
+                if(newValue=="有"){
+                    $("#customer_sample_span").show();
+                }else{
+                    $("#customer_sample_span").hide();
+                }
+            }
+        });
+        $("#same_with_customer_sample").combobox({
+            onChange: function(newValue,oldValue){
+                if(newValue=="否"){
+                    $("#customer_sample_diff_span").show();
+                }else{
+                    $("#customer_sample_diff_span").hide();
+                }
+            }
+        });
+        $("#display_module_by_truly").combobox({
+            onChange: function(newValue,oldValue){
+                if(newValue=="是"){
+                    $("#display_module_model_span").show();
+                    $("#display_module_reason_span").hide();
+                }else{
+                    $("#display_module_model_span").hide();
+                    $("#display_module_reason_span").show();
+                }
+            }
+        });
+        $("#display_panel_by_truly").combobox({
+            onChange: function(newValue,oldValue){
+                if(newValue=="捆绑信利显示屏"){
+                    $("#display_panel_truly_span").show();
+                }else{
+                    $("#display_panel_truly_span").hide();
+                }
+            }
+        });
+        $("#env_demand").combobox({
+            onChange: function(newValue,oldValue){
+                if(newValue=="特殊标准:"){
+                    $("#env_special_span").show();
+                }else{
+                    $("#env_special_span").hide();
+                }
+            }
+        });
+
+        $("#project_team").combogrid({
+            textField: "pjGroup",
+            idField: "pjGroup",
+            panelWidth: 300,
+            noWap: "false",
+            required: 'true',
+            editable: false,
+            url: '@Url.Content("~/Items/GetPjGroupAndManager")',
+            columns: [[
+                        {
+                            field: 'pjGroup', title: '@Html.Lang("project_team")', width: 180,
+                            styler: function (value, row, index) {
+                                return 'white-space:normal';
+                            }
+                        },
+					    {
+					        field: 'pjManager', title: '项目经理', width: 90
+                            , styler: function (value, row, index) {
+                                return 'white-space:normal';
+                            }
+					    }
+            ]]
+        });
+
+        $("#product_classification").combogrid({
+            textField: "value",
+            idField: "value",
+            panelWidth: 500,
+            noWap:false,
+            editable:false,
+            required:true,
+            url:'@Url.Content("~/Items/GetProjectItems?what=分类")',
+            columns: [[
+                        {
+                            field: 'value', title: '@Html.Lang("classification")', width: 140,
+                            styler: function (value, row, index) {
+                                return 'white-space:normal';
+                            }
+                        },
+					    {
+					        field: 'note', title: '@Html.Lang("description")', width: 330
+                            , styler: function (value, row, index) {
+                                return 'white-space:normal';
+                            }
+					    }
+            ]]
+        });
+
+        //摄像头由信利提供
+        $("#video_by_truly").combobox({
+            onChange: function (newValue, oldValue) {
+                if (newValue == "带摄像功能，摄像头由TRULY提供") {
+                    $("#has_video_function_model_span").show();
+                    $("#has_video_function_reason_span").hide();
+                } else if (newValue == "带摄像功能，摄像头不是TRULY提供") {
+                    $("#has_video_function_reason_span").show();
+                    $("#has_video_function_model_span").hide();
+                } else {
+                    $("#has_video_function_model_span").hide();
+                    $("#has_video_function_reason_span").hide();
+                }
+            }
+        });
+
+        //带触摸屏，触摸屏由TRULY提供
+        $("#panel_by_truly").combobox({
+            onChange: function (newValue, oldValue) {
+                if (newValue == "带触摸屏，触摸屏由TRULY提供") {
+                    $("#has_touch_panel_model_span").show();
+                    $("#has_touch_panel_reason_span").hide();
+                } else if (newValue == "带触摸屏，触摸屏不是TRULY提供") {
+                    $("#has_touch_panel_reason_span").show();
+                    $("#has_touch_panel_model_span").hide();
+                } else {
+                    $("#has_touch_panel_model_span").hide();
+                    $("#has_touch_panel_reason_span").hide();
+                }
+            }
+        });
+
+        //几个表头combobox的搜索方法
+        $(".remotebox").each(function () {
+            $(this).combobox({
+                valueField: "number",
+                textField: "name",
+                required: true,
+                keyHandler: {
+                    query: function () { },
+                    enter: function () {
+                        var box_id = $(this).attr("id");
+                        var url = "";
+                        switch (box_id) {
+                            case "clerk_no":
+                                url = "@Url.Content("~/Items/getClerks")";
+                                break;
+                        };
+                        var _this = "#" + box_id;
+                        var q = $(_this).combobox('getText');
+                        if (q != "") {
+                            $.post(url, { q: q },
+                            function (data) {
+                                $(_this).combobox('loadData', data);
+                                $(_this).combobox('setText', q);
+                            },
+                            "json"
+                            );
+                        }
+                    }
+                }
+            });
+        });
+
+        //客户下拉框
+        $(".customerbox").each(function () {
+            $(this).combogrid({
+                loadMsg: "Please wait...",
+                idField: "number",
+                textField: "name",
+                panelWidth: 400,
+                columns: [[
+                        { field: 'number', title: '@Html.Lang("customer_num")', width: 150 },
+					    { field: 'name', title: '@Html.Lang("customer_name")', width: 220 }
+                ]],
+                keyHandler: {
+                    query: function () { },
+                    enter: function () {
+                        var box_id = $(this).attr("id");
+                        var _this = "#" + box_id;
+                        var q = $(_this).combogrid('getText');
+                        if (q != "") {
+                            $.post("@Url.Content("~/Items/getCostomers")", { q: q },
+                                function (data) {
+                                    $(_this).combogrid('grid').datagrid('loadData', data);
+                                    $(_this).combogrid('setText', q);
+                                },
+                                "json"
+                                );
+                        }
+                    }
+                }
+
+            });
+        });
+
+        //设置值
+        $('#clerk_no').combobox('setText', '@cmc.clerk_name');
+        $('#customer_no').combogrid('setText', '@Html.Raw(cmc.customer_name)');
+        $('#zz_customer_no').combogrid('setText', '@Html.Raw(cmc.zz_customer_name)');
+        $('#plan_firm_no').combogrid('setText', '@Html.Raw(cmc.plan_firm_name)');
+        $('#oversea_customer_no').combogrid('setText', '@Html.Raw(cmc.oversea_customer_name)');
+
+        $('#model_type').combobox('setValue', '@cmc.model_type');
+        $('#has_customer_sample').combobox('setValue', '@cmc.has_customer_sample');
+        $('#same_with_customer_sample').combobox('setValue', '@cmc.same_with_customer_sample');
+        $('#display_module_by_truly').combobox('setValue', '@cmc.display_module_by_truly');
+        $('#display_panel_by_truly').combobox('setValue', '@cmc.display_panel_by_truly');
+        $('#env_demand').combobox('setValue', '@cmc.env_demand');
+        $('#video_by_truly').combobox('setValue', '@cmc.video_by_truly');
+        $('#panel_by_truly').combobox('setValue', '@cmc.panel_by_truly');
+
+        $("#agency_div").css("visibility", "visible");
+    });
+
+</script>
+@if (0 == cmc.step_version)
+{
+    <script type="text/javascript">
+        $(function () {
+        //保存订单
+        $('#saveAllBut').bind('click', function () {   
+            $.messager.progress(); 
+            $('#order_form').form('submit',{
+                url: '@Url.Content("~/Saler/SalerSaveModelContract")',
+                onSubmit:function(param){
+                    if(!$('#order_form').form('validate')){
+                        return false;
+                    }
+                    param.customer_name=$("#customer_no").combogrid("getText");
+                    param.zz_customer_name=$('#zz_customer_no').combogrid('getText');
+                    param.plan_firm_name=$('#plan_firm_no').combogrid('getText');
+                    param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
+                    return true;
+                },
+                success: function (data) { 
+                    var result = eval('('+ data +')');
+                    if(result.suc){ 
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "@Html.Lang("suc_save")"
+                        });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "@Html.Lang("failure_save"):"+result.msg
+                        });
+                    }                        
+                }
+            });
+            $.messager.progress("close");             
+        });
+        
+           //提交申请按钮
+            $("#submitApply").click(function(){
+                //首先检测订单是否已保存
+                $("#submitApply").linkbutton('disable');
+                $('#saveAllBut').linkbutton('disable');
+                $.post("@Url.Content("~/Saler/CheckIsBillExist")",{sysNum:$("#sys_no").val()},
+                function(data){
+                    if(data.success){  
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "正在提交，请等待跳转。。。"
+                        });
+                        setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyCM?sys_no=")"+$("#sys_no").val();',2000);
+                    }else{
+                        $("#submitApply").linkbutton('enable');
+                        $('#saveAllBut').linkbutton('enable');
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: '提交之前请先保存订单'
+                         });
+                    }
+                },"json");
+            });
+        });
+    </script>
+}
+else
+{ 
+    <script type="text/javascript">
+        function okClick(){        
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
+	            if (r){
+                    $.messager.progress(); 
+                    $('#order_form').form('submit',{
+                        url: '@Url.Content("~/Audit/AuditorSaveModelContract")',
+                        onSubmit: function(param){
+                            param.step="@cmc.step_version";
+                            param.customer_name=$("#customer_no").combogrid("getText");
+                            param.zz_customer_name=$('#zz_customer_no').combogrid('getText');
+                            param.plan_firm_name=$('#plan_firm_no').combogrid('getText');
+                            param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
+                        },
+                        success: function (data) {
+                            var result = eval('('+ data +')');
+                            if(result.suc){
+                                $('#okFlag').val('true');
+                                beginAudit();
+                            }else{
+                                $.messager.progress("close");
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "@Html.Lang("failure_save"):"+result.msg
+                                });
+                            }                        
+                        }
+                    }); 
+	            }
+            });
+        }
+    function noClick(){
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
+	        if (r){
+                $('#okFlag').val('false');
+                beginAudit();
+            }
+        });
+    }
+   
+   function beginAudit(){        
+        $("#audit_fm").form("submit",{
+            url:"@Url.Content("~/Audit/HandleAgencyAudit")",
+            success:function(data){
+                $.messager.progress('close');
+                var result=eval("("+data+")"); 
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: result.msg + ",正在跳转..."
+                });
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                //getAuditResult();
+            }
+        });
+    }
+
+    function block(){
+        var reason=$("#agency_comment").val();
+        if($.trim(reason)==""){
+            $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "挂起操作必须写明原因，提交失败"
+                });   
+        }else{
+             $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
+	         if (r){
+                 $.messager.progress();
+                 $("#audit_fm").form("submit",{
+                    url:"@Url.Content("~/Audit/BlockOrder")",
+                    success:function(data){
+                        $.messager.progress('close');
+                        var result=eval("("+data+")"); 
+                         if(result.success){
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: result.msg + ",正在跳转..."
+                            });
+                            setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                        }else{
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: result.msg
+                            });
+                            setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
+                        }
+                    }
+                });
+            }
+            });  
+        }
+    }
+    </script>
+}
+@*下单组审批，规格型号必须取自K3*@
+@if (4 == cmc.step_version)
+{
+    <script type="text/javascript">
+        $(function () {
+            $("#product_model").combogrid({
+                valueField: "model",
+                textField: "model",
+                panelWidth: 420,
+                required: true,
+                columns: [[
+                        { field: 'number', title: '@Html.Lang("pro_num")', width: 120 },
+    					{ field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
+    					{ field: 'model', title: '@Html.Lang("pro_model")', width: 160 }
+    				]],
+                keyHandler: {
+                    query: function () { },
+                    enter: function () {
+                        var q = $("#product_model").combogrid('getText');
+                        if (q != "") {
+                            $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
+                                function (data) {
+                                    $("#product_model").combogrid('grid').datagrid('loadData', data);
+                                    $("#product_model").combogrid('setText', q);
+                                },
+                                "json"
+                                );
+                        }
+                    }
+                }
+            });
+
+            $("#product_model").combogrid("setText","@cmc.product_model");
+
+            //产品代码从下拉列表中选中一项的处理事件
+            $("#product_model").combogrid('grid').datagrid({
+                onClickRow: function (rowIndex, rowData) {
+                    $("#product_model").combogrid('setValue', rowData.model);
+                    $("#product_model").combogrid('setText', rowData.model);
+                    $("#product_name").val(rowData.name);
+                    $("#product_number").val(rowData.number);               
+                    $('#product_unit').val(rowData.unit_number);     
+                    $("#product_model").combogrid('hidePanel');
+                }
+            }); 
+    });
+    </script>
+}
+<div class="easyui-layout" data-options="fit:true" id="agency_div" style="visibility:hidden">
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+    @if (cmc.step_version > 0)
+    {
+        <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;
+            padding: 8px 10px;">
+            <form id="audit_fm" method="post" action="">
+                @Html.Lang("audit_opinion"):
+                <input type="hidden" name="step" value="@cmc.step_version" />
+                <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
+                <input type="hidden" name="okFlag" id="okFlag" value="" />
+                <input id="agency_comment" name="agency_comment" style="width: 500px" />&nbsp; 
+                <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a> 
+                <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
+            </form>
+        </div>
+    }
+    <div data-options="region:'center'">
+        <form id="order_form" method="post">
+        <div id="order_div" class="easyui-panel" title="@Html.Lang("new_create_model_contract")" style="width: 840px; padding: 10px;
+    background: #fafafa;+position: relative;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                    @if (4 == cmc.step_version)
+                    { 
+                        <tr>
+                            <td>
+                                单据编号:
+                            </td>
+                            <td>
+                                <input type="text" name="old_bill_no" id="old_bill_no" style="width:115px" value="@cmc.old_bill_no"/>
+                            </td>
+                            @for (var i = 0; i < 6; i++)
+                            { 
+                                <td>
+                                </td>
+                            }
+                        </tr>
+                    }
+                    <tr>
+                        <td>
+                            下单日期:
+                        </td>
+                        <td>
+                            <input class="easyui-datebox" name="bill_date" style="width: 120px" required="true" editable="false" value="@(((DateTime)cmc.bill_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            产品类别:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 120px" name="product_type" id="product_type"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                           data:[
+                                           {value:'TP'},{value:'TDD'},{value:'FPI'}
+                                           ]" value="@cmc.product_type"/>
+                        </td>
+                        <td>
+                            模单类型:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 120px" name="model_type" id="model_type"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                           data:[
+                                           {value:'开模'},{value:'改模'}
+                                           ]" />
+                        </td>
+                        <td>
+                            系统流水号:
+                        </td>
+                        <td>
+                            <input type="text" name="sys_no" id="sys_no" style="width:115px" readonly="readonly" value="@cmc.sys_no"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            办事处/代理:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="agency_no" style="width: 120px" editable="false"
+                    panelwidth="140" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" value="@cmc.agency_no"/>
+                        </td>
+                        <td>
+                            营业工程师:
+                        </td>
+                        <td>
+                            <input id="clerk_no" class="remotebox" name="clerk_no" style="width: 120px" value="@cmc.clerk_no"/>
+                        </td>
+                        <td>
+                            联系电话:
+                        </td>
+                        <td>
+                            <input class="easyui-validatebox" name="clerk_phone" style="width: 115px"  required="true" value="@cmc.clerk_phone" />
+                        </td>
+                        <td>
+                            EMAIL:
+                        </td>
+                        <td>
+                            <input class="easyui-validatebox" name="clerk_email" style="width: 115px" data-options="validType:'email',required:true" value="@cmc.clerk_email" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            对应项目组:
+                        </td>
+                        <td>
+                            <input id="project_team" name="project_team" style="width: 120px" value="@cmc.project_team"/>
+                        </td>
+                        <td>
+                            事业部:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 120px" name="bus_dep" id="bus_dep" value="@cmc.bus_dep"
+                                data-options="textField:'name',valueField:'name',panelHeight:'auto', required:true,editable:false, url:'@Url.Content("~/Items/getRelateDeps?dep_type=开模事业部")'" />                    
+                        </td>
+                        <td>
+                            报价员:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id" style="width: 120px"  editable="false"
+                    valuefield="user_id" textfield="user_name" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" required="true" value="@cmc.quotation_clerk_id" />
+                        </td>
+                        <td>
+                            报价编号:
+                        </td>
+                        <td>
+                            <input class="easyui-validatebox" name="quote_num" id="quote_num" style="width: 115px" required="true" value="@cmc.quote_num"/>
+                        </td>
+                    </tr>
+                    <tr>                    
+                        <td>
+                            币别:
+                        </td>
+                        <td>
+                            <input id="currency_no" class="easyui-combobox" name="currency_no" panelHeight="150" url="@Url.Content("~/Items/getItems?what=currency")" editable="false"
+                        valuefield="no" textfield="name" style="width: 120px"  required="true" value="@cmc.currency_no" />
+                        </td>
+                        <td>
+                            支付方式:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="clear_way" name="clear_way" url="@Url.Content("~/Items/getItems?what=clearing_way")"
+                        valuefield="name" textfield="name" style="width: 120px" panelWidth="240" required="true" value="@cmc.clear_way"/>
+                        </td>
+                        <td>
+                            交货日期:
+                        </td>
+                        <td>
+                            <input id="fetch_date" class="easyui-datebox" name="fetch_date" style="width: 120px" required="true" editable="false" value="@(cmc.fetch_date == null ? "" : ((DateTime)cmc.fetch_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            交货地点:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="fetch_add_no" name="fetch_add_no" url="@Url.Content("~/Items/getItems?what=delivery_place")" editable="false"
+                        valuefield="no" textfield="name" panelheight="130" panelwidth="200" style="width: 120px"  required="true" value="@cmc.fetch_add_no" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            贸易类型:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="trade_type_no" name="trade_type_no" style="width: 120px"  editable="false"
+                    panelHeight="100" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=trade_type")" required="true" value="@cmc.trade_type_no" />
+                        </td>
+                        <td>
+                            产品型号:
+                        </td>
+                        <td colspan="3">
+                            @if (4 == cmc.step_version)
+                            {
+                                <input id="product_model" name="product_model" required="true" style="width: 300px" value="@cmc.product_model" />
+                                <input type="hidden" name="product_name" id="product_name" value="@cmc.product_name" />
+                                <input type="hidden" name="product_number" id="product_number" value="@cmc.product_number" />
+                                <input type="hidden" name="product_unit" id="product_unit" value="@cmc.product_unit" />
+                            }
+                            else
+                            {
+                                <input class="easyui-validatebox" name="product_model" required="true" style="width: 300px" value="@cmc.product_model" />
+                            }
+                        </td>
+                        <td>
+                            购货单位:
+                        </td>
+                        <td>
+                            <input id="customer_no" class="customerbox" name="customer_no" style="width: 120px" panelwidth="240px" value="@cmc.customer_no" />
+                        </td>
+                    </tr>
+                    <tr>                    
+                        <td>
+                            方案公司:
+                        </td>
+                        <td>
+                            <input id="plan_firm_no" class="customerbox" name="plan_firm_no" style="width: 120px" panelwidth="240px" value="@cmc.plan_firm_no" />
+                        </td>
+                        <td>
+                            终端客户:
+                        </td>
+                        <td>
+                            <input id="zz_customer_no" class="customerbox" name="zz_customer_no" style="width: 120px" panelwidth="240px" value="@cmc.zz_customer_no" />
+                        </td>
+                        <td>
+                            海外客户:
+                        </td>
+                        <td>
+                            <input id="oversea_customer_no" class="customerbox" name="oversea_customer_no" style="width: 120px" panelwidth="240px" value="@cmc.oversea_customer_no" />
+                        </td>
+                        <td>
+                            样品数量:
+                        </td>
+                        <td>
+                            <input id="qty" class="easyui-numberbox" name="qty" style="width: 115px" required="true" value="@cmc.qty" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            单价:
+                        </td>
+                        <td>
+                            <input id="price" class="easyui-numberbox" name="price" style="width: 115px" precision="2" required="true" value="@cmc.price" />
+                        </td>
+                        <td>
+                            开改模费:
+                        </td>
+                        <td colspan="3">
+                            收费
+                            <input id="charge" class="easyui-numberbox" name="charge" style="width: 100px" precision="2" required="true" value="@cmc.charge" />
+                            &nbsp;
+                            免费
+                            <input id="free" class="easyui-numberbox" name="free" style="width: 100px" precision="2" required="true" value="@cmc.free" />                            
+                        </td>
+                        <td colspan="2">
+                            @if (!string.IsNullOrWhiteSpace(cmc.count_in_bus_dep))
+                            { 
+                                <input type="checkbox" name="count_in_bus_dep" value="计入事业部" checked="checked" /><span>计入事业部</span>
+                            }
+                            else
+                            {
+                                <input type="checkbox" name="count_in_bus_dep" value="计入事业部" /><span>计入事业部</span>
+                            }
+                            &nbsp;
+                            @if (!string.IsNullOrWhiteSpace(cmc.special_model))
+                            { 
+                                <input type="checkbox" name="special_model" value="特殊开模单"  checked="checked" /><span>特殊开模单</span>
+                            }
+                            else
+                            {
+                                <input type="checkbox" name="special_model" value="特殊开模单" /><span>特殊开模单</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            产品用途:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 120px" name="product_use" id="product_use"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto',multiple:true, required:true,editable:false,
+                                           data:[
+                                           {value:'手机'},{value:'非手机'},{value:'其它'}
+                                           ]" value="@cmc.product_use"/>
+                        </td>
+                        <td>
+                            客户机型:
+                        </td>
+                        <td>
+                            <input id="project_name" class="easyui-textbox" name="project_name" style="width: 115px"  required="true" value="@cmc.project_name" />
+                        </td>
+                        <td>
+                            出图编号:
+                        </td>
+                        <td>
+                            <input id="pic_number" class="easyui-textbox" name="pic_number" style="width: 115px" required="true" value="@cmc.pic_number" />
+                        </td>
+                        <td>
+                            出图版本号:
+                        </td>
+                        <td>
+                            <input id="pic_version" class="easyui-validatebox" name="pic_version" style="width: 115px" value="@cmc.pic_version" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            样品用途:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 120px" name="sample_use" id="sample_use"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                           data:[
+                                           {value:'可靠性测试'},{value:'功能性测试'},{value:'结构测试'}
+                                           ]" value="@cmc.sample_use"/>
+                        </td>
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" id="create_user" name="create_user"  value="@cmc.User.real_name" readonly="readonly" style="width: 115px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            备注:
+                        </td>
+                        <td colspan="7">
+                            <textarea cols="84" rows="2" name="comment" id="comment" style="margin: 0;">@cmc.comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            客户主板平台商或DSP型号:
+                            <input id="DSP_model" class="easyui-validatebox" name="DSP_model" style="width: 220px" value="@cmc.DSP_model" />
+                        </td>
+                        <td>
+                            智能手机:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 120px" name="is_smart_phone" id="is_smart_phone"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                           data:[
+                                           {value:'否'},{value:'是'}
+                                           ]" value="@cmc.is_smart_phone"/>
+                        </td>
+                        <td>
+                            应用系统:
+                        </td>
+                        <td>
+                            <input id="app_system" class="easyui-textbox" name="app_system" style="width: 115px" required="true" value="@cmc.app_system" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            产品行业分类:
+                            <input id="product_classification" name="product_classification" style="width: 260px" value="@cmc.product_classification"/>
+                        </td>
+                        <td colspan="4">                            
+                            客户首次小批量订单时间及订单数量:
+                            <input id="first_batch" class="easyui-textbox" name="first_batch" style="width: 140px" value="@cmc.first_batch" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4">
+                            客户第二次小批量订单时间及订单数量:
+                            <input id="second_batch" class="easyui-textbox" name="second_batch" style="width: 140px" value="@cmc.second_batch" />
+                        </td>
+                        <td colspan="4">
+                            客户第三次小批量订单时间及订单数量:
+                            <input id="third_batch" class="easyui-textbox" name="third_batch" style="width: 140px" value="@cmc.third_batch" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            客户大批量生产开始时间:
+                            <input class="easyui-datebox" name="batch_start_date" id="batch_start_date" style="width: 115px;" editable="false" value="@(cmc.batch_start_date == null ? "" : ((DateTime)cmc.batch_start_date).ToString("yyyy-MM-dd"))" />
+                            &nbsp;&nbsp;结束时间:
+                            <input class="easyui-datebox" name="batch_finish_date" id="batch_finish_date" style="width: 115px"  editable="false" value="@(cmc.batch_finish_date == null ? "" : ((DateTime)cmc.batch_finish_date).ToString("yyyy-MM-dd"))" />
+                            &nbsp;&nbsp;每月产量:
+                            <input id="batch_quantity" name="batch_quantity" class="easyui-numberbox" style="width: 115px;" data-options="suffix:' K',required:true" value="@cmc.batch_quantity" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            客样:
+                            <input class="easyui-combobox" style="width: 60px" name="has_customer_sample" id="has_customer_sample"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                           data:[
+                                           {value:'有'},{value:'无'}
+                                           ]" />    
+                            <span id="customer_sample_span">
+                                是否完全跟同客样:
+                                <input class="easyui-combobox" style="width: 60px" name="same_with_customer_sample" id="same_with_customer_sample"
+                                    data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'是'},{value:'否'}
+                                           ]" />
+                                 <span id="customer_sample_diff_span">
+                                    客户软件更改:
+                                    <input class="easyui-combobox" style="width: 80px" name="soflware_can_change" id="soflware_can_change"
+                                        data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'可以'},{value:'不可以'}
+                                           ]" value="@cmc.soflware_can_change"/>
+                                    原理:
+                                    <input class="easyui-combobox" style="width: 100px" name="theory" id="theory"
+                                        data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'完全跟同'},{value:'仅供参考'}
+                                           ]" value="@cmc.theory"/>
+                                    结构:
+                                    <input class="easyui-combobox" style="width: 100px" name="structure" id="structure"
+                                        data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'完全跟同'},{value:'仅供参考'}
+                                           ]" value="@cmc.structure"/>
+                                 </span>                  
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            手机显示模组由Truly提供：
+                            <input class="easyui-combobox" style="width: 90px" name="display_module_by_truly" id="display_module_by_truly"
+                                    data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'是'},{value:'否'}
+                                           ]" />
+                             &nbsp;&nbsp;
+                             <span id="display_module_model_span">
+                                型号为:
+                                <input id="display_module_model" class="easyui-textbox" name="display_module_model" style="width: 300px" required="true" value="@cmc.display_module_model" />
+                             </span>
+                             <span id="display_module_reason_span">
+                                原因为:
+                                <input id="display_module_reason" class="easyui-textbox" name="display_module_reason" style="width: 300px" required="true" value="@cmc.display_module_reason" />
+                             </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            带摄像功能:
+                            <input class="easyui-combobox" style="width: 240px" name="video_by_truly" id="video_by_truly"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
+                                           data:[
+                                           {value:'不带摄像功能'},{value:'带摄像功能，摄像头由TRULY提供'},{value:'带摄像功能，摄像头不是TRULY提供'}
+                                           ]" />
+                            <span id="has_video_function_model_span">
+                                型号为:<input class="easyui-textbox" name="video_model" id="video_model"
+                                    style="width: 300px" value="@cmc.video_model" />
+                            </span><span id="has_video_function_reason_span">
+                                原因为:<input class="easyui-textbox" name="video_reason" id="video_reason"
+                                    style="width: 300px" value="@cmc.video_reason" />
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            带触摸屏:
+                            <input class="easyui-combobox" style="width: 240px" name="panel_by_truly" id="panel_by_truly"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
+                                           data:[
+                                           {value:'不带触摸屏'},{value:'带触摸屏，触摸屏由TRULY提供'},{value:'带触摸屏，触摸屏不是TRULY提供'}
+                                           ]" />
+                            <span id="has_touch_panel_model_span">
+                                型号为:<input class="easyui-textbox" name="panel_model" id="panel_model" style="width: 300px" value="@cmc.panel_model" />
+                            </span>
+                            <span id="has_touch_panel_reason_span">
+                                原因为:<input class="easyui-textbox" name="panel_reason" id="panel_reason" style="width: 300px" value="@cmc.panel_reason" />
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            触摸屏类型:
+                            &nbsp;
+                            四线电阻式TP
+                            <input class="easyui-combobox" style="width: 70px" name="four_TP" id="four_TP"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'F/G'},{value:'G/G'}
+                                           ]" value="@cmc.four_TP" />
+                            &nbsp;
+                            Touch Window
+                            <input class="easyui-combobox" style="width: 70px" name="touch_window" id="touch_window"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'F/F/PC'},{value:'F/F/TG'},{value:'F/G'},{value:'其它'}
+                                           ]" value="@cmc.touch_window" />
+                            &nbsp;
+                            五线电阻式触摸屏
+                            <input class="easyui-combobox" style="width: 70px" name="five_TP" id="five_TP"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'F/G'},{value:'G/G'}
+                                           ]" value="@cmc.five_TP" />
+                            &nbsp;
+                            电容式触摸屏
+                            <input class="easyui-combobox" style="width: 70px" name="cap_touch_panle" id="cap_touch_panle"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'GG'},{value:'GFF'},{value:'GF'},{value:'PG'},{value:'PFF'},{value:'PF'}
+                                           ,{value:'OGS-C'},{value:'OGS-S'},{value:'G1F'},{value:'其它'}
+                                           ]" value="@cmc.cap_touch_panle" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            捆绑方式:
+                            <input class="easyui-combobox" style="width: 110px" name="display_panel_by_truly" id="display_panel_by_truly"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                           data:[
+                                           {value:'捆绑信利显示屏'},{value:'单卖'}
+                                           ]" />
+                            <span id="display_panel_truly_span">
+                                对应信利显示模块型号:
+                                <input class="easyui-textbox" name="truly_display_panel_model" id="truly_display_panel_model" style="width: 100px" value="@cmc.truly_display_panel_model" />
+                                对应报价编号:
+                                <input class="easyui-textbox" name="display_panel_quatation_no" id="display_panel_quatation_no" style="width: 80px" value="@cmc.display_panel_quatation_no" />
+                                对应营业工程师:
+                                <input class="easyui-textbox" name="display_panel_clerk" id="display_panel_clerk" style="width: 80px" value="@cmc.display_panel_clerk" />                                
+                            </span>
+                        </td>
+                    </tr>                    
+                    <tr>
+                        <td>
+                            环保要求:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-combobox" style="width: 100px" name="env_demand" id="env_demand"
+                                data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
+                                                data:[
+                                                {value:'ROHS标准'},{value:'无'},{value:'特殊标准:'}
+                                                ]" />
+                            <span id="env_special_span">
+                                <input class="easyui-textbox" name="env_special" id="env_special" style="width: 180px" value="@cmc.env_special" />
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            计划生产时间:
+                        </td>
+                        <td>
+                            <input class="easyui-datebox" name="plan_start_date" id="plan_start_date" style="width: 115px;" required="true" editable="false" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))"/>
+                        </td>
+                        <td>
+                            结束时间:
+                        </td>
+                        <td>
+                            <input class="easyui-datebox" name="plan_finish_date" id="plan_finish_date" style="width: 115px"  required="true" editable="false" value="@(cmc.plan_finish_date == null ? "" : ((DateTime)cmc.plan_finish_date).ToString("yyyy-MM-dd"))"/>
+                        </td>
+                        <td>
+                            每月产量:
+                        </td>
+                        <td>
+                            <input id="estimated_quantity" name="estimated_quantity" class="easyui-numberbox" style="width: 115px;" data-options="suffix:' K',required:true" value="@cmc.estimated_quantity" />
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            竞争对手:
+                        </td>
+                        <td>
+                            <input class="easyui-validatebox" id="competitor" name="competitor" style="width: 115px" value="@cmc.competitor" />
+                        </td>
+                        <td>
+                            竞争对手卖价:
+                        </td>
+                        <td>
+                            <input class="easyui-numberbox" id="competitor_price" name="competitor_price" style="width: 120px" precision="2" value="@cmc.competitor_price" />
+                        </td>
+                        <td colspan="4">
+                            竞争对手的配置(TFT和IC型号):
+                            <input class="easyui-validatebox" id="competitor_configuration" name="competitor_configuration" style="width: 115px" value="@cmc.competitor_configuration" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            工程内容:
+                        </td>
+                        <td colspan="7">
+                            <textarea cols="84" rows="2" name="engineer_content" id="engineer_content" style="margin: 0;">@cmc.engineer_content</textarea>
+                        </td>
+                    </tr>
+                    <tr id="modify_model_tr">
+                        <td>
+                            是否已下:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-combobox" style="width: 120px" name="modify_model_has_bill" id="modify_model_has_bill"
+                                    data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                                   data:[
+                                                   {value:'生产订单'},{value:'备料单'},{value:'皆无'}
+                                                   ]" value="@cmc.modify_model_has_bill" />
+                            已备料/已生产的处理方式:
+                            <input class="easyui-textbox" id="modify_model_has_bill_deal_way" name="modify_model_has_bill_deal_way" style="width: 115px" value="@cmc.modify_model_has_bill_deal_way" />
+                        </td>
+                    </tr>
+                </table>
+                @if (0 == cmc.step_version)
+                {
+                    <br />
+                    @*上传文件的*@
+                    @Html.Partial("_UploadFilePartial")
+                }
+                else
+                {
+                    <div id="downloadPanel">
+                        <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
+                    title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + cmc.sys_no)">
+                        </div>
+                    </div>
+                }
+            </div>
+            @if (0 == cmc.step_version)
+            {
+                <div align="center">
+                    <a id="saveAllBut" href="#" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">@Html.Lang("save_form")</a>
+                    <a id="submitApply" href="#" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">@Html.Lang("submit_apply")</a>
+                </div>
+            }
+        </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    function beginDownloadCeoExcel(){
+        $('#dlg_BLExcel').dialog('close');
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在导出符合条件的数据，请稍等..."
+        });
+        window.location.href="@Url.Content("~/Excels/exportAuditorBLExcel")"+"?beginDate="+$("#fDate").datebox("getValue")+"&toDate="+$("#tDate").datebox("getValue")+"&proModel="+$("#pModel").val();
+    }
+</script>
+<div id="dlg_BLExcel" class="easyui-dialog" style="width:440px;height:200px;padding:10px 20px;" closed="true" buttons="#BLExcel-buttons" title="@Html.Lang("ceo_excel")" modal="true">
+    <div class="ftitle">导出审核成功Excel报表<span id="copName" style="color:Red" /></div>
+    计划经理审核OK日期：<input id="fDate" class="easyui-datebox" name="fDate" style="width: 120px" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+    到
+    <input id="tDate" class="easyui-datebox" name="tDate" style="width: 120px" value="@DateTime.Now.ToString("yyyy-MM-dd")" /> 
+
+    <div style="margin-top:6px;">规格型号：<input type="text" id="pModel" name="pModel" style="width:300px" /></div>
+</div>  
+<div id="BLExcel-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-xls" onclick="beginDownloadCeoExcel()">@Html.Lang("download")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript: $('#dlg_BLExcel').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  

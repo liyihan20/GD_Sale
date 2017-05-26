@@ -1,0 +1,516 @@
+﻿<script type="text/javascript">
+
+    $(function () { 
+
+        $("#customer_no").combogrid({
+            valueField: "number",
+            textField: "number",
+            panelWidth: 350,
+            required:'true',
+            columns: [[
+                        { field: 'number', title: '@Html.Lang("customer_num")', width: 100 },
+					    { field: 'name', title: '@Html.Lang("client_name")', width: 220 }
+				    ]],
+            keyHandler: {
+                query: function () { },
+                enter: function () {
+                    var q = $("#customer_no").combogrid('getText');                    
+                    if (q != "") {
+                        $.post("@Url.Content("~/Items/getAllCustomers")", { q: q },
+                            function (data) {
+                                $("#customer_no").combogrid('grid').datagrid('loadData', data);
+                                $("#customer_no").combogrid('setText', q);
+                                if(data.length<1){
+                                    $.messager.confirm('临时客户新增', '没有此客户信息，是否要新增一个临时客户？', function(r){
+	                                    if (r){
+		                                    $("#dlg_customer").dialog("open");
+                                            $("#customer_fm").form("clear");
+	                                    }
+                                    });
+                                }
+                            },
+                            "json"
+                            );
+                    }
+                }
+            }
+
+        });
+
+         $("#customer_no").combogrid('grid').datagrid({
+            onClickRow: function (rowIndex, rowData) {
+                $("#customer_no").combogrid("setText",rowData.number);
+                $("#customer_no").combogrid("setValue",rowData.number);
+                $("#customer_name").val(rowData.name);
+                $("#customer_no").combogrid('hidePanel');
+            }
+        });
+
+//        $("#dot_matrix").combogrid({
+//            valueField: "name",
+//            textField: "name",
+//            panelWidth: 250,
+//            required:'true',
+//            url:'@Url.Content("~/Items/GetDotMatrix")',
+//            columns: [[
+//                        { field: 'name', title: '点阵缩写', width: 100 },
+//					    { field: 'pixel', title: '像素', width: 120 }
+//				    ]] 
+//        });
+
+//         $("#dot_matrix").combogrid('grid').datagrid({
+//            onClickRow: function (rowIndex, rowData) {
+//                $("#dot_matrix").combogrid("setText",rowData.name);
+//                $("#dot_matrix").combogrid("setValue",rowData.name);
+//                $("#screen_pixel").val(rowData.pixel);
+//                $("#dot_matrix").combogrid('hidePanel');
+//            }
+//        });
+
+        $("#classification").combogrid({            
+            textField: "value",
+            panelWidth: 500,
+            noWap:"false",
+            required:'true',
+            url:'@Url.Content("~/Items/GetProjectItems?what=分类")',
+            columns: [[
+                        { field: 'value', title: '@Html.Lang("classification")', width: 140 ,
+                            styler: function(value,row,index){
+                                return 'white-space:normal';
+                            }},
+					    { field: 'note', title: '@Html.Lang("description")', width: 330 
+                            ,styler: function(value,row,index){
+                                return 'white-space:normal';
+                            }
+                        }
+				    ]] 
+        });
+
+        $("#classification").combogrid('grid').datagrid({
+            onClickRow: function (rowIndex, rowData) {
+                $("#classification").combogrid("setText",rowData.value);
+                $("#classification").combogrid("setValue",rowData.value);
+                $("#classification").combogrid('hidePanel');
+            }
+        });
+
+        $('#saveAllBut').bind('click', function () { 
+            if($("#customer_name").val()==""){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "客户名称不能为空"
+                });
+                return;
+            }
+            if(!$('#bill_form').form('validate')){
+                return;
+            }
+            handling();
+            $('#bill_form').form('submit',{
+                url: '@Url.Content("~/Project/SaveProjectBill")',
+                success: function (data) { 
+                    var result = eval('('+ data +')');
+                    if(result.suc){                        
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存成功"
+                        });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存失败："+result.msg
+                        });
+                    }
+                    hasHandled();
+                }
+            });
+        });
+
+        $("#submitApply").click(function(){
+            handling();
+            $.post("@Url.Content("~/Project/ValidateBeforApply")",{sys_no:$("#sys_no").val()},
+            function(data){
+                if(!data.suc){
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "保存失败："+data.msg
+                    });                    
+                }else{
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "正在提交，请等待跳转。。。"
+                    });
+                    setTimeout('window.location.href="@Url.Content("~/Project/BeginApply?sys_no=")"+$("#sys_no").val();',2000);
+                }
+                hasHandled();
+            });
+        });
+
+    });
+
+    function handling(){        
+        $.messager.progress(); 
+        $('#saveAllBut').linkbutton('disable');
+        $('#submitApply').linkbutton('disable');
+    }
+
+    function hasHandled(){
+        $.messager.progress("close"); 
+        $('#saveAllBut').linkbutton('enable');
+        $('#submitApply').linkbutton('enable');
+    }
+
+    function convertDate(inDate){
+        if(inDate==null || inDate==""){
+            return "";
+        }
+        var order_date_1= eval('new ' + eval(inDate).source);
+        var order_date_2=order_date_1.getFullYear() + '-' + (order_date_1.getMonth() + 1) + '-' + order_date_1.getDate();
+        return order_date_2;
+    }
+
+    function saveTempCustomer(){
+        if(!$('#customer_fm').form('validate')){
+                return;
+        }
+        handling();
+        $('#customer_fm').form('submit',{
+                url: '@Url.Content("~/Project/SaveTempCustomer")',
+                success: function (data) { 
+                    var result = eval('('+ data +')');
+                    if(result.suc){                        
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存成功"
+                        });
+                        $("#dlg_customer").dialog("close");
+                        $("#customer_no").combogrid("setText",result.number);
+                        $("#customer_no").combogrid("setValue",result.number);
+                        $("#customer_name").val($("#tp_customer_name").val());
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存失败："+result.msg
+                        });
+                    }
+                    hasHandled();
+                }
+            });
+    }
+
+</script>
+<form id="bill_form" method="post" action="">
+<div id="order_div" class="easyui-panel" title="@Html.Lang("add_pj")" style="width: 780px; padding: 10px;
+    background: #fafafa; +position: relative;">
+    <table border="0" cellpadding="1px" cellspacing="3px" width="740px">
+        <tr>
+            <td>
+                @Html.Lang("pj_name"):
+            </td>
+            <td colspan="5">
+                <input class="easyui-validatebox" name="project_name" id="project_name" style="width: 585px"
+                    required="true" /><span style="color: Red">*</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("sys_num"):
+            </td>
+            <td>
+                <input type="text" readonly="readonly" name="sys_no" id="sys_no" style="width:115px" value="@ViewData["sys_no"]"/>
+            </td>
+            <td>
+                @Html.Lang("customer_num"):
+            </td>
+            <td>
+                <input id="customer_no" name="customer_no" style="width: 120px" required="true" /><span
+                    style="color: Red">*</span>
+            </td>
+            <td>
+                @Html.Lang("client_name"):
+            </td>
+            <td>
+                <input type="text" readonly="readonly" name="customer_name" id="customer_name" style="width: 115px" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("screen_size"):
+            </td>
+            <td>
+                <input class="easyui-numberbox" precision="2" name="screen_size" id="screen_size"
+                    style="width: 115px" required="true" suffix=" 英寸" /><span style="color: Red">*</span>
+            </td>
+            <td>
+                @Html.Lang("LCD_Pixel"):
+            </td>
+            <td>
+                <input type="text" id="screen_pixel" style="width: 115px" name="screen_pixel" />
+            </td>
+            <td>
+                @Html.Lang("classification"):
+            </td>
+            <td>
+                <input name="classification" id="classification" style="width: 120px" editable="false" /><span
+                    style="color: Red">*</span>
+            </td>
+        </tr>
+        <tr>        
+            <td>
+                @Html.Lang("cam_pixel"):
+            </td>
+            <td colspan="2">
+                <input id="camera_pixel" class="easyui-numberbox" name="camera_pixel" style="width: 220px" value="0"
+                    suffix=" 万PPI" />
+            </td>            
+            <td colspan="3">
+                @Html.Lang("TP_type"):
+                <input type="text" id="TP_type" name="TP_type" style="width: 300px" value="Without TP" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("pro_use"):
+            </td>
+            <td>
+                <input class="easyui-validatebox" name="product_serial" style="width: 115px" id="product_serial" />
+            </td>
+            <td>
+                @Html.Lang("pj_status"):
+            </td>
+            <td>
+                <input class="easyui-combobox" panelHeight="auto" name="project_status" id="project_status" style="width:120px" valuefield="value" textfield="value" editable="false" required="true" url="@Url.Content("~/Items/GetProjectItems?what=项目状态")"/><span
+                    style="color: Red">*</span>
+            </td>
+            <td>
+                @Html.Lang("market_time"):
+            </td>
+            <td>
+                <input class="easyui-datebox" id="start_sell_date" name="start_sell_date" required="true"
+                    style="width: 120px" /><span style="color: Red">*</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("quantity"):
+            </td>
+            <td>
+                <input id="amount" class="easyui-numberbox" name="amount" style="width: 115px" required="true"
+                    suffix=" K PCS" /><span style="color: Red">*</span>
+            </td>
+            <td>
+                @Html.Lang("estimated_price"):
+            </td>
+            <td>
+                <input id="price" class="easyui-numberbox" name="price" style="width: 115px" precision="2"
+                    suffix=" RMB" />
+            </td>
+            <td>
+                @Html.Lang("end_time"):
+            </td>
+            <td>
+                <input class="easyui-datebox" id="end_sell_date" name="end_sell_date" required="true"
+                    style="width: 120px" /><span style="color: Red">*</span>
+            </td>
+        </tr>
+        <tr>        
+            <td>
+                @Html.Lang("truly_percentage"):
+            </td>
+            <td>
+                <input id="truly_percentage" class="easyui-numberbox" name="truly_percentage" style="width: 115px" value="100" suffix=" %" max="100" min="0" />
+            </td>
+            <td>
+                @Html.Lang("biller"):
+            </td>
+            <td>
+                <input type="text" readonly="readonly" name="biller" id="biller" style="width:115px" value="@ViewData["biller"]"/>
+            </td>
+            <td>
+                @Html.Lang("project_team"):
+            </td>
+            <td>
+                <input class="easyui-combobox" id="project_group" name="project_group" panelWidth="150px" url='@Url.Content("~/Items/GetProjectItems?what=pj_group")' valuefield="value" textfield="value" style="width: 120px" required="true" /><span
+                    style="color: Red">*</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("truly_first_vendor"):
+            </td>
+            <td>
+                <input id="truly_first_vendor" name="truly_first_vendor" style="width: 120px" class="easyui-combobox"
+                    data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 'auto',
+                        editable:false,
+                        required:true,
+		                data: [{
+			                label: 'YES',
+			                value: 'true'
+		                },{
+			                label: 'NO',
+			                value: 'false'
+		                }]" /><span style="color: Red">*</span>
+            </td>
+            <td>
+                @Html.Lang("competitor"):
+            </td>
+            <td colspan="3">
+                <input type="text" id="competitor" name="competitor" style="width: 350px" />
+            </td>
+        </tr>
+        <tr>
+            <td>@Html.Lang("comment"):</td>
+            <td colspan="5">
+                <textarea cols="81" rows="3" name="comment" id="comment" style="margin: 0;"></textarea>
+            </td>
+        </tr>
+    </table>
+    <br />
+    <div align="center">
+        <a id="saveAllBut" href="#uploadInfo" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">@Html.Lang("save_form")</a> 
+        <a id="submitApply" href="#uploadInfo" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">@Html.Lang("submit_apply")</a>
+    </div>
+</div>
+</form>
+<div id="dlg_customer" class="easyui-dialog" style="width: 500px;  padding: 10px 10px"
+    closed="true" buttons="#dlg_customer_buttons" modal="true" title="@Html.Lang("add_dialog")">
+    <div class="ftitle">@Html.Lang("add_temp_customer")</div>
+    <form id="customer_fm" method="post">
+    <table border="0" cellpadding="0" cellspacing="3px" width="460px">
+        <tr>
+            <td>
+                @Html.Lang("client_name"):
+            </td>
+            <td>
+                <input class="easyui-validatebox" name="tp_customer_name" id="tp_customer_name" style="width: 120px"
+                    required="true" />
+            </td>
+            <td>
+                @Html.Lang("contacts"):
+            </td>
+            <td>
+                <input class="easyui-validatebox" name="tp_contacts" id="tp_contacts" style="width: 120px"
+                    required="true" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("customer_short"):
+            </td>
+            <td>
+                <input class="easyui-validatebox" name="tp_customer_short" id="tp_customer_short"
+                    style="width: 120px" />
+            </td>
+            <td>
+                @Html.Lang("mobile_phone"):
+            </td>
+            <td>
+                <input id="tp_mobile_phone" class="easyui-numberbox" name="tp_mobile_phone" style="width: 120px"
+                    required="true" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("en_name"):
+            </td>
+            <td>
+                <input class="easyui-validatebox" name="tp_en_name" id="tp_en_name" style="width: 120px" />
+            </td>
+            <td>
+                @Html.Lang("phone"):
+            </td>
+            <td>
+                <input id="tp_phone" class="easyui-numberbox" name="tp_phone" style="width: 120px" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("email"):
+            </td>
+            <td>
+                <input class="easyui-validatebox" name="tp_email" id="tp_email" style="width: 120px"
+                    data-options="validType:['email']" />
+            </td>
+            <td>
+                @Html.Lang("tax"):
+            </td>
+            <td>
+                <input class="easyui-numberbox" name="tp_tax" id="tp_tax" style="width: 120px" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("project_team"):
+            </td>
+            <td colspan="3">
+                <input class="easyui-combobox" id="tp_project_group" name="tp_project_group" url='@Url.Content("~/Items/getItems?what=project_group")' valuefield="name" textfield="name" style="width: 125px"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("customer_addr"):
+            </td>
+            <td colspan="3">
+                <input class="easyui-validatebox" name="tp_customer_addr" id="tp_customer_addr" style="width: 345px" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("en_addr"):
+            </td>
+            <td colspan="3">
+                <input class="easyui-validatebox" name="tp_en_addr" id="tp_en_addr" style="width: 345px" />
+            </td>
+        </tr>
+    </table>
+    </form>
+</div>
+<div id="dlg_customer_buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveTempCustomer()">@Html.Lang("save")</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_customer').dialog('close')">@Html.Lang("cancel")</a>
+</div>
+
+<script type="text/javascript">
+    $(function () { 
+        //编辑已保存的单据
+        if('@ViewData["bill_id"]'!=''){
+            handling();
+            $.post("@Url.Content("~/Project/GetSingleProjectBill")",{id:'@ViewData["bill_id"]'},
+            function(data){
+                var bill=data.bill;
+                $("#project_name").val(bill.project_name);
+                //$("#sys_no").val(bill.sys_no);
+                $("#customer_no").combogrid("setValue",bill.customer_no);
+                $("#customer_name").val(bill.customer_name);
+                $("#screen_size").numberbox("setValue", bill.screen_size);
+                $("#screen_offset").numberbox("setValue", bill.screen_offset);
+                $("#product_serial").val(bill.product_serial);
+                $("#project_status").combobox("setValue",bill.project_status);
+                $("#dot_matrix").combogrid("setValue",bill.dot_matrix);
+                $("#screen_pixel").val(bill.screen_pixel);
+                $("#classification").combogrid("setValue",bill.classification);
+                $("#operation_sys").combobox("setValue",bill.operation_sys);
+                $("#camera_pixel").numberbox("setValue",bill.camera_pixel);
+                $("#TP_type").val(bill.TP_type);
+                $("#platform_client").combobox("setValue",bill.platform_client);
+                $("#platform_model").val(bill.platform_model);
+                $("#start_sell_date").datebox("setValue",convertDate(bill.start_sell_date));
+                $("#amount").numberbox("setValue",bill.amount);
+                $("#price").numberbox("setValue",bill.price);
+                $("#end_sell_date").datebox("setValue",convertDate(bill.end_sell_date));
+                $("#biller").val(data.billerName);
+                $("#project_group").combobox("setValue",bill.project_group);
+                $("#competitor").val(bill.competitor);
+                $("#truly_first_vendor").combobox("setValue",""+bill.truly_first_vendor);
+                $("#truly_percentage").numberbox("setValue",bill.truly_percentage);
+                $("#comment").html(bill.comment);
+                $("#order_div").panel("setTitle","编辑客户立项申请");
+                hasHandled();
+            });
+        }
+    });
+
+</script>

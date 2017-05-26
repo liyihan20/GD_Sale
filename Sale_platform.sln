@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sale_Order", "Sale_Order\Sale_Order.csproj", "{12E17032-F1BA-46B5-95F4-8953780A976E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		sale_debug|Any CPU = sale_debug|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{12E17032-F1BA-46B5-95F4-8953780A976E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12E17032-F1BA-46B5-95F4-8953780A976E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12E17032-F1BA-46B5-95F4-8953780A976E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12E17032-F1BA-46B5-95F4-8953780A976E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12E17032-F1BA-46B5-95F4-8953780A976E}.sale_debug|Any CPU.ActiveCfg = sale_debug|Any CPU
+		{12E17032-F1BA-46B5-95F4-8953780A976E}.sale_debug|Any CPU.Build.0 = sale_debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

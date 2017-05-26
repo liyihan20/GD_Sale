@@ -1,0 +1,91 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#AuditList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'id', title: 'id', width: 10, hidden: true },
+                        { field: 'project_name', title: '@Html.Lang("pj_name")', width: 120},
+                        { field: 'project_status', title: '@Html.Lang("pj_status")', width: 120 }, 
+                        { field: 'customer_name', title: '@Html.Lang("client_name")', width: 120 },
+                        { field: 'product_serial', title: '@Html.Lang("pro_serial")', width: 120 },
+                        { field: 'screen_size', title: '@Html.Lang("screen_size")', width: 120 },
+                        { field: 'screen_pixel', title: '@Html.Lang("cam_pixel")', width: 100 },
+                        { field: 'amount', title: 'amount', width: 100 , hidden: true },
+    					{ field: 'operation_sys', title: '@Html.Lang("op_sys")', width: 120 },
+    					{ field: 'user_name', title: '@Html.Lang("operator")', width: 100 },
+                        { field: 'user_number', title: 'user_number', width: 100,hidden: true }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            },{
+                text: "@Html.Lang("start_quot")",
+                iconCls: 'icon-add',
+                handler: startQuot
+            }],
+            onDblClickRow:CheckDetail
+        });
+
+        $("#checkBt").click(function () {
+//            if($.trim($("#project_name").val()+$("#client").val()+$("#other_key").val())==""){
+//                $.messager.show({
+//                    title: '@Html.Lang("tip")',
+//                    msg: "搜索条件不能都为空"
+//                }); 
+//                return;
+//            }
+            $.messager.progress(); 
+             $("#fm").form("submit", {
+                url: "@Url.Content("~/Project/GetOldProjectBills")",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#AuditList").datagrid("loadData", result);
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+        
+    });
+
+    function CheckDetail(){
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+             window.location.href="@Url.Content("~/Project/CheckSingleOldProjectBill")"+"?id="+row.id;
+        }
+    }    
+    function startQuot(){
+        var href = window.location.href;
+        if(href.indexOf("192.168")>-1){
+        //内网
+        window.open("http://192.168.125.199:8080/pinfo/main.do");
+        }else {
+        //外网访问
+        window.open("http://59.37.42.5:8023/pinfo/sy_login.do");
+        }        
+    }  
+
+</script>
+<div class="easyui-layout" data-options="fit:true" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 38px; background: #fafafa; padding: 1px;"> 
+        <form id="fm" method="post" style="padding:2px 5px;">
+        @Html.Lang("pj_name"):<input id="project_name" name="project_name" style="width: 110px" />&nbsp;
+        @Html.Lang("customer_info"):<input id="client" name="client" style="width: 100px" />&nbsp;
+        @Html.Lang("Other_key"):<input id="other_key" name="other_key" style="width: 100px" />&nbsp;
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>               
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="AuditList" class="easyui-datagrid"></table>
+    </div>
+</div>

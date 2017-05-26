@@ -1,0 +1,233 @@
+﻿@using Sale_Order.Models
+@{
+    Project_bills bill = (Project_bills)ViewData["bill"];
+    List<BlockOrder> blocks = (List<BlockOrder>)ViewData["blockInfo"];
+    }
+<script type="text/javascript">
+    $(function () {
+        $("#order_div input").attr("readonly", "readonly");
+        var href = window.location.href;
+        var url = "http://59.37.42.5:8023/pinfo/sy_login.do"; //外网访问
+        if (href.indexOf("192.168") > -1) {
+            url = "http://192.168.125.199:8080/pinfo/main.do"; //内网
+        }
+        //开始报价
+        $("#startQuotBut").click(function () {
+            window.open(url);
+        });
+        //紧急报价
+        $("#emergencyQuotBut").click(function () {
+            window.open(url);
+        });
+
+    });
+
+
+
+</script>
+
+<div class="easyui-layout" data-options="fit:true">
+    @*订单内容*@
+    <div data-options="region:'center'">
+<div id="order_div" class="easyui-panel" title="@Html.Lang("check_pj")" style="width: 780px; padding: 10px;
+    background: #fafafa; +position: relative;">
+    <table border="0" cellpadding="1px" cellspacing="3px" width="740px">
+        <tr>
+            <td>
+                @Html.Lang("pj_name"):
+            </td>
+            <td colspan="5">
+                <input type="text" name="project_name" id="project_name" style="width:585px" value="@bill.project_name"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("sys_num"):
+            </td>
+            <td>
+                <input type="text" name="sys_no" id="sys_no" style="width:115px" value="@bill.sys_no"/>
+            </td>
+            <td>
+                @Html.Lang("customer_num"):
+            </td>
+            <td>
+                <input type="text" id="customer_no" name="customer_no" style="width:115px" value="@bill.customer_no"/>
+            </td>
+            <td>
+                @Html.Lang("client_name"):
+            </td>
+            <td>
+                <input type="text" name="customer_name" id="customer_name" style="width:115px" value="@bill.customer_name"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("screen_size"):
+            </td>
+            <td>
+                <input class="easyui-numberbox" precision="2" name="screen_size" id="screen_size" style="width:115px" value="@bill.screen_size" suffix=" 英寸"/>
+            </td>
+            <td>
+                @Html.Lang("LCD_Pixel"):
+            </td>
+            <td>
+                <input type="text" id="screen_pixel" style="width:115px" name="screen_pixel" value="@bill.screen_pixel"/>
+            </td>
+            <td>
+                @Html.Lang("classification"):
+            </td>
+            <td>
+                <input type="text" name="classification" id="classification" style="width:115px" value="@bill.classification"/>
+            </td>
+        </tr>
+        <tr>        
+            <td>
+                @Html.Lang("cam_pixel"):
+            </td>
+            <td colspan="2">
+                <input id="camera_pixel" class="easyui-numberbox" name="camera_pixel" style="width:220px" suffix=" 万PPI" value="@bill.camera_pixel"/>
+            </td>            
+            <td colspan="3">
+                @Html.Lang("TP_type"):
+                <input type="text" id="TP_type" name="TP_type" style="width:300px" value="@bill.TP_type"/>
+            </td>
+        </tr>
+        <tr>         
+            <td>
+                @Html.Lang("pro_use"):
+            </td>
+            <td>
+                <input type="text" name="product_serial" style="width:115px" id="product_serial" value="@bill.product_serial"/>
+            </td>                
+            <td>
+                @Html.Lang("pj_status"):
+            </td>
+            <td>
+                <input type="text" name="project_status" id="project_status" style="width:115px" value="@bill.project_status"/>
+            </td>   
+            <td>
+                @Html.Lang("market_time"):
+            </td>
+            <td>
+                <input type="text" id="start_sell_date" name="start_sell_date" style="width:115px" value="@(bill.start_sell_date==null?"":((DateTime)bill.start_sell_date).ToShortDateString())"/>
+            </td>       
+        </tr>
+        <tr>      
+            <td>
+                @Html.Lang("quantity"):
+            </td>
+            <td>
+                <input id="amount" class="easyui-numberbox" name="amount" style="width:115px" suffix=" K PCS" value="@bill.amount"/>
+            </td>
+            <td>
+                @Html.Lang("estimated_price"):
+            </td>
+            <td>
+                <input id="price" class="easyui-numberbox" name="price" style="width:115px" precision="2" suffix=" RMB" value="@bill.price"/>
+            </td>                
+            <td>
+                @Html.Lang("end_time"):
+            </td>
+            <td>
+                <input type="text" id="end_sell_date" name="end_sell_date" style="width:115px" value="@(bill.end_sell_date == null ? "" : ((DateTime)bill.end_sell_date).ToShortDateString())"/>
+            </td>       
+        </tr>
+        <tr>              
+            <td>
+                @Html.Lang("biller"):
+            </td>
+            <td>
+                <input type="text" readonly="readonly" name="biller" id="biller" style="width:115px" value="@bill.User.real_name"/>
+            </td>
+            <td>
+                @Html.Lang("project_team"):
+            </td>
+            <td>
+                <input type="text" readonly="readonly" name="project_group" id="project_group" style="width:115px" value="@bill.project_group"/>
+            </td>            
+            <td>
+                @Html.Lang("truly_percentage"):
+            </td>
+            <td>
+                <input id="truly_percentage" class="easyui-numberbox" name="truly_percentage" style="width: 115px" value="@bill.truly_percentage" suffix=" %" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Html.Lang("truly_first_vendor"):
+            </td>
+            <td>
+                <input type="text" id="truly_first_vendor" style="width:115px" name="truly_first_vendor" value="@(bill.truly_first_vendor==true?"YES":"NO")"/>
+            </td>
+             <td>
+                @Html.Lang("competitor"):
+            </td>
+            <td colspan="3">
+                <input type="text" id="competitor" name="competitor" style="width:350px" value="@bill.competitor"/>
+            </td>
+        </tr>
+        <tr>
+            <td>@Html.Lang("comment"):</td>
+            <td colspan="5">
+                <textarea cols="81" rows="3" readonly="readonly" name="comment" id="comment" style="margin: 0;">@bill.comment</textarea>
+            </td>
+        </tr>
+    </table>
+    @if (ViewData["canQuot"] != null && ViewData["canQuot"] == "yes")
+    {
+        <div align="center">
+            <a id="startQuotBut" href="#" class="easyui-linkbutton" iconCls='icon-add' style="margin:10px 20px;">@Html.Lang("start_quot")</a>
+        </div>
+    }
+    @if (ViewData["emergency_quot"] != null && ViewData["emergency_quot"] == "yes")
+    { 
+        <div align="center">
+            <a id="emergencyQuotBut" href="#" class="easyui-linkbutton" iconCls='icon-add' style="margin:10px 20px;">@Html.Lang("emergency_quot")</a>
+        </div>
+    }
+        
+    
+</div>
+    </div>
+@*挂起信息*@
+    @if (blocks!=null && blocks.Count()>0)
+    { 
+        <div data-options="region:'north',title:'订单挂起信息',split:true" style="background: #fafafa; height: 74px;
+            padding: 3px 10px;">
+            <table style="border: 0;  text-align: center" cellspacing="0">
+                <tr style="font-weight:bold;">
+                    <td style="width: 100px;border-bottom:1px solid;">
+                        审核步骤
+                    </td>
+                    <td style="width: 80px;border-bottom:1px solid;">
+                        操作人
+                    </td>
+                    <td style="width: 120px;border-bottom:1px solid;">
+                        挂起时间
+                    </td>
+                    <td style="width:450px;border-bottom:1px solid;">
+                        挂起原因
+                    </td>
+                </tr>
+                @foreach (var blo in blocks)
+                {
+                <tr>
+                    <td>
+                        @blo.step_name
+                    </td>
+                    <td>
+                        @blo.User.real_name
+                    </td>
+                    <td>
+                        @(((DateTime)(blo.block_time)).ToString("yyyy-MM-dd HH:mm"))
+                    </td>
+                    <td>
+                        @blo.reason
+                    </td>
+                </tr>
+                }
+            </table>
+        </div>
+    }
+
+</div>

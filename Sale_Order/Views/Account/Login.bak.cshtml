@@ -1,0 +1,254 @@
+﻿@using Sale_Order.Utils;
+@{    
+    Layout = null;    
+    SomeUtils utl = new SomeUtils();
+    string decoderUrl = ViewData["url"]==null?"": utl.MyUrlDecoder((string)ViewData["url"]);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>销售业务辅助管理系统</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width" />
+    <link href="@Url.Content("~/Content/themes/default/easyui.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/themes/icon.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/MyCSS.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/Scripts/jquery-1.8.0.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.easyui.min.js")" type="text/javascript"></script>
+    <script type="text/javascript">
+        if(window.top!=window.self){
+            top.location.href="@Url.Content("~/Account/Login")";
+        }
+        document.onkeydown = function (event) {
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if (e && e.keyCode == 13) { // enter 键
+                if($("#password").val()==""){
+                    $("#password").focus();
+                }else if($("#validateText").val()==""){
+                    $("#validateText").focus();
+                }else{
+                    Login();
+                }
+            }
+        };
+
+        $(function () {
+            if($("#username").val()!=''){
+                $("#password").focus();
+            }else{
+                $("#username").focus();
+            }
+            $("#submitBt").click(function(){
+                Login();
+            });
+        });
+
+        $(function(){
+            $("#validateImage").click(function(){                
+                $(this).attr("src","@Url.Content("~/Account/getImage")" +"?" +Math.random());
+            });
+//            if("@ViewData["accountset"]"!=""){
+//                $("#cop").combobox("setValue","@ViewData["accountset"]");
+//            }
+        });
+        
+        function refleshPic(){
+            $("#validateImage").click();
+        }
+
+        function resetPassword(){
+            $("#reset_dlg").dialog("close");
+            $.messager.show({
+                title:"@Html.Lang("tip")",
+                msg:"正在启动程序，请稍等......"
+            });
+            setTimeout(sendEmail,1000);
+        }
+
+        function sendEmail(){
+            var subject = "@ViewData["mySub"]";  
+            var to = "@ViewData["myName"]";
+            var url="mailto:"+to+"?subject="+subject; 
+            document.location.href=url;  
+        }
+
+        function Login(){
+            if($('#order_form').form('validate')){
+                $('#login_fm').form('submit',{
+                    url:"@Url.Content("~/Account/Login")",
+                    success:function(data){
+                        var result = eval("(" + data + ")");
+                        if(result.success){
+                            if(result.needChange){
+                                $('#dlg_password').dialog('setTitle','系统检测到密码过于简单，请修改后再登陆。');
+                                $('#dlg_password').dialog('open');
+                                $('#fm_password').form('clear');
+                                $("#cop_password").val($("#cop").combobox("getValue"));
+                                $("#copName").html("（"+$("#cop").combobox("getText")+")");
+                                $("#password").val("");
+                                $("#validateText").val("");
+                                $("#validateImage").click();
+                            }else{
+                                var cop_url="";
+                                if(result.cop=="op"){
+                                    if('@ViewData["isInnerFrame"]"'=='true' || '@ViewData["isInnerFrame"]'=='True'){                                        
+                                        cop_url='@Url.Content("~/Home/Main")';                                        
+                                    }else{
+                                        cop_url='@Url.Content("~/")';
+                                    }
+                                }else if(result.cop=="semi"){
+                                    if('@ViewData["isInnerFrame"]"'=='true' || '@ViewData["isInnerFrame"]'=='True'){
+                                        cop_url='../../SaleOrder_semi/Home/Main';
+                                    }else{
+                                        cop_url='../../SaleOrder_semi/';
+                                    }
+                                }
+                                if('@ViewData["url"]'!=''){
+                                    if('@ViewData["isInnerFrame"]"'=='true' || '@ViewData["isInnerFrame"]'=='True'){
+                                        window.location.href = cop_url+'?url=@ViewData["url"]';
+                                    }else{
+                                        window.location.href = cop_url+'@Html.Raw(decoderUrl)'
+                                    }
+                                }else{
+                                    window.location.href = cop_url;
+                                }
+                            }
+                        }else{
+                            $.messager.show({
+                                title:"错误提示",
+                                msg:result.msg
+                            });
+                            $("#password").val("");
+                            $("#validateText").val("");
+                            $("#validateImage").click();
+                            $("#password").focus();
+                        }
+                    }
+                }); 
+            }
+        }
+       
+       //获取coolie的值
+        function getCookie(c_name) {
+            if (document.cookie.length > 0) {
+                c_start = document.cookie.indexOf(c_name + "=");
+                if (c_start != -1) {
+                    c_start = c_start + c_name.length + 1;
+                    c_end = document.cookie.indexOf(";", c_start);
+                    if (c_end == -1) c_end = document.cookie.length;
+                    return unescape(document.cookie.substring(c_start, c_end));
+                }
+            }
+            return "";
+        }
+
+       $(function(){
+
+            var lang = getCookie("CoolCode_Lang");
+            if (lang != "" && lang == "en") {
+                $("#cn").show();
+                $("#en").hide();
+            }else{            
+                $("#cn").hide();
+                $("#en").show();
+            }
+        });
+
+    </script>
+</head>
+<body>
+    <div align="center" style="padding-top: 150px;">
+        <div id="login" class="easyui-panel" title="@Html.Lang("sys_name")" style="width: 500px; font-size: 16px; padding: 10px;
+            height: 260px; background: #fafafa; +position: relative;">            
+            <div style="float: right; width: 50px;padding-top:4px;font-size:12px;">
+                <span id="cn">@Html.ActionLink("简体中文", "ChangeLang", "Home", new { lang = "zh-cn" }, null)</span>
+                <span id="en">@Html.ActionLink("English", "ChangeLang", "Home", new { lang = "en" }, null)</span>
+            </div>
+            <div style="clear:both;margin-bottom:10px;"></div>
+            <form id="login_fm" method="post">
+            <table border="0" style="margin:0 auto">
+                <tr>
+                    <td>
+                        @Html.Lang("cop_name"):
+                    </td>
+                    <td colspan="2">
+                        <input id="cop" name="cop" style="width: 190px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 50,
+                        editable:false,
+                        value:'@ViewData["accountset"]',
+		                data: [{
+			                label: ' ',
+			                value: ''
+		                },{
+			                label: '@Html.Lang("truly_opto")',
+			                value: 'op'
+		                },{
+			                label: '@Html.Lang("truly_semi")',
+			                value: 'semi'
+		                }]" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Lang("user_name"):
+                    </td>
+                    <td colspan="2">
+                        <input class="easyui-validatebox" id="username" name="username" required="true" style="width: 185px" value="@ViewData["username"]"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Lang("password"):
+                    </td>
+                    <td>
+                        <input type="password" class="easyui-validatebox" id="password" name="password" required="true" validtype="length[4,30]"
+                            style="width: 185px" />
+                    </td>
+                    <td>
+                        <a href="#" onclick="javascript:$('#reset_dlg').dialog('open').dialog('setTitle','')" > @Html.Lang("forgot_password")</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Lang("validate_code"):
+                    </td>
+                    <td>
+                        <input type="text" id="validateText" name="validateText" style="width: 100px"/> <img title="点击刷新图片" alt="click to reflesh picture" id="validateImage" src="@Url.Content("~/Account/getImage")" style="vertical-align:middle;cursor:pointer;margin-bottom:5px;"/>
+                    </td>
+                    <td>
+                        <a href="#" onclick="refleshPic()"> @Html.Lang("refresh_vailidate")</a>
+                    </td>
+                </tr>
+            </table>
+            </form>
+            <div align="center">
+                <a id="submitBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"
+                    style="margin: 10px 20px 0 100px;">@Html.Lang("login")</a></div>
+        </div>
+    </div>
+    @Html.Partial("_ChangePasswordPartial") 
+
+    <div id="reset_dlg" class="easyui-dialog" style="width:400px;height:280px;padding:10px 20px"  
+        closed="true" buttons="#reset-buttons">  
+    <div class="ftitle">Password Reset Instructions</div>  
+    <div>Please send an email to system administrator(李逸焊：liyihan.ic@truly.com.cn)，to apply a password reset offer。<br />
+    Following content should be specify in the email：<br />
+    <1>company name：<br />
+    <2>agency name：<br />
+    <3>proposer name：<br />
+    <4>password reset as：（it can be blank, then the password would be 000000）<br />
+    <br />
+    @*<div style="color:Red">Remark：申请密码重置只能由本人申请。发送申请邮件的邮箱地址必须与在系统登记的邮箱地址相一致。</div>*@
+</div>  
+
+<div id="reset-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="resetPassword()">Turn on Email Software</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#reset_dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+
+</body>
+</html>
+

@@ -1,0 +1,306 @@
+﻿<script type="text/javascript">
+
+    /*分组列表，datagrid：#dg
+      组员列表，datagrid：#dg_people
+      组内权限列表，datagrid：#dg_auth
+      新增权限对话框中所有权限列表，datagrid:#dg_auth_list
+
+      新增组员对话框中部门-员工树，tree:#dep_tree
+        
+      对话框   |      里面控件       |     js方法    |       后台方法       |         说明
+                    datagrid(#dg)                          getGroups            获取分组列表
+                    datagrid(#dg)        newGroup                               弹出新建分组对话框
+                    datagrid(#dg)        editGroup                              弹出编辑分组对话框
+                    datagrid(#dg)      checkAuthority                           弹出权限管理对话框
+      #dlg          form(#fm)           saveGroup      saveGroup/updateGroup    新增分组、保存分组
+      #dlg2      datagrid(#dg_people)   
+
+
+           
+    */
+    $(function () {
+        $('#dg').datagrid({
+            url: 'getGroups',
+            title: '@Html.Lang("group") @Html.Lang("list")',
+            fit:'true',
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+    					{ field: 'name', title: '@Html.Lang("name")', width: 50, align: 'center' },
+    					{ field: 'description', title: '@Html.Lang("description")', width: 150 }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("add") @Html.Lang("group")",
+                iconCls: 'icon-add',
+                handler: newGroup
+            }, '-', {
+                text: "@Html.Lang("edit") @Html.Lang("group")",
+                iconCls: 'icon-edit',
+                handler: editGroup
+            }, '-', {
+                text: "@Html.Lang("check") @Html.Lang("authority")",
+                iconCls: 'icon-auth',
+                handler: checkAuthority
+            }]
+        });
+    });
+
+    var url;
+    function newGroup() {
+        $('#dlg').dialog('open').dialog('setTitle', '@Html.Lang("add") @Html.Lang("group")');
+        $('#fm').form('clear');        
+        url = 'saveGroup';
+    }
+    function editGroup() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $('#dlg').dialog('open').dialog('setTitle', '@Html.Lang("edit") @Html.Lang("group")');
+            $('#fm').form('load', row);
+            url = 'updateGroup/' + row.id;
+        }
+    }
+    //    function removeGroup() {
+    //        var row = $('#dg').datagrid('getSelected');
+    //        if (row) {
+    //            $('#dlg').dialog('open').dialog('setTitle', 'Edit Group');
+    //            $('#fm').form('load', row);
+    //            url = 'updateGroup/' + row.id;
+    //        }
+    //    }    
+    function saveGroup() {
+        $('#fm').form('submit', {
+            url: url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {
+                var result = eval('(' + data + ')');
+                if (result.success) {
+                    $('#dlg').dialog('close');      // close the dialog   
+                    $('#dg').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }
+
+    var groupId;
+    function checkAuthority() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            groupId = row.id;
+            $('#dg_people').datagrid({ url: 'getPeopleByGroup', queryParams: { id: groupId} });
+            $('#dg_auth').datagrid({ url: 'getAuthByGroup', queryParams: { id: groupId} });
+            $('#dlg2').dialog('open').dialog('setTitle', row.name);
+        }
+    }
+
+    $(function () {
+        $('#dg_people').datagrid({
+            title: '@Html.Lang("user") @Html.Lang("list")',
+            fit: 'true',
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+    					{ field: 'name', title: '@Html.Lang("name")', width: 50, align: 'center' },
+    					{ field: 'department', title: '@Html.Lang("department")', width: 80 }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("add") @Html.Lang("user")",
+                iconCls: 'icon-add',
+                handler: function () {
+                    $('#dep_tree').tree({ url: 'getPeopleAndDepartmentTree' });
+                    $('#dlg_add_people').dialog('open').dialog('setTitle', '@Html.Lang("add") @Html.Lang("user")');
+                    $('#dep_tree').tree('reload');
+                }
+            }, '-', {
+                text: "@Html.Lang("remove") @Html.Lang("user")",
+                iconCls: 'icon-remove',
+                handler: function () {
+                    var row = $('#dg_people').datagrid('getSelected');
+                    if (row) {
+                        $.post("removeUsersInGroup", { groupAndUserId: row.id },
+                            function (data) {
+                                var result = eval('(' + data + ')');
+                                if (result.success) {
+                                    $('#dg_people').datagrid('reload');    // reload the user data   
+                                } else {
+                                    $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: result.msg
+                                });
+                            }
+                        });
+                    }
+                }
+            }]
+        });
+        $('#dg_auth').datagrid({
+            title: '@Html.Lang("authority") @Html.Lang("list")',
+            fit: 'true',
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+    					{ field: 'name', title: '@Html.Lang("name")', width: 50, align: 'center' },
+    					{ field: 'description', title: '@Html.Lang("description")', width: 120 }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("add") @Html.Lang("authority")",
+                iconCls: 'icon-add',
+                handler: function () {
+                    $('#dlg_add_auth').dialog('open').dialog('setTitle', '@Html.Lang("add") @Html.Lang("authority")');
+                    $('#dg_auth_list').datagrid('reload');
+                }
+            }, '-', {
+                text: "@Html.Lang("remove") @Html.Lang("authority")",
+                iconCls: 'icon-remove',
+                handler: function () {
+                    var row = $('#dg_auth').datagrid('getSelected');
+                    if (row) {
+                        $.post("removeAuthInGroup", { groupAndAuthId: row.id },
+                        function (data) {
+                            var result = eval('(' + data + ')');
+                            if (result.success) {
+                                $('#dg_auth').datagrid('reload');    // reload the user data   
+                            } else {
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: result.msg
+                                });
+                            }
+                        });
+                    }
+                }
+            }]
+        });
+        $('#dg_auth_list').datagrid({
+            url: 'getAllAthority',
+            title: '@Html.Lang("authority") @Html.Lang("list")',
+            fitColumns: true,
+            fit: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'ck', checkbox: 'true' },
+    					{ field: 'name', title: '@Html.Lang("name")', width: 40, align: 'center' },
+    					{ field: 'description', title: '@Html.Lang("description")', width: 120 }
+    				 ]]
+        });
+    });
+
+    function saveTreeCallBack(s) {
+        $.post("addUsersInGroup", { groupId: groupId, users: s },
+                function (data) {
+                    var result = eval('(' + data + ')');
+                    if (result.success) {
+                        $('#dg_people').datagrid('reload');    // reload the user data   
+                    } else {
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                });
+    }
+
+//    function saveTree() {
+//        var nodes = $('#dep_tree').tree('getChecked');
+//        var s = '';
+//        for (var i = 0; i < nodes.length; i++) {
+//            if ($('#dep_tree').tree('isLeaf', nodes[i].target)) {
+//                if (s != '') s += ',';
+//                s += nodes[i].id;
+//            }
+//        }
+//        if(s=='') return;
+//        $.post("addUsersInGroup", { groupId: groupId, users: s },
+//                function (data) {
+//                    var result = eval('(' + data + ')');
+//                    if (result.success) {
+//                        $('#dlg_add_people').dialog('close');  // close the dialog   
+//                        $('#dg_people').datagrid('reload');    // reload the user data   
+//                    } else {
+//                        $.messager.show({
+//                            title: 'Error',
+//                            msg: result.msg
+//                        });
+//                    }
+//                });
+//    }
+
+    function saveAuthorityInGroup() {
+        var auths = $('#dg_auth_list').datagrid('getChecked');
+        var auth = '';
+        for (var i = 0; i < auths.length; i++) {
+            if (auth != '') auth += ',';
+            auth += auths[i].id;
+        }
+        $.post("addAuthInGroup", { groupId: groupId, auth: auth },
+                function (data) {
+                    var result = eval('(' + data + ')');
+                    if (result.success) {
+                        $('#dlg_add_auth').dialog('close');  // close the dialog   
+                        $('#dg_auth').datagrid('reload');    // reload the user data   
+                    } else {
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                });
+    }
+</script>
+<table id="dg">
+</table>
+<div id="dlg" class="easyui-dialog" style="width: 400px; height: 220px; padding: 10px 20px"
+    closed="true" buttons="#dlg-buttons">
+    <div class="ftitle">
+        @Html.Lang("group") @Html.Lang("info")</div>
+    <form id="fm" method="post">
+    <div class="fitem">
+        <label>
+            @Html.Lang("name"):</label>
+        <input name="name" class="easyui-validatebox" required="true" />
+    </div>
+    <div class="fitem">
+        <label>
+            @Html.Lang("description"):</label>
+        <input name="description" class="easyui-validatebox" />
+    </div>
+    </form>
+</div>
+<div id="dlg-buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveGroup()">@Html.Lang("save")</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')">
+        @Html.Lang("cancel")</a>
+</div>
+<div id="dlg2" class="easyui-dialog" style="width: 600px; height: 400px;" closed="true"
+    modal="true">
+    <div id="tts" class="easyui-tabs" fit="true">
+        <div title="@Html.Lang("user")" cache="false">
+            <table id="dg_people">
+            </table>
+        </div>
+        <div title="@Html.Lang("authority")" cache="false">
+            <table id="dg_auth">
+            </table>
+        </div>
+    </div>
+</div>
+@Html.Partial("_UserTreePartial")
+<div id="dlg_add_auth" class="easyui-dialog" modal="true" closed="true" style="width: 600px;
+    height: 400px; padding: 10px; +position: relative;" buttons="#auth-buttons">    
+    <table id="dg_auth_list">
+    </table>
+</div>
+<div id="auth-buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveAuthorityInGroup()">
+        @Html.Lang("save")</a> <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_add_auth').dialog('close')">
+            @Html.Lang("cancel")</a>
+</div>

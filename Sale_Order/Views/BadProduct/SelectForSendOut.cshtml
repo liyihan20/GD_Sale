@@ -1,0 +1,150 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'ck', checkbox: true },
+                        { field: 'FDetailID', title: 'FDetailID', width: 10, hidden:true},
+                        { field: 'FArriveDate', title: '退货日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source) 
+                            var date_str = date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                            return date_str;
+                        }},
+                        { field: 'FSysNo', title: '退货编号', width: 60},
+                        { field: 'FStockNO', title: '出库单号', width: 60},
+                        { field: 'FCustomerNumber', title: '客户编码', width: 10, hidden:true},
+    					{ field: 'FCustomerName', title: '客户名称', width: 120},
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'FReturnQty', title: '换货数量', width: 60, align: 'right' },
+                        { field: 'FHasFetchQty', title: '已出数量', width: 60, align: 'right' },
+                        { field: 'FStoreQty', title: '库存数量', width: 60, align: 'right' },                        
+                        { field: 'FEmpName', title: '业务员', width: 60 }
+    				]],
+            toolbar: [{
+                text: "新增出货",
+                iconCls: 'icon-add',
+                handler: AddSendOut
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            if(!$('#fm').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "../BadProduct/SearchCanSendOut",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#orderList").datagrid("loadData", result);
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+    });
+    
+    function AddSendOut(){
+        var row=$("#orderList").datagrid("getChecked");
+        if (row.length > 0) {
+            var FEntryIDS = "";
+            var FCustomerNumber=row[0].FCustomerNumber;            
+            for (var i = 0; i < row.length; i++) {                
+                if (i > 0) {
+                    FEntryIDS += ",";
+                    if(FCustomerNumber != row[i].FCustomerNumber){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "只能选择同一客户出货"
+                        });
+                        return;
+                    }
+                }
+                FEntryIDS += row[i].FDetailID;
+            }
+            return;
+            //新增之前要保证此单据不存在未完成的申请
+            $.post("@Url.Content("~/BadProduct/IsSendOutNotFinish")",{FEntryIDS:FEntryIDS},function(result){
+                if(result.suc){
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "此单据存在未完成的申请，流水编号：" + result.sys_no +",完成之前不能再次申请。"
+                    });
+                }else{
+                    window.location.href = "@Url.Content("~/BadProduct/CreateSendOutBill")" +"?FEntryIDS="+FEntryIDS;
+                }
+            });
+            
+        }else{
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "至少选择一行才能新增申请"
+            });
+        }
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    客户编号/客户名称:
+                </td>
+                <td>
+                    退货日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    退修编号/出库单号:
+                </td>
+                <td>
+                    规格型号:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-validatebox" id="cust_info" name="cust_info" style="width: 110px"/>
+                </td>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="stock_no" name="stock_no" style="width: 120px"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="pro_model" name="pro_model" style="width: 120px"/>
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>    
+</div>
+

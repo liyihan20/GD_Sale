@@ -1,0 +1,135 @@
+﻿<script type="text/javascript">
+  
+    var url;
+    function newUser() {
+        $('#dlg').dialog('open').dialog('setTitle', '@Html.Lang("add")@Html.Lang("user")');
+        $('#fm').form('clear');
+        url = 'saveUser';
+    }
+    function editUser() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $('#dlg').dialog('open').dialog('setTitle', '@Html.Lang("edit")@Html.Lang("user")');
+            $('#fm').form('load', row);
+            url = 'updateUser/' + row.id;            
+            $('#ck_forbit').attr('checked',row['is_forbit']=='Y');  
+        }
+    }  
+
+    function saveUser() {
+        $('#fm').form('submit', {
+            url: url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {
+                var result = eval('(' + data + ')');
+                if (result.success) {
+                    $('#dlg').dialog('close');      // close the dialog   
+                    $('#dg').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }
+
+    function reset() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $.post("@Url.Content("~/Authority/BeginReset")",{userID:row.id,newPass:"000000"},
+        function(data){
+            if(data.suc){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: '保存成功'
+                });
+            }else{
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg:data.msg
+                });
+            }
+        });
+    }
+    }
+
+    function qq(value, name) {
+        $('#dg').datagrid('load', {
+            searchValue: value,
+            searchName: name
+        });
+    }
+
+    
+</script>
+
+<table id="dg" title="@Html.Lang("user") @Html.Lang("list")" class="easyui-datagrid" fit='true'  pageSize='50'
+        url="getUsers"  
+        toolbar="#toolbar" 
+        rownumbers="true" fitColumns="true" singleSelect="true" pagination="true">
+    <thead>  
+        <tr>  
+            <th field="username" width="20" align="center">@Html.Lang("user")@Html.Lang("name")</th>  
+            <th field="real_name" width="20" align="center">@Html.Lang("real")@Html.Lang("name")</th> 
+            <th field="department_name" width="30">@Html.Lang("department")</th>
+            <th field="job" width="20">@Html.Lang("job")</th>  
+            <th field="email" width="30">@Html.Lang("email")</th> 
+            <th field="can_check_deps" width="60">@Html.Lang("proc_dep")</th>  
+            <th field="is_forbit" width="10">@Html.Lang("is_forbit")</th>  
+            <th field="in_date" width="20">@Html.Lang("register_date")</th> 
+        </tr>  
+    </thead>  
+</table>  
+<div id="toolbar">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newUser()">@Html.Lang("add")@Html.Lang("user")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editUser()">@Html.Lang("edit")@Html.Lang("user")</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-reload" plain="true" onclick="reset()">重置密码</a>
+    <input id="ss" class="easyui-searchbox" style="width:300px"  searcher="qq" menu="#mm" prompt="@Html.Lang("please_input")" />           
+    <div id="mm" style="width:100px">  
+        <div name="search_info">搜索</div>
+    </div>  
+</div>  
+    
+<div id="dlg" class="easyui-dialog" style="width:400px;height:380px;padding:10px 20px" 
+        closed="true" buttons="#dlg-buttons">  
+    <div class="ftitle">@Html.Lang("user")@Html.Lang("info")</div>  
+    <form id="fm" method="post">  
+        <div class="fitem">  
+            <label>@Html.Lang("user")@Html.Lang("name"):</label>  
+            <input name="username" class="easyui-validatebox" required="true"/>  
+        </div>  
+        <div class="fitem">  
+            <label>@Html.Lang("real")@Html.Lang("name"):</label>  
+            <input name="real_name" class="easyui-validatebox" required="true"/>  
+        </div>
+        <div class="fitem">
+            <label>@Html.Lang("department"):</label>  
+            <input class="easyui-combobox" name="department" url="@Url.Content("~/Items/getUserDeps")" valueField="id" textField="name" style="width:155px"/>
+        </div>
+        <div class="fitem">  
+            <label>@Html.Lang("job"):</label>  
+            <input name="job" class="easyui-validatebox"/>  
+        </div>  
+        <div class="fitem">  
+            <label>@Html.Lang("email"):</label>  
+            <input name="email" class="easyui-validatebox" required="true"/>  
+        </div>
+        <div class="fitem">  
+            <label>@Html.Lang("proc_dep"):</label>  
+            <input name="can_check_deps" class="easyui-validatebox" />  
+        </div>
+        <div class="fitem">  
+           <label>@Html.Lang("is_forbit"):</label>  
+           <input name="is_forbit" id="ck_forbit" type="checkbox"/>
+        </div>
+    </form>
+</div>  
+<div id="dlg-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveUser()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+

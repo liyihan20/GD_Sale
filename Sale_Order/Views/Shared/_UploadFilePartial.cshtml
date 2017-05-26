@@ -1,0 +1,49 @@
+﻿@{
+    Layout = null;
+}
+<script src="@Url.Content("~/Scripts/uploadify/jquery.uploadify.min.js")" type="text/javascript"></script>
+<script type="text/javascript">
+    $(function () {
+        //上传插件
+        setTimeout(function(){
+        $('#uploadify').uploadify({
+            'formData': { 'num': $("#sys_no").val() },
+            'buttonText': '@Html.Lang("select_file")',
+            'buttonClass': 'browser',
+            'swf': '@Url.Content("~/Scripts/uploadify/uploadify.swf")',
+            'uploader': '@Url.Content("~/Saler/UploadFile")',
+            'multi': false,
+            'fileTypeExts': '*.rar',
+            'fileSizeLimit': '10MB',
+            'onUploadStart': function (file) {
+                $.messager.progress();
+                $('#uploadify').uploadify('settings', 'formData', { 'num': $("#sys_no").val() });
+            },
+            'onUploadSuccess': function (file, data, response) {
+                $.messager.progress("close");
+                if (data == "NOFILE") {
+                    alert("上传失败，流水编号为空！");
+                    return;
+                }
+                var d = new Date();
+                var time = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ":" + d.getMinutes();
+                $("#up_name").html(file.name);
+                $("#up_size").html(file.size / 1000 + "K");
+                $("#up_time").html(time);
+            }
+        });},30);
+    });
+    
+</script>
+<div class="easyui-panel" style="background: #fafafa;padding:10px;width:800px;" title="@Html.Lang("upload_file")">
+    <div id="uploadDiv" style="width: 450px; float: left;">
+        <div id="fileQueue">
+        </div>
+        <input type="file" name="uploadify" id="uploadify" />
+    </div>
+    <div id="uploadInfo" style="width: 300px; margin-left: 20px; float: left;">
+        @Html.Lang("file_name")：<span id="up_name" style="color: red"></span><br />
+        @Html.Lang("file_size")：<span id="up_size" style="color: red"></span><br />
+        @Html.Lang("upload_time")：<span id="up_time" style="color: red"></span>
+    </div>
+</div>

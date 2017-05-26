@@ -1,0 +1,221 @@
+﻿@using Sale_Order.Models;
+@{    
+    List<backBills> list = (List<backBills>)ViewData["result"];
+    }
+<script type="text/javascript">
+    
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            onRowContextMenu:function(e, rowIndex, rowData){
+                e.preventDefault();
+                $("#orderList").datagrid("selectRow",rowIndex);
+                $('#mm').menu('show', {
+                    left:e.pageX,
+                    top:e.pageY
+                }); 
+            },
+            columns: [[
+                        { field: 'encryptNo', title: 'encryptNo', width: 10, hidden: true },
+                        { field: 'applyId', title: 'ID', width: 10, hidden: true },
+                        { field: 'apply_date', title: '@Html.Lang("apply_date")', width: 120 },
+                        { field: 'orderType', title: '@Html.Lang("bill_type")', width: 100 },
+                        { field: 'sysNum', title: '@Html.Lang("sys_num")', width: 100 },
+    					{ field: 'depName', title: '@Html.Lang("agency")', width: 120 },
+    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 100 },               
+                        { field: 'status', title: '@Html.Lang("audit_result")', width: 80, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == 'NG'){
+					            return 'color:red;';
+				            }else if(value == 'PASS'){
+					            return 'color:green;';
+				            }
+			            } }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: function () {
+                    var row=$("#orderList").datagrid("getSelected");
+                    if(row){ 
+                        window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+row.applyId;
+                    }
+                }
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: CheckStatus
+            }, '-', {
+                text: "@Html.Lang("chk_report")",
+                iconCls: 'icon-document',
+                handler: CheckReport
+            }, '-',
+            {
+                text: "@Html.Lang("export_excel")",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    var rows = $("#orderList").datagrid("getRows");
+                    if(rows.length==0){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "列表中无数据，请先搜索之后再导出Excel报表"
+                        }); 
+                    }else{
+                        var ids="";
+                        for(var i=0;i<rows.length;i++){
+                            if(i==rows.length-1){
+                                ids+=rows[i].applyId;
+                            }else{
+                                ids+=rows[i].applyId+",";
+                            }
+                        }                        
+                        openDownloadDialog(ids);
+                        //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;
+                    }
+                }
+            }],
+            onDblClickRow:function(rowIndex, rowData){
+                window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+rowData.applyId;
+            }
+        });
+
+        $("#checkBt").click(function () {
+            $("#fm").submit();
+        });
+        
+        $("#contDiv").css("visibility","visible");
+    });
+
+    function CheckStatus() {
+        //清空信息
+        var trs=$("#status_table tbody tr");
+        if(trs.length > 1)
+        {
+            var tr1=trs[0];
+            $("#status_table tbody").empty();
+            $("#status_table tbody").append(tr1);
+        }
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            $.post("@Url.Content("~/Audit/CheckApplyStatusSO")",{sys_no: row.sysNum},function(data){
+                if(data.success){
+                    $("#nextStepName").html(data.nextStepName);
+                    $("#nextAuditors").html(data.nextAuditors);
+                    var list=data.result;                             
+                    for(var i=0;i<list.length;i++){
+                        //进度条设置 
+                            var content= '<tr><td>'+list[i].date + ' ' + list[i].time+'</td><td>'+list[i].stepName+'</td><td>'+(list[i].comment==null?' ':list[i].comment)+'</td><td>'+(list[i].pass==true?'<span style="color:green">@Html.Lang("success")</span>':'<span style="color:red">@Html.Lang("failure")</span>')+'</td><td>'+list[i].auditor+'</td></tr>';
+                            $("#status_table tbody").append(content);
+                        //填充审核状态说明
+                    }                                
+                }
+            });                        
+            $("#dlg_st").dialog("open");
+        }
+    }
+
+    function CheckReport(){
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            if(row.status != "PASS"){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "只有全部审核通过的订单才能导出报表。"
+                }); 
+            }else{
+                window.open("@Url.Content("~/Files/printReport")"+"?sysNo="+row.encryptNo);
+            }
+        }
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true" style="visibility:hidden" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 40px; background: #fafafa;padding: 1px;">
+        <form id="fm" method="post" action="@Url.Content("~/Authority/BackgroundSearchBills")" style="padding:2px 5px;">
+        @Html.Lang("sys_num"):
+        <input id="sys_no" name="sys_no" style="width: 110px" value="@ViewData["sys_no"]"/>&nbsp; 
+        @Html.Lang("apply_user"):
+        <input id="saler" name="saler" style="width: 80px"  value="@ViewData["saler"]"/>&nbsp;    
+        @Html.Lang("apply_date"):
+        <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 100px" value="@ViewData["from_date"]"/>
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 100px" value="@ViewData["to_date"]"/>
+        @Html.Lang("audit_result"): <input id="auditResult" name="auditResult" style="width: 80px" class="easyui-combobox" data-options="
+		valueField: 'value',
+		textField: 'label',        
+        panelHeight: 100,
+        editable:false,
+        value:'@ViewData["audit_result"]',
+		data: [{
+			label: '@Html.Lang("all")',
+			value: '10'
+		},{
+			label: '@Html.Lang("not_audit")',
+			value: '0'
+		},{
+			label: '@Html.Lang("success")',
+			value: '1'
+		},{
+			label: '@Html.Lang("failure")',
+			value: '-1'
+		}]" />
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+            @Html.Lang("search")</a>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList" class="easyui-datagrid">
+            <tbody>  
+            @foreach (var li in list) { 
+                <tr>
+                    <td>@li.encryptNo</td>
+                    <td>@li.applyId</td>
+                    <td>@li.apply_date</td>
+                    <td>@li.orderType</td>
+                    <td>@li.sysNum</td>
+                    <td>@li.depName</td>
+                    <td>@li.salerName</td>
+                    <td>@li.status</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <div id="dlg_st" class="easyui-dialog" style="width: 800px; height: 330px; padding: 10px 5px;" closed="true" title="@Html.Lang("check_status")">            
+            <div style="margin-left:10px;margin-top:5px;font-weight:bold">下一审核步骤名称:<span id="nextStepName" style="color:red;margin-right:20px;"></span>步骤审核人:<span id="nextAuditors" style="color:red"></span></div>
+            <table id="status_table" style="width:97%; margin:16px 0 0 10px" border="0" cellspacing="0">
+                <tbody>
+                <tr>
+                    <th style="width:15%">
+                        @Html.Lang("operation_time")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operation_content")
+                    </th>
+                    <th style="width:45%">
+                        @Html.Lang("audit_opinion")
+                    </th>
+                    <th style="width:10%">
+                        @Html.Lang("operation_result")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operator")
+                    </th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="mm" class="easyui-menu" style="width:120px;">
+    <div onClick="CheckStatus()" data-options="iconCls:'icon-help'">@Html.Lang("check_status")</div>
+</div>
+
+@Html.Partial("_DownloadAuditorExcelPartial")

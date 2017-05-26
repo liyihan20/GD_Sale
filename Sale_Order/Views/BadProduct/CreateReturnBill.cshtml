@@ -1,0 +1,627 @@
+﻿@using Sale_Order.Models;
+@using System.Linq;
+@{
+    ReturnBill bill = (ReturnBill)ViewData["bill"];
+    List<ReturnBillDetail> details = (List<ReturnBillDetail>)ViewData["details"];
+}
+<script type="text/javascript">    
+    $(function () {
+        var isCurrentMonth='@ViewData["isCurrentMonth"]';
+        $("#bill_detail").datagrid({
+            //height: "140",
+            width: "850",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[ 
+                        { field: 'stock_interid', title: 'interid', hidden: true },
+                        { field: 'stock_entryid', title: 'entryid', hidden: true },
+    					{ field: 'product_number', title: '产品编码', width: 120 },
+    					{ field: 'product_name', title: '产品名称', width: 120 },
+                        { field: 'product_model', title: '规格型号', width: 150 },
+    					{ field: 'qty', title: '退货数量', width: 70, align: 'right' , editor: { type: 'numberbox', options: { precision: 4}}},
+                        { field: 'aux_qty', title: '已发数量', width: 70, align: 'right' },
+                        { field: 'can_apply_qty', title: '可退数量', width: 70, align: 'right' },
+                        { field: 'seorder_no', title: '销售订单编号', width: 100 },
+                        { field: 'stock_no', title: '销售出库单号', width: 100 }     
+    				]],
+            toolbar: [{
+                text:"新增条目",
+                iconCls: 'icon-add',
+                handler:function(){
+                    $("#dlg_customer").html('@bill.customer_name');
+                    $("#dlg_isCurrentMonth").html(isCurrentMonth == "1"?"是":"否");
+                    $("#dlg_hookStatus").html('@(bill.has_invoice==true?"Y":"N")');
+                    $("#dlg_add").dialog("open");
+                }},
+                {
+                text: "@Html.Lang("del_item")",
+                iconCls: 'icon-remove',
+                handler: function () {
+                    var row = $('#bill_detail').datagrid('getSelected');
+                    if (row) {
+                        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
+                            if (r) {
+                                var index = $('#bill_detail').datagrid('getRowIndex', row);
+                                $('#bill_detail').datagrid('deleteRow', index);
+                            }
+                        });
+                    }
+                }
+            }],
+            //onClickCell: onClickCell,
+            onClickRow:function(index,row){
+                onClickCell(index,"qty");
+                $(".datagrid-editable-input").focus();
+            }
+        });       
+
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'ck', checkbox: true },
+                        { field: 'FInterID', title: 'FInterID', width: 10, hidden: true },
+                        { field: 'FEntryID', title: 'FEntryID', width: 10, hidden: true },
+                        { field: 'FDate', title: '出库日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source);
+                            return date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                        }},  
+                        { field: 'FBillNo', title: '出库订单号', width: 80 },
+    					{ field: 'FOrderBillNo', title: '订单号', width: 80 },
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'Fauxqty', title: '实发数量', width: 70, align: 'right' },
+                        { field: 'FcanApplyQty', title: '可申请数量', width: 70, align: 'right' }
+    				]],
+            toolbar: [{
+                text: "确定",
+                iconCls: 'icon-add',
+                handler: function(){
+                    var nowRows=$("#bill_detail").datagrid("getRows");
+                    var toAddeds=$("#orderList").datagrid("getChecked");
+                    
+                    for(var i=0;i<toAddeds.length;i++){
+                        //判断是否在列表中已存在
+                        for(var j=0;j<nowRows.length;j++){
+                            if(nowRows[j].stock_interid==toAddeds[i].FInterID && nowRows[j].stock_entryid==toAddeds[i].FEntryID){
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "#"+toAddeds[i].FBillNo+"#"+toAddeds[i].FProductModel+"#已存在，不能重复添加"
+                                });
+                                return;
+                            }
+                        }                        
+                        //2017-05-23 取消以下限制
+                        //判断当月与以往月出库单是否混合
+                        @*var firstDayInCurrentMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+                        var StockItemDate=eval('new ' + eval(toAddeds[i].FDate).source);            
+                        if(nowRows.length>0){
+                            if(isCurrentMonth=="1" && StockItemDate<firstDayInCurrentMonth){
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "#"+toAddeds[i].FBillNo+"#"+toAddeds[i].FProductModel+"#是以往月出库单，不能和当月出库单一起申请"
+                                });
+                                return;
+                            }
+                            if(isCurrentMonth=="0" && StockItemDate>firstDayInCurrentMonth){
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "#"+toAddeds[i].FBillNo+"#"+toAddeds[i].FProductModel+"#是当月出库单，不能和以往月出库单一起申请"
+                                });
+                                return;
+                            }
+                        }else{
+                            isCurrentMonth=StockItemDate<firstDayInCurrentMonth?"0":"1";
+                        }*@
+                        //插入行
+                        $("#bill_detail").datagrid("appendRow",{
+                            stock_interid:toAddeds[i].FInterID,
+                            stock_entryid:toAddeds[i].FEntryID,
+                            product_number:toAddeds[i].FProductNumber,
+                            product_name:toAddeds[i].FProductName,
+                            product_model:toAddeds[i].FProductModel,
+                            aux_qty:toAddeds[i].Fauxqty,
+                            can_apply_qty:toAddeds[i].FcanApplyQty,
+                            seorder_no:toAddeds[i].FOrderBillNo,
+                            stock_no:toAddeds[i].FBillNo
+                        });
+                    }
+                    $("#dlg_add").dialog("close");
+                }
+            }]
+        });
+
+        //搜索更多出库单
+        $("#checkBt").click(function(){
+            if(!$('#search_form').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#search_form").form("submit", {
+                url: "../BadProduct/SelectMoreStockBill",
+                onSubmit: function(param){  
+                    param.customer_no='@bill.customer_number';
+                    param.hook_status='@bill.has_invoice';
+                },
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    if(result.suc){
+                        $("#orderList").datagrid("loadData", result.list);
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+
+//        $("#return_dep").combobox({
+//            onSelect: function (record) {
+//                $.post("@Url.Content("~/Items/getPMCAuditors")", {dep_id:record.id,step_name:'PMC' },
+//                        function (data) {
+//                            $('#pmc').combobox("loadData",data);
+//                        }, "json"
+//                    );
+//            }
+//        });
+
+        //保存订单
+        $("#saveAllBut").click(function(){
+            var has_invoice=$("input[name='has_invoice']:checked").val();
+            if(has_invoice == undefined || has_invoice == null)
+            {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "保存失败：【是否已开蓝字发票】是必填项"
+                });
+                return;
+            }
+            if($.trim($("#comment").val())==""){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "保存失败：【退货原因】是必填项"
+                });
+                return;
+            }
+            if(!$('#bill_form').form('validate')){
+                return;
+            }
+            handling();
+
+            //表体字段：
+            var details=$("#bill_detail").datagrid("getRows");
+            var seorder_no=new Array();
+            var stock_no=new Array(); 
+            var stock_interid=new Array();
+            var stock_entryid=new Array();           
+            var product_number=new Array();
+            var product_name=new Array();
+            var product_model=new Array();
+            var aux_qty=new Array();
+            var qty=new Array();
+            var can_apply_qty=new Array();
+//            var customer_back_qty=new Array();
+//            var qc_good_qty=new Array();
+//            var qc_bad_qty=new Array();
+//            var qc_comment=new Array();
+            for(var i=0;i<details.length;i++){
+                if($.trim(details[i].qty)==""){
+                    alert("第"+(i+1)+"行的退货数量不能为空");
+                    hasHandled();
+                    return;
+                }                
+                if(parseFloat(details[i].qty) - parseFloat(details[i].can_apply_qty) > 0.000001){
+                    alert("第"+(i+1)+"行的退货数量不能大于可退数量");
+                    hasHandled();
+                    return;
+                }
+                seorder_no[i]=details[i].seorder_no.replace(",","，");
+                stock_no[i]=details[i].stock_no.replace(",","，");
+                stock_interid[i]=details[i].stock_interid;
+                stock_entryid[i]=details[i].stock_entryid;
+                product_number[i]=details[i].product_number;
+                product_name[i]=details[i].product_name;
+                product_model[i]=details[i].product_model;
+                aux_qty[i]=details[i].aux_qty;
+                qty[i]=details[i].qty;
+                can_apply_qty[i]=details[i].can_apply_qty;
+//                customer_back_qty[i]=details[i].customer_back_qty;
+//                qc_good_qty[i]=details[i].qc_good_qty;
+//                qc_bad_qty[i]=details[i].qc_bad_qty;
+//                qc_comment[i]=details[i].qc_comment.replace(",","，");
+            }
+            $('#bill_form').form('submit',{
+                url: '@Url.Content("~/BadProduct/saveReturnBill")',
+                onSubmit: function(param){  
+                    param.seorder_no=seorder_no;
+                    param.stock_no=stock_no;
+                    param.stock_interid=stock_interid;
+                    param.stock_entryid=stock_entryid;
+                    param.product_number=product_number;
+                    param.product_name=product_name;
+                    param.product_model=product_model;
+                    param.aux_qty=aux_qty;
+                    param.qty=qty;
+                    param.can_apply_qty=can_apply_qty;
+//                    param.customer_back_qty=customer_back_qty;
+//                    param.qc_good_qty=qc_good_qty;
+//                    param.qc_bad_qty=qc_bad_qty;
+//                    param.qc_comment=qc_comment;
+                },
+                success: function (data) { 
+                    var result = eval('('+ data +')');
+                    if(result.suc){
+                        $("#status").html("已保存,未提交");
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存成功"
+                        });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存失败："+result.msg
+                        });
+                    }
+                    hasHandled();
+                }
+            });
+        });
+
+        //提交申请
+        $("#submitApply").click(function(){
+            handling();
+            var sys_no=$("#sys_no").val();
+            $.post("@Url.Content("~/BadProduct/ValidateBeforApply")",{sys_no:sys_no},function(data){
+                if(data.suc){
+                    window.location.href="@Url.Content("~/BadProduct/BeginApply")"+"?sys_no="+sys_no;
+                }else{
+                    hasHandled();
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "提交失败："+data.msg
+                    });
+                }
+            });
+        });
+
+        $("#order_div").click(function () { endEditing(); });
+
+    });
+    
+
+    //easyui的扩展方法，可以直接编辑datagrid的单元格方法
+    $.extend($.fn.datagrid.methods, {
+        editCell: function (jq, param) {
+            return jq.each(function () {
+                var opts = $(this).datagrid('options');
+                var fields = $(this).datagrid('getColumnFields', true).concat($(this).datagrid('getColumnFields'));
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor1 = col.editor;
+                    if (fields[i] != param.field) {
+                        col.editor = null;
+                    }
+                }
+                $(this).datagrid('beginEdit', param.index);
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor = col.editor1;
+                }
+            });
+        }
+    });
+
+    var editIndex = undefined;
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#bill_detail').datagrid('validateRow', editIndex)) {
+            $('#bill_detail').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function onClickCell(index, field) {
+        if (endEditing()) {
+            $('#bill_detail').datagrid('selectRow', index)
+                    .datagrid('editCell', { index: index, field: field });
+            editIndex = index;
+        }
+    }
+
+    function handling(){        
+        $.messager.progress(); 
+        $('#saveAllBut').linkbutton('disable');
+        $('#submitApply').linkbutton('disable');
+    }
+
+    function hasHandled(){
+        $.messager.progress("close"); 
+        $('#saveAllBut').linkbutton('enable');
+        $('#submitApply').linkbutton('enable');
+    }
+       
+
+</script>
+<form id="bill_form" method="post" action="">
+<input type="hidden" id="sys_no" name="sys_no" value="@bill.sys_no" />
+<input type="hidden" name="customer_number" value="@bill.customer_number" />
+<input type="hidden" name="customer_name" value="@bill.customer_name" />
+<div id="order_div" class="easyui-panel" title="新增退货申请" style="width: 780px; padding: 10px;
+    background: #fafafa; +position: relative;">
+    <div>
+        @*表头*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+            <tr>
+                <td>
+                    退货日期:
+                </td>
+                <td>
+                    <input class="easyui-datebox" id="fdate" name="fdate" style="width: 120px" required="true" value="@(((DateTime)bill.fdate).ToShortDateString())"/>
+                </td>
+                <td>
+                    退货编号:
+                </td>
+                <td>
+                    @bill.sys_no
+                </td>
+                <td>
+                    状态:
+                </td>
+                <td>
+                    <span style="color: red" id="status">
+                        @if (bill.id == 0)
+                        {
+                            <text>未保存</text>
+                        }
+                        else
+                        { 
+                            <text>已保存,未提交</text>
+                        }
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    退货事业部:
+                </td>
+                <td>
+                    <input class="easyui-combobox" id="return_dep" name="return_dep" url='@Url.Content("~/Items/getReturnDeps")' 
+                    valuefield="id" textfield="name" style="width: 120px"  required="true" panelheight="180px" editable="false" value="@bill.return_dept" />
+                </td>
+                <td>
+                    客户编码:
+                </td>
+                <td>
+                    @bill.customer_number
+                </td>
+                <td>
+                    客户名称:
+                </td>
+                <td>
+                    @bill.customer_name
+                </td>
+            </tr>
+            <tr>
+                @*<td>
+                    退货PMC:
+                </td>
+                <td>
+                    <input class="easyui-combobox" id="pmc" name="pmc" valuefield="id" textfield="name" style="width: 120px"  required="true" panelheight="180px" editable="false" value="@bill.pmc_id" />
+                </td>*@
+                <td>
+                    是否已开蓝字发票:
+                </td>
+                @if (bill.has_invoice == true)
+                {
+                    <td>
+                        <input type="radio" name="has_invoice" value="0" disabled="disabled"/>未开
+                        <input type="radio" name="has_invoice" value="1" checked="checked" />已开
+                    </td>
+                }
+                else if (bill.has_invoice == false)
+                { 
+                    <td>
+                        <input type="radio" name="has_invoice" value="0" checked="checked" />未开
+                        <input type="radio" name="has_invoice" value="1"  disabled="disabled"/>已开
+                    </td>
+                }
+                else { 
+                    <td>
+                        <input type="radio" name="has_invoice" value="0" />未开
+                        <input type="radio" name="has_invoice" value="1" />已开
+                    </td>
+                }
+                <td>
+                    是否补货:
+                </td>
+                @if (bill.need_resend != false)
+                {
+                    <td>
+                        @*<input type="radio" name="need_resend" value="0" disabled="disabled"/>不补货*@
+                        <input type="radio" name="need_resend" value="1" checked="checked"/>需补货
+                    </td>
+                }
+                else
+                { 
+                    <td>
+                        <input type="radio" name="need_resend" value="0" checked="checked" />不补货
+                        @*<input type="radio" name="need_resend" value="1"  disabled="disabled"/>需补货*@
+                    </td>
+                }    
+                <td style="height:22px">
+                    制单人:
+                </td>
+                <td>
+                    @ViewData["userName"]
+                </td>
+             </tr>
+            <tr>  
+                <td>
+                    旧退货编号:
+                </td>
+                <td>
+                    <input type="text" name="old_sys_no" id="old_sys_no" style="width: 115px" value="@bill.old_sys_no" />
+                </td>
+                <td></td><td></td><td></td><td></td>
+            </tr>
+        </table>
+    </div>
+    <br />
+    <div>
+        @*表体*@
+        <div id="detail_div" class="easyui-panel" title="退货信息明细" style="+position: relative;
+            width: 740px; height: 225px">
+            <table id="bill_detail">
+                @foreach (var det in details)
+                { 
+                    <tr>
+                        <td>@det.stock_inter_id</td>
+                        <td>@det.stock_entry_id</td>                        
+                        <td>@det.product_number</td>
+                        <td>@det.product_name</td>
+                        <td>@det.product_model</td>
+                        <td>@det.return_qty</td>                        
+                        <td>@det.aux_qty</td>
+                        <td>@det.can_apply_qty</td>
+                        @*<td>@det.customer_back_qty</td>
+                        <td>@det.qc_good_qty</td>
+                        <td>@det.qc_bad_qty</td>
+                        <td>@det.qc_comment</td>*@
+                        <td>@det.seorder_no</td>
+                        <td>@det.stock_no</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <br />
+    <div>
+        @*表尾*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+            <tr>
+                <td>
+                    快递公司名称:
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="express_name" name="express_name" style="width: 120px" value="@bill.express_name" required="true" />
+                </td>
+                <td>
+                    快递单号:
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="express_no" name="express_no" style="width: 120px" value="@bill.express_no" required="true" />
+                </td>
+                <td>
+                    件数:
+                </td>
+                <td>
+                    <input id="express_qty" class="easyui-numberbox" name="express_qty" style="width: 120px" min="0" value="@bill.express_qty" required="true" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    退货原因:
+                </td>
+                <td colspan="5">
+                    <textarea cols="83" rows="3" name="comment" id="comment" style="margin: 0;">@bill.comment</textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    营业备注:
+                </td>
+                <td colspan="5">
+                    <textarea cols="83" rows="3" name="saler_comment" id="saler_comment" style="margin: 0;">@bill.saler_comment</textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div align="center">
+        <a id="saveAllBut" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">
+            保存表单</a> <a id="submitApply" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">
+                提交申请</a>
+    </div>
+
+    <div style="line-height:18px;margin-top:8px;">
+        <div style="color:red">操作说明：</div>
+        <div>
+            <1>. 【退货事业部】字段务必正确选择，后续审核人员对应于所选退货事业部。<br />
+	    <2>. 勾稽状态：Y表示已开发票，N表示未开发票；Y与N不能提交在同一张申请中。<br />
+      	    <3>. 同一客户同批退货包含多个型号的务必提交成一张申请。<br />                  
+	    <4>. <span style="color:red">【此规则已于2017-05-23作废】</span>如申请的数据包含当月的出货，那么出货日期当月与当月之前的不能放在同一张申请，并且必须在退货原因注明是本月出货退货，没有注明是本月出货退货的一律搁置到下月处理，不另行通知。<br />
+	    <5>. 提交申请后，原出货未开发票的申请在市场部未办理好K3数据之前，千万不要通知会计部开票；如在办理期间通知会计部开票造成申请的开票状态与K3不同的，一律退回申请重新走流程，不另行通知。<br />
+            @*<2>. 【是否补货】字段，若选择不补货，则审核成功结束后，会直接由市场部人员导入K3红字出库单；若选择需补货，审核成功结束后，进入换货流程。<br />
+            <2>. 已上线部分流程暂未开通，未上线部分暂全部走退红字流程，并由市场部人员导入K3红字出库单。<br />*@
+        </div>
+    </div>
+    
+</div>
+</form>
+@*弹出的新增对话框*@
+<div id="dlg_add" class="easyui-dialog" style="width: 800px; height:500px;" closed="true" modal="true" title="新增退货条目">
+    <div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px; background: #fafafa; padding: 1px;">
+        <form id="search_form" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    出库日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    销售出库单号:
+                </td>
+                <td>
+                    订单号:
+                </td>
+                <td>
+                    规格型号:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="from_date" style="width: 90px" required="true"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="to_date" style="width: 90px" required="true"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="order_no" name="order_no" style="width: 100px" />
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="stock_no" name="stock_no" style="width: 100px" />
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="pro_model" name="pro_model" style="width: 100px" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>
+    <div data-options="region:'south',collapsed:false" style="height: 25px; background: #fafafa; padding: 3px;">        
+        客户名称:<span id="dlg_customer"></span>&nbsp;&nbsp;&nbsp;&nbsp;
+        是否当月出库单:<span id="dlg_isCurrentMonth"></span>&nbsp;&nbsp;&nbsp;&nbsp;
+        钩稽状态:<span id="dlg_hookStatus"></span>
+    </div>
+</div>
+</div>

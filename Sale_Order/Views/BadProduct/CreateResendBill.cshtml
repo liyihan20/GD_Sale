@@ -1,0 +1,328 @@
+﻿@using Sale_Order.Models;
+@{
+    List<VwResendBill> list = (List<VwResendBill>)ViewData["list"];
+    VwResendBill vw=list.First();
+}
+<script type="text/javascript">
+    $(function () {
+    
+        $("#bill_detail").datagrid({
+            //height: "140",
+            width: "1200",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[ 
+                        { field: 'FRenturnBillDetailID', title: 'FDetailID', hidden: true },
+                        { field: 'FStockNumber', title: '销售出库单号', width: 90 },
+    					{ field: 'FProductNumber', title: '产品编码', width: 90 },
+    					{ field: 'FProductName', title: '产品名称', width: 140 },
+                        { field: 'FProductModel', title: '规格型号', width: 130 },
+                        { field: 'FReturnQty', title: '退换货数量', width: 70, align: 'right' },
+    					{ field: 'FHasReturnQty', title: '已换数量', width: 70, align: 'right' },
+                        { field: 'FCanRentrunQty', title: '可换数量', width: 70, align: 'right' },
+                        { field: 'FApplyQty', title: '申请数量', width: 70, align: 'right' ,editor:{type:'numberbox',options:{precision:4}}},
+                        { field: 'FComment', title: '备注', width: 200,editor:'text' }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("del_item")",
+                iconCls: 'icon-remove',
+                handler: function () {
+                    var row = $('#bill_detail').datagrid('getSelected');
+                    if (row) {
+                        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
+                            if (r) {
+                                var index = $('#bill_detail').datagrid('getRowIndex', row);
+                                $('#bill_detail').datagrid('deleteRow', index);
+                            }
+                        });
+                    }
+                }
+            }],
+            onClickCell: onClickCell
+        });       
+
+
+        //保存订单
+        $("#saveAllBut").click(function(){
+            if(!$('#bill_form').form('validate')){
+                return;
+            }
+            if(!validateQty()) return;
+            handling();
+
+            //表体字段：
+            var details=$("#bill_detail").datagrid("getRows");
+            var FDetailID=new Array();
+            var FApplyQty=new Array();
+            var FComment=new Array();
+            for(var i=0;i<details.length;i++){
+                FDetailID[i]=details[i].FRenturnBillDetailID;
+                FApplyQty[i]=details[i].FApplyQty;
+                FComment[i]=details[i].FComment.replace(",","，");
+            }
+            $('#bill_form').form('submit',{
+                url: '@Url.Content("~/BadProduct/saveResendBill")',
+                onSubmit: function(param){  
+                    param.FDetailID=FDetailID;
+                    param.FApplyQty=FApplyQty;
+                    param.FComment=FComment;
+                },
+                success: function (data) { 
+                    var result = eval('('+ data +')');
+                    if(result.suc){
+                        $("#status").html("已保存,未提交");
+                        $("#theSysNo").html(result.sys_no);
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存成功"
+                        });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "保存失败："+result.msg
+                        });
+                    }
+                    hasHandled();
+                }
+            });
+        });
+
+        //提交申请
+        $("#submitApply").click(function(){            
+            handling();
+            var sys_no=$("#theSysNo").html();
+            $.post("@Url.Content("~/BadProduct/ValidateBeforApplyHH")",{sys_no:sys_no},function(data){
+                if(data.suc){
+                    window.location.href="@Url.Content("~/BadProduct/BeginApplyHH")"+"?sys_no="+sys_no;
+                }else{
+                    hasHandled();
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "提交失败："+data.msg
+                    });
+                }
+            });
+        });
+
+    });    
+    
+     //easyui的扩展方法，可以直接编辑datagrid的单元格方法
+     $.extend($.fn.datagrid.methods, {
+            editCell: function(jq,param){
+                return jq.each(function(){
+                    var opts = $(this).datagrid('options');
+                    var fields = $(this).datagrid('getColumnFields',true).concat($(this).datagrid('getColumnFields'));
+                    for(var i=0; i<fields.length; i++){
+                        var col = $(this).datagrid('getColumnOption', fields[i]);
+                        col.editor1 = col.editor;
+                        if (fields[i] != param.field){
+                            col.editor = null;
+                        }
+                    }
+                    $(this).datagrid('beginEdit', param.index);
+                    for(var i=0; i<fields.length; i++){
+                        var col = $(this).datagrid('getColumnOption', fields[i]);
+                        col.editor = col.editor1;
+                    }
+                });
+            }
+        });
+     
+    var editIndex = undefined;
+    function endEditing(){
+        if (editIndex == undefined){return true}
+        if ($('#bill_detail').datagrid('validateRow', editIndex)){
+            $('#bill_detail').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function onClickCell(index, field){
+        if (endEditing()){
+            $('#bill_detail').datagrid('selectRow', index)
+                    .datagrid('editCell', {index:index,field:field});
+            editIndex = index;
+        }
+    }
+
+    //保存之前先验证数量。如果是换货，申请数量不得大于可换货数量，如果是红字，申请数量必须和可换货数量相等。
+    function validateQty(){
+        endEditing();
+        var details=$("#bill_detail").datagrid("getRows");
+        if(details.length<1){
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "不存在换货记录"
+            });
+            return false;
+        }
+        var is_red=$("input[name='is_red']:checked").val();        
+        for(var i=0;i<details.length;i++){
+            if(details[i].FApplyQty == ""){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "第"+(i+1)+"行的申请数量不能为空"
+                });
+                return false;
+            }else if(is_red == 0 && details[i].FApplyQty - details[i].FCanRentrunQty > 0.000001){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "换货时，第"+(i+1)+"行的申请数量不能大于可换货数量"
+                });
+                return false;
+            }else if(is_red == 1 && Math.abs(details[i].FApplyQty - details[i].FCanRentrunQty) > 0.000001){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "退红字时，第"+(i+1)+"行的申请数量应等于可换货数量"
+                });
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function handling(){        
+        $.messager.progress(); 
+        $('#saveAllBut').linkbutton('disable');
+        $('#submitApply').linkbutton('disable');
+    }
+
+    function hasHandled(){
+        $.messager.progress("close"); 
+        $('#saveAllBut').linkbutton('enable');
+        $('#submitApply').linkbutton('enable');
+    }
+  
+</script>
+<form id="bill_form" method="post" action="">
+<input type="hidden" name="old_sys_no" value="@ViewData["old_sys_no"]" />
+<input type="hidden" name="sys_no" value="@vw.sys_no" />
+<input type="hidden" name="dep_id" value="@vw.dep_id" />
+<input type="hidden" name="customer_no" value="@vw.customer_no" />
+<input type="hidden" name="customer_name" value="@vw.customer_name" />
+<div id="order_div" class="easyui-panel" title="新增换货申请" style="width: 780px; padding: 10px;
+    background: #fafafa; +position: relative;">
+    <div>
+        @*表头*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+            <tr>
+                <td>
+                    换货日期:
+                </td>
+                <td>
+                    <input class="easyui-datebox" id="fdate" name="fdate" style="width: 120px" required="true" value="@(((DateTime)vw.fdate).ToShortDateString())"/>
+                </td>
+                <td>
+                    换货编号:
+                </td>
+                <td>
+                    <span id="theSysNo">@vw.sys_no</span> 
+                </td>
+                <td>
+                    状态:
+                </td>
+                <td>
+                    <span style="color: red" id="status">
+                        @if (vw.resend_id == 0)
+                        {
+                            <text>未保存</text>
+                        }
+                        else
+                        { 
+                            <text>已保存,未提交</text>
+                        }
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    换货事业部:
+                </td>
+                <td>
+                    <input type="text" name="dep_name" value="@vw.dep_name" readonly="readonly" style="width:120px"/>
+                </td>
+                <td>
+                    客户编码:
+                </td>
+                <td>
+                    @vw.customer_no
+                </td>
+                <td>
+                    客户名称:
+                </td>
+                <td>
+                    @vw.customer_name
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    处理类型:
+                </td>
+                @if (vw.is_red == true)
+                {    
+                    <td>
+                        <input type="radio" name="is_red" value="0" />换货
+                        <input type="radio" name="is_red" value="1" checked="checked" />退红字
+                    </td>
+                }
+                else
+                { 
+                    <td>
+                        <input type="radio" name="is_red" value="0" checked="checked" />换货
+                        <input type="radio" name="is_red" value="1" />退红字
+                    </td>
+                }
+                <td>
+                    业务员:
+                </td>
+                <td>
+                    @vw.emp_name
+                </td>
+                <td>
+                    制单人:
+                </td>
+                <td>
+                    @vw.user_name
+                </td>
+            </tr>
+            <tr>
+                <td>说明:</td>
+                <td colspan="5"><textarea cols="83" rows="2" name="description" id="description" style="margin: 0;">@vw.description</textarea></td>
+            </tr>
+        </table>
+    </div>
+    <br />
+    <div>
+        @*表体*@
+        <div id="detail_div" class="easyui-panel" title="换货信息明细" style="+position: relative;
+            width: 740px; height: 185px">
+            <table id="bill_detail">
+                @foreach (var li in list)
+                { 
+                    <tr>
+                        <td>@li.return_bill_detail_id</td>
+                        <td>@li.stock_no</td>
+                        <td>@li.product_number</td>
+                        <td>@li.product_name</td>
+                        <td>@li.product_model</td>
+                        <td>@li.return_qty</td>
+                        <td>@li.has_replace_qty</td>
+                        <td>@(li.return_qty-li.has_replace_qty)</td>
+                        <td>@li.resend_num</td>
+                        <td>@li.comment</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <br />    
+    <div align="center">
+        <a id="saveAllBut" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">
+            保存表单</a> <a id="submitApply" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">
+                提交申请</a>
+    </div>
+</div>
+</form>

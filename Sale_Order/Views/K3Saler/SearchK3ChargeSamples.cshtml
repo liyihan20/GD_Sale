@@ -1,0 +1,157 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'bill_id', title: 'ID', width: 10, hidden: true },
+                        { field: 'order_date_string', title: '@Html.Lang("order_date")', width: 80 },
+                        { field: 'order_no', title: '@Html.Lang("order_no")', width: 100 },
+                        { field: 'clerk', title: '@Html.Lang("clerk")', width: 80 },
+    					{ field: 'buy_unit', title: '@Html.Lang("customer_name")', width: 120 },
+    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 100 },
+                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 120 },
+    					{ field: 'qty', title: '@Html.Lang("qty")', width: 70, align: 'right' },
+                        { field: 'deal_price', title: '@Html.Lang("deal_price")', width: 70, align: 'right' },  
+                        { field: 'audit_status', title: '@Html.Lang("audit_status")', width: 50, align: 'center' },
+                        { field: 'close_status', title: '@Html.Lang("close_status")', width: 50, align: 'center' },                      
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: function () {
+                    var row=$("#orderList").datagrid("getSelected");
+                    if(row){ 
+                       window.location.href="@Url.Content("~/K3Saler/CheckK3ChargeSample")" + "/" + row.bill_id;
+                    }
+                }
+            }, '-',
+            {
+                text: "@Html.Lang("modify_order")",
+                iconCls: 'icon-edit',
+                handler: function () {
+                    var row = $("#orderList").datagrid("getSelected");
+                    if (row) {
+                       if(row.audit_status==""){
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: "@Html.Lang("can_modify_after_audit")"
+                                });
+                       }else if(row.close_status=="Y"){
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: "@Html.Lang("can_modify_before_close")"
+                                });
+                       }else{
+                            $.post("@Url.Content("~/K3Saler/IfChangeApplySubimted")",{bill_no:row.order_no},function(data){
+                                if(!data.suc){
+                                    window.location.href="@Url.Content("~/K3Saler/ModifyK3ChargeSample")" + "/" + row.bill_id;
+                                }else{
+                                    $.messager.show({
+                                        title: '@Html.Lang("tip")',
+                                        msg: data.msg
+                                    });
+                                }
+                            },"json");                            
+                       }
+                    }                    
+                }
+            }, '-',
+            {
+                text: "@Html.Lang("Cancel_order")",
+                iconCls: 'icon-cancel',
+                handler: function () {
+                    var row = $("#orderList").datagrid("getSelected");
+                    if (row) {
+                    $.post("@Url.Content("~/K3Saler/HasCancelPower")",{billType:"SO"},
+                    function(data){
+                        if(!data.suc){
+                             $.messager.show({
+                                        title: '@Html.Lang("tip")',
+                                        msg: "@Html.Lang("no_power")"
+                                    });
+                        }else{
+                           if(row.audit_status==""){
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "@Html.Lang("can_cancel_after_audit")"
+                                    });
+                           }else if(row.close_status=="Y"){
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "@Html.Lang("can_cancel_before_close")"
+                                    });
+                           }else{
+                                $.post("@Url.Content("~/K3Saler/IfChangeApplySubimted")",{bill_no:row.order_no},function(data){
+                                    if(!data.suc){
+                                        window.location.href="@Url.Content("~/K3Saler/CancelK3ChargeSample")" + "/" + row.bill_id;
+                                    }else{
+                                        $.messager.show({
+                                            title: '@Html.Lang("tip")',
+                                            msg: data.msg
+                                        });
+                                    }
+                                },"json");                            
+                           }
+                        }
+                       });
+                    }
+                }
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            $("#fm").form("submit", {
+                url: "../K3Saler/SearchK3ChargeSamplesResult",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    if(result.success){
+                        $("#orderList").datagrid("loadData", result.msg);
+                        $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "@Html.Lang("record_number"):" + result.num
+                                 });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                }
+            });
+
+        });
+    });
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false" style="height: 40px; background: #fafafa;
+        padding: 2px;">
+        <form id="fm" method="post" style="padding: 2px 5px;">
+        @Html.Lang("order_no"):
+        <input class="easyui-validatebox" id="order_no" name="order_no" style="width: 100px" />
+        @Html.Lang("order_date"):<input id="fromDate" class="easyui-datebox" name="fromDate"
+            style="width: 90px" />
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" />
+        @Html.Lang("clerk"):
+        <input id="clerk" type="text" name="clerk" style="width: 80px" />
+        @Html.Lang("customer_name"):
+        <input id="customer_name" name="customer_name" type="text" style="width: 100px" />
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+            @Html.Lang("search")</a>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>
+</div>

@@ -1,0 +1,161 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    $(function(){
+        $("#templateTable").datagrid({
+            fit: true,
+            fitColumns: true,
+            url: "@Url.Content("~/Items/GetMyTemplate")",
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'id', title: 'id', width: 10, hidden: true },
+                        { field: 'short_name', title: '模板名称', width: 20  },
+                        { field: 'seg_info', title: '模板字段', width: 100 }
+                    ]],
+            toolbar: [{
+                text: "@Html.Lang("add_item")",
+                iconCls: 'icon-add',
+                handler: addItem
+            }, '-', {
+                text: "@Html.Lang("edit_item")",
+                iconCls: 'icon-edit',
+                handler: editItem
+            }, '-', {
+                text: "@Html.Lang("del_item")",
+                iconCls: 'icon-remove',
+                handler: delItem
+            }]
+        });
+    });
+
+    var print_ids="";
+    var url="";
+    var defaultTemplate="";
+    $.post("@Url.Content("~/Items/getDefaultTemplate")",{},function(data){
+        defaultTemplate=data.seg;
+    });
+    function openDownloadDialog(ids){
+        $("#dlg_auditorExcel").dialog("open");
+        print_ids=ids;
+    }
+
+    function beginDownloadAuditorExcel(){
+        var template=$("#printTemplate").combobox("getValue");
+        $('#dlg_auditorExcel').dialog('close');
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在导出符合条件的数据，请稍等..."
+        });
+        window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+print_ids +"&templateID="+template;
+    }
+
+    function templateManage(){
+        $("#dlg_templateTable").dialog("open");
+    }
+
+    function reloadItem(){
+        $('#short_name').val('');
+        $("#seg_info").val(defaultTemplate);
+    }
+
+    function addItem(){
+        $('#dlg_item').dialog('open').dialog('setTitle', '新增模板');
+        url="@Url.Content("~/Items/addTemplate")";
+        reloadItem();
+    }
+
+    function editItem(){
+        var row = $('#templateTable').datagrid('getSelected');
+        if (row) {
+            $('#dlg_item').dialog('open').dialog('setTitle', '修改模板');            
+            $('#fm_item').form('load', row);
+            url="@Url.Content("~/Items/updateTemplate/")"+row.id;
+            }
+    }
+
+    function saveItem(){
+        $('#fm_item').form('submit', {
+            url: '' + url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {                
+                var result = eval('(' + data + ')');
+                if (result.success) {
+                    $('#dlg_item').dialog('close');      // close the dialog   
+                    $('#templateTable').datagrid('reload');    // reload the user data   
+                    $('#printTemplate').combobox('reload');
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }
+
+    function delItem(){
+        var row = $('#templateTable').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function(r){
+	            if (r){
+                    $.post("@Url.Content("~/Items/deleteTemplate")",{id:row.id},function(result){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                        $('#templateTable').datagrid('reload');
+                        $('#printTemplate').combobox('reload');
+                    });
+	            }
+            });
+        }
+    }
+</script>
+<div id="dlg_auditorExcel" class="easyui-dialog" style="width:420px;height:200px;padding:8px 16px" 
+        closed="true" buttons="#auditorExcel-buttons" title="Excel报表导出" modal="true">  
+    <div class="ftitle">Excel报表导出<span id="copName" style="color:Red"/></div>
+        选择打印模板:<input id="printTemplate" class="easyui-combobox" name="printTemplate" style="width: 120px"
+        data-options="
+		        valueField: 'value',
+		        textField: 'label',
+                panelHeight: 100,
+                editable:false,  
+                value:'2',
+                url:'@Url.Content("~/Items/getExcelTemplate?sel=1")'"/> 
+        <a href="#" class="easyui-linkbutton" iconCls="icon-email" onclick="templateManage()">用户模板管理</a>
+        
+        <div style="font-size:10px;margin-top:24px;color:Red">说明:如有特殊格式需求，请使用用户模板管理</div>
+</div>  
+<div id="auditorExcel-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-xls" onclick="beginDownloadAuditorExcel()">@Html.Lang("download")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg_auditorExcel').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+<div id="dlg_templateTable" class="easyui-dialog" style="width:600px;height:300px;" title="用户模板管理"
+    closed="true" modal="true">
+    <table id="templateTable"></table>
+</div>
+
+<div id="dlg_item" class="easyui-dialog" style="width:500px;height:300px;padding:10px 20px"  
+        closed="true" buttons="#item-buttons">  
+        <form id="fm_item" method="post">  
+            <div class="ftitle">用户Excel模板维护</div>      
+            <div class="fitem">  
+                <label>模板名称:</label>  
+                <input class="easyui-validatebox" id="short_name" name="short_name" required="true" style="width: 120px;"/>
+            </div>  
+            <div class="fitem">  
+                <label>模板字段:</label>                  
+                <textarea cols="60" rows="6" name="seg_info" id="seg_info" style="margin: 0;"></textarea>
+            </div>            
+            <div style="font-size:10px;margin-top:14px;color:Red">说明:字段之间用逗号隔开，可删除不需要的字段以及对字段自由排序</div>
+        </form>
+</div>  
+<div id="item-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-reload" onclick="reloadItem()">重置</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-xls" onclick="saveItem()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg_item').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  

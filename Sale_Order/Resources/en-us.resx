@@ -1,0 +1,1612 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="agency" xml:space="preserve">
+    <value>Agency/Proxy</value>
+    <comment>办事处/代理</comment>
+  </data>
+  <data name="Audit_invoice" xml:space="preserve">
+    <value>Audit Invoice</value>
+    <comment>审核单据</comment>
+  </data>
+  <data name="Cancel_order" xml:space="preserve">
+    <value>Cancel Order</value>
+    <comment>取消单据</comment>
+  </data>
+  <data name="check_invoice" xml:space="preserve">
+    <value>Check Invoice</value>
+    <comment>查看单据</comment>
+  </data>
+  <data name="clerk" xml:space="preserve">
+    <value>Clerk</value>
+    <comment>业务员</comment>
+  </data>
+  <data name="contract_num" xml:space="preserve">
+    <value>Contract Number P/O</value>
+    <comment>合同编号P/O</comment>
+  </data>
+  <data name="create_model_invoice" xml:space="preserve">
+    <value>Create Model Invoice</value>
+    <comment>开模改模单</comment>
+  </data>
+  <data name="currency" xml:space="preserve">
+    <value>Currency</value>
+    <comment>币别</comment>
+  </data>
+  <data name="customer_name" xml:space="preserve">
+    <value>Customer Name</value>
+    <comment>购货单位</comment>
+  </data>
+  <data name="dep_manage" xml:space="preserve">
+    <value>Department Management</value>
+    <comment>部门管理</comment>
+  </data>
+  <data name="exchange" xml:space="preserve">
+    <value>Exchange Rate</value>
+    <comment>汇率</comment>
+  </data>
+  <data name="final customer" xml:space="preserve">
+    <value>Utimate Customer</value>
+    <comment>终极客户</comment>
+  </data>
+  <data name="group_manage" xml:space="preserve">
+    <value>Group Management</value>
+    <comment>用户组管理</comment>
+  </data>
+  <data name="invoice_manage" xml:space="preserve">
+    <value>Invoice Management</value>
+    <comment>单据管理</comment>
+  </data>
+  <data name="log_out" xml:space="preserve">
+    <value>LogOff</value>
+    <comment>退出</comment>
+  </data>
+  <data name="main" xml:space="preserve">
+    <value>Main interface</value>
+    <comment>the Main area</comment>
+  </data>
+  <data name="modify_order" xml:space="preserve">
+    <value>Modify Order</value>
+    <comment>变更单据</comment>
+  </data>
+  <data name="new_invoice" xml:space="preserve">
+    <value>New Invoice</value>
+    <comment>新增单据</comment>
+  </data>
+  <data name="new_sale_order" xml:space="preserve">
+    <value>New Sale Order</value>
+    <comment>新建销售订单</comment>
+  </data>
+  <data name="order_date" xml:space="preserve">
+    <value>Order Date</value>
+    <comment>下单日期</comment>
+  </data>
+  <data name="payment" xml:space="preserve">
+    <value>Payment Way</value>
+    <comment>支付方式</comment>
+  </data>
+  <data name="project_team" xml:space="preserve">
+    <value>Project Team</value>
+    <comment>对应项目组</comment>
+  </data>
+  <data name="pro_type" xml:space="preserve">
+    <value>Product Category</value>
+    <comment>产品类别</comment>
+  </data>
+  <data name="pro_use" xml:space="preserve">
+    <value>Product Usage</value>
+    <comment>产品用途</comment>
+  </data>
+  <data name="repair_order" xml:space="preserve">
+    <value>Repair Order</value>
+    <comment>维修单</comment>
+  </data>
+  <data name="sale_order" xml:space="preserve">
+    <value>Sale Order</value>
+    <comment>销售订单</comment>
+  </data>
+  <data name="sample_invoice" xml:space="preserve">
+    <value>Sample Invoice</value>
+    <comment>样品单</comment>
+  </data>
+  <data name="sys_num" xml:space="preserve">
+    <value>Serial Number</value>
+    <comment>系统流水号</comment>
+  </data>
+  <data name="User_depart" xml:space="preserve">
+    <value>User &amp; Department</value>
+    <comment>用户与部门</comment>
+  </data>
+  <data name="user_manage" xml:space="preserve">
+    <value>User Management</value>
+    <comment>用户管理</comment>
+  </data>
+  <data name="west_menu" xml:space="preserve">
+    <value>Menu</value>
+    <comment>左侧菜单栏</comment>
+  </data>
+  <data name="add_item" xml:space="preserve">
+    <value>Add Item</value>
+    <comment>新增条目</comment>
+  </data>
+  <data name="add_percent" xml:space="preserve">
+    <value>Add Clerk Percentage</value>
+    <comment>增加营业员比例</comment>
+  </data>
+  <data name="backPaper" xml:space="preserve">
+    <value>BackPaper Confirmed</value>
+    <comment>回头纸是否确认</comment>
+  </data>
+  <data name="begin_date" xml:space="preserve">
+    <value>Begin delivery Date</value>
+    <comment>开始交货期</comment>
+  </data>
+  <data name="clerk_percent" xml:space="preserve">
+    <value>Clerk Percentage(Use Colon and Semicolon to seperate,e.g.:Tom:30%;Ant:70% or:Tom(Ant):100%;)</value>
+    <comment>营业员比例</comment>
+  </data>
+  <data name="comment" xml:space="preserve">
+    <value>Comment</value>
+    <comment>备注</comment>
+  </data>
+  <data name="cost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>成本</comment>
+  </data>
+  <data name="customer_logo" xml:space="preserve">
+    <value>Package with Customer Logo</value>
+    <comment>外包箱帶客戶LOGO</comment>
+  </data>
+  <data name="deal_price" xml:space="preserve">
+    <value>Deal Price</value>
+    <comment>成交价</comment>
+  </data>
+  <data name="delivery_place" xml:space="preserve">
+    <value>Delivery Place</value>
+    <comment>交货地点</comment>
+  </data>
+  <data name="del_item" xml:space="preserve">
+    <value>Delete Item</value>
+    <comment>删除项目</comment>
+  </data>
+  <data name="description" xml:space="preserve">
+    <value>Description</value>
+    <comment>说明</comment>
+  </data>
+  <data name="edit_item" xml:space="preserve">
+    <value>Edit Item</value>
+    <comment>编辑项目</comment>
+  </data>
+  <data name="file_name" xml:space="preserve">
+    <value>File Name </value>
+    <comment>文件名称</comment>
+  </data>
+  <data name="file_size" xml:space="preserve">
+    <value>File Size</value>
+    <comment>文件大小</comment>
+  </data>
+  <data name="finish_date" xml:space="preserve">
+    <value>Finish Delivery Date</value>
+    <comment>完成交货期</comment>
+  </data>
+  <data name="oversea_percent" xml:space="preserve">
+    <value>OverSea Sales Percentage %</value>
+    <comment>海外销售比例</comment>
+  </data>
+  <data name="plan_firm" xml:space="preserve">
+    <value>Plan Firm</value>
+    <comment>方案公司</comment>
+  </data>
+  <data name="produce_way" xml:space="preserve">
+    <value>Produce Way(Produce In Risk)</value>
+    <comment>生产方式(冒险做货)</comment>
+  </data>
+  <data name="pro_model" xml:space="preserve">
+    <value>Specification</value>
+    <comment>规格型号</comment>
+  </data>
+  <data name="pro_name" xml:space="preserve">
+    <value>Product Name</value>
+    <comment>产品名称</comment>
+  </data>
+  <data name="pro_num" xml:space="preserve">
+    <value>Product Number</value>
+    <comment>产品代码</comment>
+  </data>
+  <data name="pro_size" xml:space="preserve">
+    <value>Product Specification and Size</value>
+    <comment>产品规格型号尺寸</comment>
+  </data>
+  <data name="qty" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>数量</comment>
+  </data>
+  <data name="quote_num" xml:space="preserve">
+    <value>Quoted Number</value>
+    <comment>报价编号</comment>
+  </data>
+  <data name="saler" xml:space="preserve">
+    <value>Clerk</value>
+    <comment>营业员</comment>
+  </data>
+  <data name="sale_order_detail" xml:space="preserve">
+    <value>Sale Order Details</value>
+    <comment>销售订单明细</comment>
+  </data>
+  <data name="sale_percent" xml:space="preserve">
+    <value>Sale Percentage</value>
+    <comment>销售比例</comment>
+  </data>
+  <data name="save_form" xml:space="preserve">
+    <value>Save Form</value>
+    <comment>保存表单</comment>
+  </data>
+  <data name="select_file" xml:space="preserve">
+    <value>Select File</value>
+    <comment>选择文件</comment>
+  </data>
+  <data name="submit_apply" xml:space="preserve">
+    <value>Submit Application</value>
+    <comment>提交申请</comment>
+  </data>
+  <data name="taxed_price" xml:space="preserve">
+    <value>Contract Taxed Price</value>
+    <comment>合同含税单价</comment>
+  </data>
+  <data name="truly_logo" xml:space="preserve">
+    <value>Package with Truly Logo </value>
+    <comment>外包箱带"TRULY"标示</comment>
+  </data>
+  <data name="upload_file" xml:space="preserve">
+    <value>Upload File(Just one Zip file(.rar) can be upload in one order; The size of file should less than 10 MB, New file will cover the old file when Repeat upload.)</value>
+    <comment>上传附件(一张订单只能上传一个后缀是.rar的压缩文件，并且文件大小不得超过10M，重复上传会覆盖掉旧文件)</comment>
+  </data>
+  <data name="upload_time" xml:space="preserve">
+    <value>Upload Time</value>
+    <comment>上传时间</comment>
+  </data>
+  <data name="add" xml:space="preserve">
+    <value>Add</value>
+    <comment>新增</comment>
+  </data>
+  <data name="are_you_sure" xml:space="preserve">
+    <value>Are you sure</value>
+    <comment>你确定吗</comment>
+  </data>
+  <data name="confirm" xml:space="preserve">
+    <value>Confirm</value>
+    <comment>确认操作</comment>
+  </data>
+  <data name="delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>删除</comment>
+  </data>
+  <data name="edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>修改</comment>
+  </data>
+  <data name="edit_saleOrder" xml:space="preserve">
+    <value>Edit Sale Order</value>
+    <comment>销售订单修改</comment>
+  </data>
+  <data name="update" xml:space="preserve">
+    <value>Update</value>
+    <comment>更新</comment>
+  </data>
+  <data name="audit_1" xml:space="preserve">
+    <value>Agency First Audit</value>
+    <comment>办事处一审</comment>
+  </data>
+  <data name="audit_2" xml:space="preserve">
+    <value>Agency Second Audit</value>
+    <comment>办事处二审</comment>
+  </data>
+  <data name="audit_3" xml:space="preserve">
+    <value>Market First Audit</value>
+    <comment>市场部一审</comment>
+  </data>
+  <data name="audit_4" xml:space="preserve">
+    <value>Market Second Audit</value>
+    <comment>市场部二审</comment>
+  </data>
+  <data name="authority" xml:space="preserve">
+    <value>Authority</value>
+    <comment>权限</comment>
+  </data>
+  <data name="cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>取消</comment>
+  </data>
+  <data name="check" xml:space="preserve">
+    <value>Check</value>
+    <comment>查看</comment>
+  </data>
+  <data name="department" xml:space="preserve">
+    <value>Department</value>
+    <comment>部门</comment>
+  </data>
+  <data name="eidt_dep" xml:space="preserve">
+    <value>Edit Department</value>
+    <comment>修改部门</comment>
+  </data>
+  <data name="email" xml:space="preserve">
+    <value>Email</value>
+    <comment>电子邮箱</comment>
+  </data>
+  <data name="examiner" xml:space="preserve">
+    <value>Examiner</value>
+    <comment>审核人</comment>
+  </data>
+  <data name="failure_save" xml:space="preserve">
+    <value>Failure to save</value>
+    <comment>保存失败</comment>
+  </data>
+  <data name="group" xml:space="preserve">
+    <value>Group</value>
+    <comment>组别</comment>
+  </data>
+  <data name="info" xml:space="preserve">
+    <value>Information</value>
+    <comment>信息</comment>
+  </data>
+  <data name="invalid_combobox" xml:space="preserve">
+    <value>field's value doesn't exist in K3, please select again</value>
+    <comment>字段的值在K3中不存在，请重新选择</comment>
+  </data>
+  <data name="invalid_listbox" xml:space="preserve">
+    <value>field's value is invlid, please select in the list</value>
+    <comment>字段的值不合法，请在下拉列表中选择</comment>
+  </data>
+  <data name="invalid_sale_percent" xml:space="preserve">
+    <value>The value of field [Clerk] doesn't exist in K3, please select again !</value>
+    <comment>[营业员]字段的值在K3中不存在，请重新选择！</comment>
+  </data>
+  <data name="is_forbit" xml:space="preserve">
+    <value>Forbit Flag</value>
+    <comment>禁用标志</comment>
+  </data>
+  <data name="job" xml:space="preserve">
+    <value>Job</value>
+    <comment>工作职位</comment>
+  </data>
+  <data name="list" xml:space="preserve">
+    <value>List</value>
+    <comment>列表</comment>
+  </data>
+  <data name="must_hundred_percent" xml:space="preserve">
+    <value>The sum of sale percentage must be 100</value>
+    <comment>营业员比例总和必须为100</comment>
+  </data>
+  <data name="name" xml:space="preserve">
+    <value>Name</value>
+    <comment>名称</comment>
+  </data>
+  <data name="new_dep" xml:space="preserve">
+    <value>New Department</value>
+    <comment>新增部门</comment>
+  </data>
+  <data name="one_detail_at_least" xml:space="preserve">
+    <value>It must be one order detail at least</value>
+    <comment>至少应该有一条订单明细</comment>
+  </data>
+  <data name="please_input" xml:space="preserve">
+    <value>Please Input a value</value>
+    <comment>请输入一个值</comment>
+  </data>
+  <data name="real" xml:space="preserve">
+    <value>Real</value>
+    <comment>真实</comment>
+  </data>
+  <data name="register_date" xml:space="preserve">
+    <value>Register Date</value>
+    <comment>注册日期</comment>
+  </data>
+  <data name="remove" xml:space="preserve">
+    <value>Remove </value>
+    <comment>移除</comment>
+  </data>
+  <data name="save" xml:space="preserve">
+    <value>Save</value>
+    <comment>保存</comment>
+  </data>
+  <data name="save_order_first" xml:space="preserve">
+    <value>Please save the order first</value>
+    <comment>请先保存订单</comment>
+  </data>
+  <data name="suc_save" xml:space="preserve">
+    <value>Success to save</value>
+    <comment>保存成功</comment>
+  </data>
+  <data name="tip" xml:space="preserve">
+    <value>Tip</value>
+    <comment>提示</comment>
+  </data>
+  <data name="user" xml:space="preserve">
+    <value>User</value>
+    <comment>用户</comment>
+  </data>
+  <data name="all" xml:space="preserve">
+    <value>All</value>
+    <comment>所有</comment>
+  </data>
+  <data name="apply_status" xml:space="preserve">
+    <value>Apply Status</value>
+    <comment>申请状态</comment>
+  </data>
+  <data name="arrive_time" xml:space="preserve">
+    <value>Arrived Time</value>
+    <comment>到达时间</comment>
+  </data>
+  <data name="audit_bill" xml:space="preserve">
+    <value>Audit Bill</value>
+    <comment>审核单据</comment>
+  </data>
+  <data name="audit_opinion" xml:space="preserve">
+    <value>Audit Opinion</value>
+    <comment>审核意见</comment>
+  </data>
+  <data name="audit_pass" xml:space="preserve">
+    <value>Audit has been passed</value>
+    <comment>审批已通过</comment>
+  </data>
+  <data name="audit_reject" xml:space="preserve">
+    <value>Audit has been Rejected</value>
+    <comment>审批已拒绝</comment>
+  </data>
+  <data name="audit_result" xml:space="preserve">
+    <value>Audit Result</value>
+    <comment>审核结果</comment>
+  </data>
+  <data name="audit_step" xml:space="preserve">
+    <value>Audit Step</value>
+    <comment>审核步骤</comment>
+  </data>
+  <data name="biller" xml:space="preserve">
+    <value>Originator</value>
+    <comment>制单人</comment>
+  </data>
+  <data name="bill_type" xml:space="preserve">
+    <value>Bill Type</value>
+    <comment>单据类型</comment>
+  </data>
+  <data name="check_detail" xml:space="preserve">
+    <value>Check Detail</value>
+    <comment>查看详细</comment>
+  </data>
+  <data name="check_status" xml:space="preserve">
+    <value>Check Status</value>
+    <comment>查看审核状态</comment>
+  </data>
+  <data name="commission" xml:space="preserve">
+    <value>Commission</value>
+    <comment>佣金</comment>
+  </data>
+  <data name="commission_rate" xml:space="preserve">
+    <value>Commission Rate</value>
+    <comment>佣金率</comment>
+  </data>
+  <data name="confirm_date" xml:space="preserve">
+    <value>Confirm Delivery Date</value>
+    <comment>确认交货日期</comment>
+  </data>
+  <data name="confirm_pass" xml:space="preserve">
+    <value>Confirm to pass this Audit</value>
+    <comment>确定要 通过 这次审批吗</comment>
+  </data>
+  <data name="confirm_reject" xml:space="preserve">
+    <value>Confirm to reject this Audit</value>
+    <comment>确定要 拒绝 这次审批吗</comment>
+  </data>
+  <data name="contract" xml:space="preserve">
+    <value>Contract</value>
+    <comment>合同</comment>
+  </data>
+  <data name="current_log_user" xml:space="preserve">
+    <value>Current User</value>
+    <comment>当前用户</comment>
+  </data>
+  <data name="cut_num" xml:space="preserve">
+    <value>Reduction of number</value>
+    <comment>对应减免单号</comment>
+  </data>
+  <data name="delivery_date" xml:space="preserve">
+    <value>Delivery Date</value>
+    <comment>交货日期</comment>
+  </data>
+  <data name="detail_not_complete" xml:space="preserve">
+    <value>The detail of order isn't complete</value>
+    <comment>订单分录未填写完整</comment>
+  </data>
+  <data name="discount_rate" xml:space="preserve">
+    <value>Discount Rate</value>
+    <comment>折扣率</comment>
+  </data>
+  <data name="download" xml:space="preserve">
+    <value>Download</value>
+    <comment>下载</comment>
+  </data>
+  <data name="download_file" xml:space="preserve">
+    <value>Download File</value>
+    <comment>下载附件</comment>
+  </data>
+  <data name="edit_bill" xml:space="preserve">
+    <value>Edit Bill</value>
+    <comment>编辑单据</comment>
+  </data>
+  <data name="failure" xml:space="preserve">
+    <value>Failure</value>
+    <comment>失败</comment>
+  </data>
+  <data name="fee_rate" xml:space="preserve">
+    <value>Fee Rate</value>
+    <comment>费用率</comment>
+  </data>
+  <data name="finish_apply" xml:space="preserve">
+    <value>Finish Application</value>
+    <comment>完成申请</comment>
+  </data>
+  <data name="manager" xml:space="preserve">
+    <value>Manager</value>
+    <comment>主管</comment>
+  </data>
+  <data name="not_audit" xml:space="preserve">
+    <value>Not Audit</value>
+    <comment>未审核</comment>
+  </data>
+  <data name="not_finish" xml:space="preserve">
+    <value>Not Finish</value>
+    <comment>未完成</comment>
+  </data>
+  <data name="operation_content" xml:space="preserve">
+    <value>Operation Content</value>
+    <comment>操作内容</comment>
+  </data>
+  <data name="operation_result" xml:space="preserve">
+    <value>Operation Result</value>
+    <comment>操作结果</comment>
+  </data>
+  <data name="operation_time" xml:space="preserve">
+    <value>Operation Time</value>
+    <comment>操作时间</comment>
+  </data>
+  <data name="operator" xml:space="preserve">
+    <value>Operator</value>
+    <comment>操作人</comment>
+  </data>
+  <data name="order_cannot_edit" xml:space="preserve">
+    <value>Applied orders can not be eidted again,Maybe you can click "create old from new" button to create a new application</value>
+    <comment>已申请的订单不能再修改</comment>
+  </data>
+  <data name="order_type" xml:space="preserve">
+    <value>Order Type</value>
+    <comment>订单类型</comment>
+  </data>
+  <data name="original_order_no" xml:space="preserve">
+    <value>Original Order Number</value>
+    <comment>原订单号</comment>
+  </data>
+  <data name="oversea_customer" xml:space="preserve">
+    <value>Oversea Customer</value>
+    <comment>海外客户</comment>
+  </data>
+  <data name="pass" xml:space="preserve">
+    <value>Pass</value>
+    <comment>通过</comment>
+  </data>
+  <data name="price" xml:space="preserve">
+    <value>Price</value>
+    <comment>单价</comment>
+  </data>
+  <data name="price_without_tax" xml:space="preserve">
+    <value>Price Without Tax</value>
+    <comment>不含税单价</comment>
+  </data>
+  <data name="reject" xml:space="preserve">
+    <value>Reject</value>
+    <comment>拒绝</comment>
+  </data>
+  <data name="remarks" xml:space="preserve">
+    <value>Remarks</value>
+    <comment>附注</comment>
+  </data>
+  <data name="repair_no_detail" xml:space="preserve">
+    <value>The repair order doesn't have any details, continue?</value>
+    <comment>该维修单没有分录，要继续吗？</comment>
+  </data>
+  <data name="repair_order_details" xml:space="preserve">
+    <value>Details of Repair Order</value>
+    <comment>维修单明细</comment>
+  </data>
+  <data name="sale_type" xml:space="preserve">
+    <value>Sale Type</value>
+    <comment>销售方式</comment>
+  </data>
+  <data name="search" xml:space="preserve">
+    <value>Search</value>
+    <comment>查询</comment>
+  </data>
+  <data name="send_back_no" xml:space="preserve">
+    <value>Rejection Number</value>
+    <comment>退货编号</comment>
+  </data>
+  <data name="string_length_from_0" xml:space="preserve">
+    <value>the length of this field should be between 0 to</value>
+    <comment>字符串长度应该介于0和</comment>
+  </data>
+  <data name="success" xml:space="preserve">
+    <value>Success</value>
+    <comment>成功</comment>
+  </data>
+  <data name="suggest_delivery_date" xml:space="preserve">
+    <value>Suggested Delivery Date</value>
+    <comment>建议交货日期</comment>
+  </data>
+  <data name="summary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>摘要</comment>
+  </data>
+  <data name="sys_name" xml:space="preserve">
+    <value>CRM SYSTEM</value>
+    <comment>订单管理系统</comment>
+  </data>
+  <data name="tax_rate" xml:space="preserve">
+    <value>Tax Rate</value>
+    <comment>税率</comment>
+  </data>
+  <data name="to" xml:space="preserve">
+    <value>To</value>
+    <comment>到</comment>
+  </data>
+  <data name="trade_type" xml:space="preserve">
+    <value>Trade Type</value>
+    <comment>贸易类型</comment>
+  </data>
+  <data name="unit" xml:space="preserve">
+    <value>Unit</value>
+    <comment>单位</comment>
+  </data>
+  <data name="amount" xml:space="preserve">
+    <value>Total Amount</value>
+    <comment>总金额</comment>
+  </data>
+  <data name="amount_base" xml:space="preserve">
+    <value>Total Amount(base)</value>
+    <comment>总金额(本位币)</comment>
+  </data>
+  <data name="contract_name" xml:space="preserve">
+    <value>Contract Name</value>
+    <comment>合同名称</comment>
+  </data>
+  <data name="contract_no" xml:space="preserve">
+    <value>Contract Number</value>
+    <comment>合同单号</comment>
+  </data>
+  <data name="discount_way" xml:space="preserve">
+    <value>Discount Way</value>
+    <comment>打折方式</comment>
+  </data>
+  <data name="order_no" xml:space="preserve">
+    <value>Order Number</value>
+    <comment>订单编号</comment>
+  </data>
+  <data name="record_number" xml:space="preserve">
+    <value>The number of records you searched is</value>
+    <comment>符合条件的记录数有</comment>
+  </data>
+  <data name="audit_status" xml:space="preserve">
+    <value>Audit Flag</value>
+    <comment>审核标志</comment>
+  </data>
+  <data name="close_status" xml:space="preserve">
+    <value>Close Flag</value>
+    <comment>关闭标志</comment>
+  </data>
+  <data name="can_modify_after_audit" xml:space="preserve">
+    <value>Can not modify before audited</value>
+    <comment>未审核的订单不能变更</comment>
+  </data>
+  <data name="can_modify_before_close" xml:space="preserve">
+    <value>Can not modify after closed</value>
+    <comment>已关闭的订单不能变更</comment>
+  </data>
+  <data name="bill_change_comment" xml:space="preserve">
+    <value>Description of Bill Modified</value>
+    <comment>订单变更说明</comment>
+  </data>
+  <data name="entry_id" xml:space="preserve">
+    <value>Entry Number</value>
+    <comment>分录号</comment>
+  </data>
+  <data name="field_name" xml:space="preserve">
+    <value>Field Name</value>
+    <comment>字段名</comment>
+  </data>
+  <data name="mod_list" xml:space="preserve">
+    <value>Modified Info List</value>
+    <comment>修改信息列表</comment>
+  </data>
+  <data name="new_value" xml:space="preserve">
+    <value>New Value</value>
+    <comment>新值</comment>
+  </data>
+  <data name="old_value" xml:space="preserve">
+    <value>Old Value</value>
+    <comment>初始值</comment>
+  </data>
+  <data name="apply_date" xml:space="preserve">
+    <value>Apply Date</value>
+    <comment>申请日期</comment>
+  </data>
+  <data name="audit_add_apply" xml:space="preserve">
+    <value>Audit Adding Application</value>
+    <comment>审核新增申请</comment>
+  </data>
+  <data name="audit_mod_apply" xml:space="preserve">
+    <value>Audit Modifying Application</value>
+    <comment>审核变更申请</comment>
+  </data>
+  <data name="bill_no" xml:space="preserve">
+    <value>Bill No.</value>
+    <comment>订单编号</comment>
+  </data>
+  <data name="change_content" xml:space="preserve">
+    <value>Change Content</value>
+    <comment>变更内容</comment>
+  </data>
+  <data name="check_add_apply" xml:space="preserve">
+    <value>Check Adding Application</value>
+    <comment>查看新增申请</comment>
+  </data>
+  <data name="check_mod_apply" xml:space="preserve">
+    <value>Check Modifying Application</value>
+    <comment>查看变更申请</comment>
+  </data>
+  <data name="empty_change_table" xml:space="preserve">
+    <value>The modify table is empty, couldn't to be submit!</value>
+    <comment>变更列表为空，提交申请失败！</comment>
+  </data>
+  <data name="apply_has_submit" xml:space="preserve">
+    <value>Application submited</value>
+    <comment>申请已提交</comment>
+  </data>
+  <data name="bill_cancel_comment" xml:space="preserve">
+    <value>Description of bill cancellation</value>
+    <comment>订单取消说明</comment>
+  </data>
+  <data name="can_cancel_after_audit" xml:space="preserve">
+    <value>Can not cancel before audited</value>
+    <comment>未审核的订单不能取消</comment>
+  </data>
+  <data name="can_cancel_before_close" xml:space="preserve">
+    <value>Can not cancel after closed</value>
+    <comment>已关闭的订单不能取消</comment>
+  </data>
+  <data name="audit_modify/cancel_application" xml:space="preserve">
+    <value>Audit Modify/Cancel Application</value>
+    <comment>审核变更/取消申请</comment>
+  </data>
+  <data name="check_modify/cancel_application" xml:space="preserve">
+    <value>Check Modify/Cancel Application</value>
+    <comment>查看变更/取消申请</comment>
+  </data>
+  <data name="modify/cancel_order" xml:space="preserve">
+    <value>Modify/Cancel Order</value>
+    <comment>变更/取消订单</comment>
+  </data>
+  <data name="no_power" xml:space="preserve">
+    <value>You have no authority</value>
+    <comment>没有操作权限</comment>
+  </data>
+  <data name="contract_amount" xml:space="preserve">
+    <value>Contract Amount</value>
+    <comment>合同金额</comment>
+  </data>
+  <data name="create_model_invoice_detail" xml:space="preserve">
+    <value>Create Model Contract Details</value>
+    <comment>开模改模单明细</comment>
+  </data>
+  <data name="debate_amount" xml:space="preserve">
+    <value>Debate Amount</value>
+    <comment>折扣金额</comment>
+  </data>
+  <data name="end_customer" xml:space="preserve">
+    <value>End Customer</value>
+    <comment>最终客户</comment>
+  </data>
+  <data name="invoice_amount" xml:space="preserve">
+    <value>Invoice Amount</value>
+    <comment>已开票金额</comment>
+  </data>
+  <data name="new_create_model_contract" xml:space="preserve">
+    <value>New Create Model Contract</value>
+    <comment>新建开模改模单</comment>
+  </data>
+  <data name="check_create_model_contract" xml:space="preserve">
+    <value>Check Create Model Contract</value>
+    <comment>查看开模改模单</comment>
+  </data>
+  <data name="edit_model_contract" xml:space="preserve">
+    <value>Edit Model Contract</value>
+    <comment>编辑开模改模单</comment>
+  </data>
+  <data name="apply_user" xml:space="preserve">
+    <value>Applier</value>
+    <comment>申请者</comment>
+  </data>
+  <data name="charge_sample" xml:space="preserve">
+    <value>Charge Sample Order</value>
+    <comment>收费样品单</comment>
+  </data>
+  <data name="charge_sample_details" xml:space="preserve">
+    <value>Charge Sample Details</value>
+    <comment>收费样品单明细</comment>
+  </data>
+  <data name="free_sample" xml:space="preserve">
+    <value>Free Sample Order</value>
+    <comment>免费样品单</comment>
+  </data>
+  <data name="free_sample_details" xml:space="preserve">
+    <value>Free Sample Details</value>
+    <comment>免费样品单明细</comment>
+  </data>
+  <data name="new_charge_sample" xml:space="preserve">
+    <value>Create Charge Sample</value>
+    <comment>新建收费样品单</comment>
+  </data>
+  <data name="new_free_sample" xml:space="preserve">
+    <value>Create Free Sample Order</value>
+    <comment>新建免费样品单</comment>
+  </data>
+  <data name="apply_modification" xml:space="preserve">
+    <value>Apply Modification</value>
+    <comment>申请变更</comment>
+  </data>
+  <data name="bill_status" xml:space="preserve">
+    <value>Bill Status</value>
+    <comment>订单状态</comment>
+  </data>
+  <data name="change_password" xml:space="preserve">
+    <value>Change Password</value>
+    <comment>修改密码</comment>
+  </data>
+  <data name="confirm_password" xml:space="preserve">
+    <value>Confrim Password</value>
+    <comment>确认密码</comment>
+  </data>
+  <data name="new_password" xml:space="preserve">
+    <value>New Password</value>
+    <comment>新密码</comment>
+  </data>
+  <data name="old_password" xml:space="preserve">
+    <value>Old Password</value>
+    <comment>原密码</comment>
+  </data>
+  <data name="pass_not_same" xml:space="preserve">
+    <value>The Two Passwords are not the same</value>
+    <comment>新密码与确认密码不一致</comment>
+  </data>
+  <data name="charger" xml:space="preserve">
+    <value>Charger</value>
+    <comment>负责人</comment>
+  </data>
+  <data name="trade_rule" xml:space="preserve">
+    <value>Trade Rule</value>
+    <comment>贸易条例</comment>
+  </data>
+  <data name="process_manage" xml:space="preserve">
+    <value>Process Manage</value>
+    <comment>流程管理</comment>
+  </data>
+  <data name="cur_manage" xml:space="preserve">
+    <value>currency Management</value>
+    <comment>汇率管理</comment>
+  </data>
+  <data name="mat_manage" xml:space="preserve">
+    <value>Material Management</value>
+    <comment>资料管理</comment>
+  </data>
+  <data name="customer_num" xml:space="preserve">
+    <value>Customer Number</value>
+    <comment>客户编码</comment>
+  </data>
+  <data name="bak_bill" xml:space="preserve">
+    <value>Bill backGround</value>
+    <comment>后台订单管理</comment>
+  </data>
+  <data name="confirm_delete" xml:space="preserve">
+    <value>Are you sure to delete it?</value>
+    <comment>确定要删除吗</comment>
+  </data>
+  <data name="remove_dep" xml:space="preserve">
+    <value>Remove Department</value>
+    <comment>删除部门</comment>
+  </data>
+  <data name="agency_rel_auditor" xml:space="preserve">
+    <value>Agency &amp; Auditor</value>
+    <comment>办事处与市场部一审</comment>
+  </data>
+  <data name="accountset" xml:space="preserve">
+    <value>AccountSet</value>
+    <comment>帐套</comment>
+  </data>
+  <data name="newFromOld" xml:space="preserve">
+    <value>Create New From Old</value>
+    <comment>以此模板新建</comment>
+  </data>
+  <data name="diff_sum" xml:space="preserve">
+    <value>Different Amount</value>
+    <comment>差价总金额</comment>
+  </data>
+  <data name="clerk1" xml:space="preserve">
+    <value>1th Clerk</value>
+    <comment>业务员1</comment>
+  </data>
+  <data name="clerk2" xml:space="preserve">
+    <value>2th Clerk </value>
+    <comment>业务员2</comment>
+  </data>
+  <data name="group1" xml:space="preserve">
+    <value>Group 1</value>
+    <comment>组别1</comment>
+  </data>
+  <data name="group2" xml:space="preserve">
+    <value>Group 2</value>
+    <comment>组别2</comment>
+  </data>
+  <data name="percent1" xml:space="preserve">
+    <value>1th Percent</value>
+    <comment>比例1</comment>
+  </data>
+  <data name="percent2" xml:space="preserve">
+    <value>2th Percent</value>
+    <comment>比例2</comment>
+  </data>
+  <data name="deal_sum" xml:space="preserve">
+    <value>Deal Amount</value>
+    <comment>成交金额</comment>
+  </data>
+  <data name="export_excel" xml:space="preserve">
+    <value>Export Excel</value>
+    <comment>导出Excel</comment>
+  </data>
+  <data name="reset_password" xml:space="preserve">
+    <value>Reset Password</value>
+    <comment>重置密码</comment>
+  </data>
+  <data name="final_status" xml:space="preserve">
+    <value>Final Status</value>
+    <comment>最终审核状态</comment>
+  </data>
+  <data name="client_name" xml:space="preserve">
+    <value>Customer Name</value>
+    <comment>客户名称</comment>
+  </data>
+  <data name="project_name" xml:space="preserve">
+    <value>Project Name</value>
+    <comment>项目名称</comment>
+  </data>
+  <data name="project_number" xml:space="preserve">
+    <value>Project Number</value>
+    <comment>项目编号</comment>
+  </data>
+  <data name="ceo_excel" xml:space="preserve">
+    <value>Chairman's office Report</value>
+    <comment>总裁办报表</comment>
+  </data>
+  <data name="is_finish" xml:space="preserve">
+    <value>Finished</value>
+    <comment>已结束</comment>
+  </data>
+  <data name="finish_status" xml:space="preserve">
+    <value>Finish Status</value>
+    <comment>结束状态</comment>
+  </data>
+  <data name="dep_auditor_manage" xml:space="preserve">
+    <value>Product Department &amp; Auditor</value>
+    <comment>事业部审核人设置</comment>
+  </data>
+  <data name="further_info" xml:space="preserve">
+    <value>Further Description</value>
+    <comment>补充说明（包装参数）</comment>
+  </data>
+  <data name="proc_dep" xml:space="preserve">
+    <value>Product Department</value>
+    <comment>生产部门</comment>
+  </data>
+  <data name="proc_time" xml:space="preserve">
+    <value>Process Time</value>
+    <comment>流程时间监控</comment>
+  </data>
+  <data name="chk_report" xml:space="preserve">
+    <value>Check Report</value>
+    <comment>查看报表</comment>
+  </data>
+  <data name="chk_dep_bills" xml:space="preserve">
+    <value>Check Dep Bills</value>
+    <comment>查看事业部订单</comment>
+  </data>
+  <data name="order_number_manage" xml:space="preserve">
+    <value>Order No. Manage</value>
+    <comment>订单编号管理</comment>
+  </data>
+  <data name="export_so_excel" xml:space="preserve">
+    <value>SO Excel</value>
+    <comment>销售Excel</comment>
+  </data>
+  <data name="export_th_excel" xml:space="preserve">
+    <value>TH Excel</value>
+    <comment>退货Excel</comment>
+  </data>
+  <data name="add_pj" xml:space="preserve">
+    <value>Add an application</value>
+    <comment>新增客户立项申请</comment>
+  </data>
+  <data name="check_old_pj" xml:space="preserve">
+    <value>Check history application</value>
+    <comment>查看历史立项申请</comment>
+  </data>
+  <data name="check_pj" xml:space="preserve">
+    <value>Check my added application</value>
+    <comment>查看客户立项申请</comment>
+  </data>
+  <data name="pj_manage" xml:space="preserve">
+    <value>Customer project application</value>
+    <comment>客户立项管理</comment>
+  </data>
+  <data name="auditor_name" xml:space="preserve">
+    <value>Auditor name</value>
+    <comment>步骤审核人</comment>
+  </data>
+  <data name="cam_pixel" xml:space="preserve">
+    <value>Camera pixel</value>
+    <comment>摄像头像素</comment>
+  </data>
+  <data name="classification" xml:space="preserve">
+    <value>Classification</value>
+    <comment>分类</comment>
+  </data>
+  <data name="clear_search_con" xml:space="preserve">
+    <value>Clear search condition</value>
+    <comment>清除查询条件</comment>
+  </data>
+  <data name="competitor" xml:space="preserve">
+    <value>Competitor</value>
+    <comment>竞争对手</comment>
+  </data>
+  <data name="create_date" xml:space="preserve">
+    <value>Creation date</value>
+    <comment>创建日期</comment>
+  </data>
+  <data name="customer_info" xml:space="preserve">
+    <value>Customer number/name</value>
+    <comment>客户信息</comment>
+  </data>
+  <data name="dot_matrix" xml:space="preserve">
+    <value>Dot matrix abbr.</value>
+    <comment>点阵缩写</comment>
+  </data>
+  <data name="end_time" xml:space="preserve">
+    <value>Stop production time</value>
+    <comment>停产时间</comment>
+  </data>
+  <data name="estimated_price" xml:space="preserve">
+    <value>Estimated price</value>
+    <comment>估计卖价</comment>
+  </data>
+  <data name="imported_k3" xml:space="preserve">
+    <value>imported into K3</value>
+    <comment>已导进K3</comment>
+  </data>
+  <data name="market_time" xml:space="preserve">
+    <value>Time to market</value>
+    <comment>上市时间</comment>
+  </data>
+  <data name="next_step_name" xml:space="preserve">
+    <value>Next step name</value>
+    <comment>下一审核步骤名称</comment>
+  </data>
+  <data name="op_sys" xml:space="preserve">
+    <value>Operation system</value>
+    <comment>操作系统</comment>
+  </data>
+  <data name="Other_key" xml:space="preserve">
+    <value>Other_Key</value>
+    <comment>关键字</comment>
+  </data>
+  <data name="pixel" xml:space="preserve">
+    <value>Pixel</value>
+    <comment>像素</comment>
+  </data>
+  <data name="pj_name" xml:space="preserve">
+    <value>Project name</value>
+    <comment>客户项目名称</comment>
+  </data>
+  <data name="pj_status" xml:space="preserve">
+    <value>Project status</value>
+    <comment>项目状态</comment>
+  </data>
+  <data name="platform_provider" xml:space="preserve">
+    <value>Platform provider</value>
+    <comment>所用平台商</comment>
+  </data>
+  <data name="platform_type" xml:space="preserve">
+    <value>Platform type</value>
+    <comment>平台型号</comment>
+  </data>
+  <data name="print_returned_report" xml:space="preserve">
+    <value>Print return goods report</value>
+    <comment>打印退货签收报表</comment>
+  </data>
+  <data name="pro_serial" xml:space="preserve">
+    <value>Product series</value>
+    <comment>产品系列</comment>
+  </data>
+  <data name="quantity" xml:space="preserve">
+    <value>All quantity</value>
+    <comment>总量</comment>
+  </data>
+  <data name="r_d_comment" xml:space="preserve">
+    <value>R &amp; D's comment</value>
+    <comment>研发中心备注</comment>
+  </data>
+  <data name="screen_size" xml:space="preserve">
+    <value>Main screen size</value>
+    <comment>主屏尺寸</comment>
+  </data>
+  <data name="TP_type" xml:space="preserve">
+    <value>TP type</value>
+    <comment>TP类型</comment>
+  </data>
+  <data name="start_quot" xml:space="preserve">
+    <value>Start Quotation</value>
+    <comment>发起报价</comment>
+  </data>
+  <data name="add_dialog" xml:space="preserve">
+    <value>Add Dialog</value>
+    <comment>新增对话框</comment>
+  </data>
+  <data name="add_temp_customer" xml:space="preserve">
+    <value>Add A Temp Customer</value>
+    <comment>新增临时客户</comment>
+  </data>
+  <data name="contacts" xml:space="preserve">
+    <value>Contacts</value>
+    <comment>联系人</comment>
+  </data>
+  <data name="customer_addr" xml:space="preserve">
+    <value>Customer Address</value>
+    <comment>客户地址</comment>
+  </data>
+  <data name="customer_short" xml:space="preserve">
+    <value>Customer abbr.</value>
+    <comment>客户简称</comment>
+  </data>
+  <data name="en_addr" xml:space="preserve">
+    <value>English Address</value>
+    <comment>英文地址</comment>
+  </data>
+  <data name="en_name" xml:space="preserve">
+    <value>English Name</value>
+    <comment>英文名称</comment>
+  </data>
+  <data name="mobile_phone" xml:space="preserve">
+    <value>Mobile phone</value>
+    <comment>手机号码</comment>
+  </data>
+  <data name="phone" xml:space="preserve">
+    <value>Telephone</value>
+    <comment>固定电话</comment>
+  </data>
+  <data name="tax" xml:space="preserve">
+    <value>Tax Number</value>
+    <comment>传真号码</comment>
+  </data>
+  <data name="LCD_Pixel" xml:space="preserve">
+    <value>LCD Pixels</value>
+    <comment>LCD 像素</comment>
+  </data>
+  <data name="truly_first_vendor" xml:space="preserve">
+    <value>Is Truly the first vendor</value>
+    <comment>信利是否一供</comment>
+  </data>
+  <data name="check_quot_info" xml:space="preserve">
+    <value>Check Quotation Info</value>
+    <comment>查询报价信息</comment>
+  </data>
+  <data name="emergency_quot" xml:space="preserve">
+    <value>Emergency Quotation</value>
+    <comment>紧急报价</comment>
+  </data>
+  <data name="cop_name" xml:space="preserve">
+    <value>Company</value>
+    <comment>公司</comment>
+  </data>
+  <data name="forgot_password" xml:space="preserve">
+    <value>Forgot password?</value>
+  </data>
+  <data name="login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="password" xml:space="preserve">
+    <value>Password</value>
+    <comment>密码</comment>
+  </data>
+  <data name="refresh_vailidate" xml:space="preserve">
+    <value>Refresh Code</value>
+  </data>
+  <data name="truly_opto" xml:space="preserve">
+    <value>Truly OPTO-Electronics Ltd.</value>
+    <comment>信利光电股份有限公司</comment>
+  </data>
+  <data name="truly_semi" xml:space="preserve">
+    <value>Truly Semiconductors Ltd.</value>
+    <comment>信利半导体有限公司</comment>
+  </data>
+  <data name="user_name" xml:space="preserve">
+    <value>User Name</value>
+    <comment>用户名</comment>
+  </data>
+  <data name="validate_code" xml:space="preserve">
+    <value>Validate Code</value>
+    <comment>验证码</comment>
+  </data>
+  <data name="end_date" xml:space="preserve">
+    <value>Finish Date</value>
+  </data>
+  <data name="truly_percentage" xml:space="preserve">
+    <value>Estimated Truly Percentage</value>
+    <comment>预计信利所占比</comment>
+  </data>
+  <data name="change_cutomer_software" xml:space="preserve">
+    <value>Change Customer Software</value>
+    <comment>可更改客户软件</comment>
+  </data>
+  <data name="dustproof_demand" xml:space="preserve">
+    <value>Dustproof Demand</value>
+    <comment>防尘要求</comment>
+  </data>
+  <data name="has_touch_panel" xml:space="preserve">
+    <value>Has Touch Panel</value>
+    <comment>带触摸屏</comment>
+  </data>
+  <data name="has_video_function" xml:space="preserve">
+    <value>Video Function</value>
+    <comment>带摄像功能</comment>
+  </data>
+  <data name="mechanical_shock_test" xml:space="preserve">
+    <value>Mechanical Shock Test</value>
+    <comment>机械冲击试验</comment>
+  </data>
+  <data name="model" xml:space="preserve">
+    <value>Model</value>
+    <comment>型号</comment>
+  </data>
+  <data name="pcs" xml:space="preserve">
+    <value>PCS</value>
+    <comment>粒数</comment>
+  </data>
+  <data name="reason" xml:space="preserve">
+    <value>Reason</value>
+    <comment>原因</comment>
+  </data>
+  <data name="refer_to" xml:space="preserve">
+    <value>Refer To</value>
+    <comment>要求参考</comment>
+  </data>
+  <data name="same_with_customer_sample" xml:space="preserve">
+    <value>Same With Customer Sample</value>
+    <comment>完全跟同客样</comment>
+  </data>
+  <data name="sample_use" xml:space="preserve">
+    <value>Sample Use</value>
+    <comment>样品用途</comment>
+  </data>
+  <data name="structure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>结构</comment>
+  </data>
+  <data name="theory" xml:space="preserve">
+    <value>Theory</value>
+    <comment>原理</comment>
+  </data>
+  <data name="uv_test" xml:space="preserve">
+    <value>UV Test</value>
+    <comment>UV试验</comment>
+  </data>
+  <data name="competitor1" xml:space="preserve">
+    <value>Mainly Competitor</value>
+    <comment>主要竞争对手</comment>
+  </data>
+  <data name="competitor_configuration" xml:space="preserve">
+    <value>Competitor's Configuration</value>
+    <comment>竞争对手的配置(TFT和IC型号)</comment>
+  </data>
+  <data name="competitor_price" xml:space="preserve">
+    <value>Competitor Unit Price</value>
+    <comment>竞争对手卖价</comment>
+  </data>
+  <data name="end_time1" xml:space="preserve">
+    <value>End Time</value>
+    <comment>结束时间</comment>
+  </data>
+  <data name="engineer_content" xml:space="preserve">
+    <value>Engineer Content</value>
+    <comment>工程内容</comment>
+  </data>
+  <data name="env_demand" xml:space="preserve">
+    <value>Environment Demand</value>
+    <comment>环保要求</comment>
+  </data>
+  <data name="estimated_quantity" xml:space="preserve">
+    <value>Estimated Monthly Quantity</value>
+    <comment>预计每月产量</comment>
+  </data>
+  <data name="plan_production_date" xml:space="preserve">
+    <value>Plan Pruduction Date</value>
+    <comment>计划生产时间</comment>
+  </data>
+  <data name="small_batch_production" xml:space="preserve">
+    <value>Small Batch Production</value>
+    <comment>小批量试产</comment>
+  </data>
+  <data name="start_time" xml:space="preserve">
+    <value>Start Time</value>
+    <comment>开始时间</comment>
+  </data>
+  <data name="uv_test1" xml:space="preserve">
+    <value>UV Test</value>
+    <comment>UV试验</comment>
+  </data>
+  <data name="bls_color" xml:space="preserve">
+    <value>Back Light color</value>
+    <comment>背光源颜色</comment>
+  </data>
+  <data name="bl_color" xml:space="preserve">
+    <value>Back Light color</value>
+    <comment>背光颜色</comment>
+  </data>
+  <data name="bl_type" xml:space="preserve">
+    <value>Back Light Type</value>
+    <comment>背光源类型</comment>
+  </data>
+  <data name="deal_with_bill" xml:space="preserve">
+    <value>How to deal with the bill</value>
+    <comment>已备料/已生产的处理方式</comment>
+  </data>
+  <data name="has_bill" xml:space="preserve">
+    <value>Has Bill</value>
+    <comment>是否已下</comment>
+  </data>
+  <data name="LCD_mode" xml:space="preserve">
+    <value>LCD Mode</value>
+    <comment>LCD模式</comment>
+  </data>
+  <data name="LCD_type" xml:space="preserve">
+    <value>LCD type</value>
+    <comment>LCD产品类型</comment>
+  </data>
+  <data name="optional_info" xml:space="preserve">
+    <value>Optional Information(If Customers has special desire)</value>
+    <comment>选填信息（可不填，但如客户有特殊指定则需填写）</comment>
+  </data>
+  <data name="product_level" xml:space="preserve">
+    <value>Product Level</value>
+    <comment>产品级别</comment>
+  </data>
+  <data name="Quality_desire" xml:space="preserve">
+    <value>Quality Desire</value>
+    <comment>品质要求</comment>
+  </data>
+  <data name="reflectivity_percent" xml:space="preserve">
+    <value>Reflectivity Percent</value>
+    <comment>反射率</comment>
+  </data>
+  <data name="temperature_character" xml:space="preserve">
+    <value>Temperature Character</value>
+    <comment>温度特性</comment>
+  </data>
+  <data name="under_polarizer" xml:space="preserve">
+    <value>Under Polarizer</value>
+    <comment>下偏光片</comment>
+  </data>
+  <data name="up_polarizer" xml:space="preserve">
+    <value>Upper Polarizer</value>
+    <comment>上偏光片</comment>
+  </data>
+  <data name="customer_model_disadvantage" xml:space="preserve">
+    <value>Has Disadvantage while using sample</value>
+    <comment>使用有否不足之处</comment>
+  </data>
+  <data name="clerk3" xml:space="preserve">
+    <value>3th clerk</value>
+    <comment>业务员三</comment>
+  </data>
+  <data name="percent3" xml:space="preserve">
+    <value>3th percent</value>
+    <comment>比例三</comment>
+  </data>
+  <data name="create_sample_bill" xml:space="preserve">
+    <value>Create Sample Bill</value>
+    <comment>新建样品单</comment>
+  </data>
+  <data name="sb_excel" xml:space="preserve">
+    <value>Sample Bill Excel</value>
+    <comment>样品单excel</comment>
+  </data>
+  <data name="create_ccm_model_bill" xml:space="preserve">
+    <value>Create CCM Model Bill</value>
+    <comment>新建CCM开改模单</comment>
+  </data>
+  <data name="customer_model" xml:space="preserve">
+    <value>Customer Model</value>
+    <comment>客户机型</comment>
+  </data>
+  <data name="is_free" xml:space="preserve">
+    <value>Is Free</value>
+    <comment>是否收费</comment>
+  </data>
+  <data name="model_bill" xml:space="preserve">
+    <value>Model Bill</value>
+    <comment>开改模单</comment>
+  </data>
+  <data name="model_fee" xml:space="preserve">
+    <value>Model Fee</value>
+    <comment>开改模费</comment>
+  </data>
+  <data name="model_type" xml:space="preserve">
+    <value>Model Type</value>
+    <comment>模单类型</comment>
+  </data>
+  <data name="pic_number" xml:space="preserve">
+    <value>Pic Number</value>
+    <comment>图纸编号</comment>
+  </data>
+  <data name="pic_version" xml:space="preserve">
+    <value>Pic Version</value>
+    <comment>图纸版本号</comment>
+  </data>
+  <data name="project_model" xml:space="preserve">
+    <value>Project Model</value>
+    <comment>对应模块型号</comment>
+  </data>
+  <data name="quotation_clerk" xml:space="preserve">
+    <value>Quotation Clerk</value>
+    <comment>报价员</comment>
+  </data>
+  <data name="tel_num" xml:space="preserve">
+    <value>Tel. Number</value>
+    <comment>联系方式</comment>
+  </data>
+  <data name="charge" xml:space="preserve">
+    <value>Charge</value>
+    <comment>收费</comment>
+  </data>
+  <data name="free" xml:space="preserve">
+    <value>Free</value>
+    <comment>免费</comment>
+  </data>
+  <data name="export_cm_excel" xml:space="preserve">
+    <value>Export CM Excel</value>
+    <comment>开改模Excel</comment>
+  </data>
+  <data name="create_model_bill" xml:space="preserve">
+    <value>Create Model Contract</value>
+    <comment>新建开模改模单</comment>
+  </data>
+</root>

@@ -1,0 +1,27 @@
+﻿<script type="text/javascript">
+    $(function () {
+        //附件信息
+        $.post("@Url.Content("~/Saler/GetFileInfo")",{sys_no:"@ViewData["sys_no"]"},function(data){
+            if(data.success){
+                $("#up_name").html(data.am.file_name);
+                $("#up_size").html(data.am.file_size);
+                $("#up_time").html(data.am.upload_time);
+            }else{
+                $("#downloadPanel").hide();
+            }
+        });
+
+        $("#downloadFile").click(function(){
+             window.location.href="@Url.Content("~/Saler/DownFile")"+"?sysNum=@ViewData["sys_no"]";
+        });
+    });
+</script>
+<div id="uploadDiv" style="width: 400px; float: left;">
+    <a href="#uploadDiv" class="easyui-linkbutton" iconcls="icon-download" id="downloadFile"
+        style="margin-left: 40px; margin-top: 4px;">@Html.Lang("download")</a>
+</div>
+<div id="uploadInfo" style="width: 300px; margin-left: 20px; float: left;">
+    @Html.Lang("file_name")：<span id="up_name" style="color: red"></span><br />
+    @Html.Lang("file_size")：<span id="up_size" style="color: red"></span><br />
+    @Html.Lang("upload_time")：<span id="up_time" style="color: red"></span>
+</div>

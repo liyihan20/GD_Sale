@@ -1,0 +1,50 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    $(function () {
+        $("#tbchange").datagrid({
+            title:"@Html.Lang("mod_list")",
+            fit:true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'field_en_name', title: '字段英文名', width: 120,hidden: true },
+                        { field: 'entry_id', title: '@Html.Lang("entry_id")', width: 80 },
+    					{ field: 'field_cn_name', title: '@Html.Lang("field_name")', width: 100 },
+    					{ field: 'old_value', title: '@Html.Lang("old_value")', width: 200 },
+                        { field: 'new_value', title: '@Html.Lang("new_value")', width: 200 }    					
+    				]]
+        });
+    });
+
+    //更新/插入/删除行到修改列表
+    function updateIntoList(entryid,en_name,cn_name,old_value,new_value){
+        var rows=$("#tbchange").datagrid("getRows");
+        for(var i=0;i<rows.length;i++){
+            if(rows[i].field_en_name==en_name && rows[i].entry_id==entryid){
+                if(rows[i].old_value==new_value){
+                    $("#tbchange").datagrid("deleteRow",i);
+                    return;
+                }else{
+                    rows[i].new_value=new_value;
+                    $("#tbchange").datagrid("updateRow",{index:i,row:rows[i]});
+                    return;
+                }
+            }
+        }        
+        if(old_value==new_value)
+            return;
+        var row={
+            field_en_name:en_name,
+            entry_id:entryid,
+            field_cn_name:cn_name,
+            old_value:old_value,
+            new_value:new_value
+        };
+        $("#tbchange").datagrid("appendRow",row);
+             
+    }
+</script>
+<table id="tbchange"></table>

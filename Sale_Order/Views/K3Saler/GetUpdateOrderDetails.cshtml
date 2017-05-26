@@ -1,0 +1,62 @@
+﻿<script type="text/javascript">
+    $(function () { 
+        var bill_type="@ViewData["bill_type"]";
+        var urlPath="";
+        switch(bill_type){
+                    case 'SO':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3SaleOrderByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'MB':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3ContractByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'CM':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3ModelByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'FS':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3FreeSampleByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'CS':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3ChargeSampleByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    defalut:
+                        return value;
+                        break;
+                }    
+        $("#tbchange").datagrid({
+            title:"@Html.Lang("mod_list")",
+            fit:true,
+            url:"@Url.Content("~/K3Saler/ChangeInfoList")"+"/"+@ViewData["update_id"],
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'field_en_name', title: '字段英文名', width: 120,hidden: true },
+                        { field: 'entry_id', title: '@Html.Lang("entry_id")', width: 80 },
+    					{ field: 'field_cn_name', title: '@Html.Lang("field_name")', width: 100 },
+    					{ field: 'old_value', title: '@Html.Lang("old_value")', width: 200 },
+                        { field: 'new_value', title: '@Html.Lang("new_value")', width: 200 }       					
+    				]]
+        });
+        $("#lay").layout("panel","center").panel({
+                href:urlPath
+        });
+        $("#submit_but").linkbutton("disable");
+    });
+</script>
+
+<div class="easyui-layout" data-options="fit:true" id="lay">
+    <div data-options="region:'south',collapsed:false" style="height: 130px; background: #fafafa;">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'west'" style="width: 460px;">
+            <table id="tbchange"></table>
+            </div>
+            <div data-options="region:'center'" style="padding:3px;">
+                <div>@Html.Lang("bill_change_comment")：</div>
+                <div><textarea id="changeComment" cols="50" rows="4" readonly="readonly">@ViewData["changeComment"]</textarea></div>
+                <div style="padding-left:160px;"><a class="easyui-linkbutton" id="submit_but" data-options="iconCls:'icon-ok'">@Html.Lang("apply_has_submit")</a></div>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center'">
+    </div>
+</div>

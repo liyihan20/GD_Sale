@@ -1,0 +1,142 @@
+﻿<script type="text/javascript">  
+
+    $(function(){
+         $("#rel_dg").datagrid({
+            title:"办事处与市场部一审",
+            fit:true,         
+            url:"getAgencyAndMaketAuditors",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            toolbar:"#toolbar",
+            columns: [[
+                        { field: 'id', title: 'id', width: 120, align: "center",hidden:"true" },
+                        { field: 'billType', title: '订单类型', width: 120, align: "center",
+                            formatter: function(value,row,index){
+				                if (value == "SO"){
+					                return '销售订单';
+				                }else if(value == 'MB'){
+                                    return '维修单';
+                                }else if(value == 'CM'){
+                                    return '开模改模单';
+                                }else if(value == 'FS'){
+                                    return '免费样品单';
+                                }else if(value == 'CS'){
+                                    return '收费样品单';
+                                }
+                                else{
+                                    return value;
+                                }
+			                } },
+                        { field: 'depName', title: '部门名称', width: 120, align: "center"},
+                        { field: 'auditor', title: '市场部审核人', width: 120, align: "center" }
+                    ]]
+        });
+
+    });    
+
+
+    var url;
+    function newRel() {
+        $('#rel_dlg').dialog('open').dialog('setTitle', '新建关系');
+        $('#fm').form('clear');
+        url = 'saveAgencyAndMarketAuditor';
+    }
+    function editRel() {
+        var row = $('#rel_dg').datagrid('getSelected');
+        if (row) {
+            $('#rel_dlg').dialog('open').dialog('setTitle', '编辑关系');
+            $('#fm').form('load', row);
+            url = 'updateAgencyAndMarketAuditor/' + row.id;
+        }
+    }
+    function saveRel() {
+        $('#fm').form('submit', {
+            url: '' + url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {                
+                var result = eval('(' + data + ')');
+                if (result.suc) {
+                    $('#rel_dlg').dialog('close');      // close the dialog   
+                    $('#rel_dg').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }  
+    function removeRel(){
+        var row = $('#rel_dg').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_delete")?', function(r){
+	            if (r){
+                    $.post("@Url.Content("~/Authority/RemoveAgencyAndMarketAuditor")",{id:row.id},function(data){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: data.msg
+                        });
+                        if(data.suc){
+                            $('#rel_dg').datagrid('reload'); 
+                        }
+                    });
+                }
+            });
+        }
+    }
+    function qq(value,name){   
+        $('#rel_dg').datagrid('load',{
+        value: value,   
+        name: name   
+        });
+    } 
+   
+</script>
+
+<table id="rel_dg">  
+</table>  
+<div id="toolbar">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newRel()">新建关系</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editRel()">编辑关系</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeRel()">删除关系</a>
+    <input id="ss" class="easyui-searchbox" style="width:220px"  searcher="qq" menu="#mm" prompt="@Html.Lang("please_input")" />           
+    <div id="mm" style="width:100px">  
+        <div name="name">搜索内容</div>  
+    </div>  
+</div>  
+    
+<div id="rel_dlg" class="easyui-dialog" style="width:400px;height:260px;padding:10px 20px"  
+        closed="true" buttons="#dlg-buttons">  
+    <div class="ftitle">办事处---市场部一审关系维护</div>  
+    <form id="fm" method="post">  
+        <div class="fitem">  
+            <label>订单类型:</label>  
+            <select class="easyui-combobox" name="billType" id="billType" style="width: 120px;"
+            panelheight="110px">
+            <option value="SO">销售订单</option>
+            <option value="MB">维修单</option>
+            <option value="CM">开模改模单</option>
+            <option value="FS">免费样品单</option>
+            <option value="CS">收费样品单</option>
+        </select>
+        </div> 
+        <div class="fitem">  
+            <label>办事处:</label>  
+            <input class="easyui-combobox" id="depName" name="depName" valuefield="name" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" style="width: 120px;"/>
+        </div>  
+        <div class="fitem">  
+            <label>审核人:</label>  
+            <input name="auditor" id="auditor" class="easyui-combobox" url="@Url.Content("~/Items/getSysUsers")" valuefield="name" textfield="name" style="width: 120px;"/> 
+        </div>  
+    </form>  
+</div>  
+
+<div id="dlg-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveRel()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#rel_dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div> 
+

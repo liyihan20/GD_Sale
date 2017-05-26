@@ -1,0 +1,629 @@
+﻿@using Sale_Order.Models;
+@using System.Linq;
+@{
+    ReturnBill bill = (ReturnBill)ViewData["bill"];
+    List<ReturnBillDetail> details = (List<ReturnBillDetail>)ViewData["details"];
+    List<BlockOrder> blocks = (List<BlockOrder>)ViewData["blockInfo"];
+    var sys_no = bill.sys_no;
+}
+<script type="text/javascript">
+    $(function () {
+        $("#bill_detail").datagrid({
+            //height: "140",
+            width: "900",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            onRowContextMenu:function(e, rowIndex, rowData){
+                e.preventDefault();
+                $("#bill_detail").datagrid("selectRow",rowIndex);
+                $('#mm').menu('show', {
+                    left:e.pageX,
+                    top:e.pageY
+                }); 
+            },
+            columns: [[                        
+    					//{ field: 'product_number', title: '产品编码', width: 120 },
+                        { field: 'entry_no',title:'行号',width:50 , align: 'center'},
+    					{ field: 'product_name', title: '产品名称', width: 120 },
+                        { field: 'product_model', title: '规格型号', width: 150 },
+                        { field: 'aux_qty', title: '已发数量', width: 70, align: 'right' },
+    					{ field: 'qty', title: '退货数量', width: 70, align: 'right' },                        
+                        { field: 'real_qty', title: '实退数量', width: 70, align: 'right', editor: { type: 'numberbox', options: { precision: 4}} },    
+                        { field: 'is_online', title: '是否已上线',width: 70, align: 'center', editor:{ type: 'checkbox', options: { on:'已上线',off:'未上线'}},
+                        styler: function(value,row,index){
+				            if (value == '已上线'){
+					            return 'color:green;';
+				            }else{
+                                return 'color:red;';
+                            }
+			            } },
+                        { field: 'ch_dep_name', title: '出货组', width: 100, 
+                        editor: { type: 'combobox', 
+                            options: 
+                                {
+                                    valueField:'text',
+                                    textField:'text',
+                                    url:'@Url.Content("~/Items/getAllCHZAuditors")',
+                                    panelheight:'auto',
+                                    editable:'false',
+                                    required:true
+                                }
+                            } 
+                        },
+//                        { field: 'has_replace_qty', title: '已换货数量', width: 100, align: 'right' },
+//                        { field: 'has_red_qty', title: '已退红字数量', width: 100, align: 'right' },
+//                        { field: 'customer_back_qty', title: '客户退货数量', width: 100, align: 'right' },
+//                        { field: 'qc_good_qty', title: 'QC复检后良品数量', width: 100, align: 'right' },
+//                        { field: 'qc_bad_qty', title: 'QC复检后不良品数量', width: 120, align: 'right' },
+                        { field: 'seorder_no', title: '销售订单编号', width: 100 },
+                        { field: 'stock_no', title: '销售出库单号', width: 100 }
+//                        { field: 'qc_comment', title: '驻点QC复检情况', width: 300 }
+    				]],
+            toolbar: [{
+                text: "复制行",
+                iconCls: 'icon-add',
+                handler: addRow
+            },{
+                text: "删除行",
+                iconCls: 'icon-remove',
+                handler: removeRow
+            }],
+            //onClickCell: onClickCell,
+            onClickRow: onClickRow
+//            function(index,row){
+//                onClickCell(index,"real_qty");
+//                $(".datagrid-editable-input").focus();
+//            }
+        });
+
+        $.post("@Url.Content("~/Saler/GetFileInfo")",{sys_no:"@ViewData["sys_no"]"},function(data){
+                        if(data.success){
+                            $("#up_name").html(data.am.file_name);
+                            $("#up_size").html(data.am.file_size);
+                            $("#up_time").html(data.am.upload_time);
+                        }
+                    });
+
+        $("#order_div input[type='text'],#comment,#saler_comment,#market_comment").attr("readonly", "readonly");
+        $("input[type='radio']").not("input:checked").attr("disabled", "true");
+        $("#agency_div").click(function () { endEditing(); });
+    });
+
+     var editIndex = undefined;
+        function endEditing(){
+            if (editIndex == undefined){return true}
+            if ($('#bill_detail').datagrid('validateRow', editIndex)){                
+                $('#bill_detail').datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        function onClickRow(index){
+            if (editIndex != index){
+                if (endEditing()){
+                    $('#bill_detail').datagrid('selectRow', index)
+                            .datagrid('beginEdit', index);
+                    editIndex = index;
+                } else {
+                    $('#bill_detail').datagrid('selectRow', editIndex);
+                }
+            }
+        }
+
+        function addRow() {
+            var row = $('#bill_detail').datagrid('getSelected');                    
+            if (row) {
+                if(endEditing()){
+                    var rowIndex=$('#bill_detail').datagrid('getRowIndex',row) + 1;
+                    var newRow=jQuery.extend(true,{}, row);
+                    newRow.real_qty='';
+                    newRow.is_online='未上线';
+                    $('#bill_detail').datagrid('insertRow',{index:rowIndex,row:newRow});
+                }
+            }else{
+                alert("请先选择某一行再复制");
+            }
+        }
+
+        function removeRow() {
+            var row = $('#bill_detail').datagrid('getSelected');
+            if (row) {
+                $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
+                    if (r) {
+                        var index = $('#bill_detail').datagrid('getRowIndex', row);
+                        $('#bill_detail').datagrid('deleteRow', index);
+                    }
+                });
+            }
+        }
+    //easyui的扩展方法，可以直接编辑datagrid的单元格方法
+//    $.extend($.fn.datagrid.methods, {
+//        editCell: function (jq, param) {
+//            return jq.each(function () {
+//                var opts = $(this).datagrid('options');
+//                var fields = $(this).datagrid('getColumnFields', true).concat($(this).datagrid('getColumnFields'));
+//                for (var i = 0; i < fields.length; i++) {
+//                    var col = $(this).datagrid('getColumnOption', fields[i]);
+//                    col.editor1 = col.editor;
+//                    if (fields[i] != param.field) {
+//                        col.editor = null;
+//                    }
+//                }
+//                $(this).datagrid('beginEdit', param.index);
+//                for (var i = 0; i < fields.length; i++) {
+//                    var col = $(this).datagrid('getColumnOption', fields[i]);
+//                    col.editor = col.editor1;
+//                }
+//            });
+//        }
+//    });
+
+//    var editIndex = undefined;
+//    function endEditing() {
+//        if (editIndex == undefined) { return true }
+//        if ($('#bill_detail').datagrid('validateRow', editIndex)) {
+//            $('#bill_detail').datagrid('endEdit', editIndex);
+//            editIndex = undefined;
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
+//    function onClickCell(index, field) {
+//        if (endEditing()) {
+//            $('#bill_detail').datagrid('selectRow', index)
+//                    .datagrid('editCell', { index: index, field: field });
+//            editIndex = index;
+//        }
+//    }
+    
+    function okClick(){
+        if($.trim($("#up_name").html())==""){
+            alert("客服部审核必须上传品质报告！");
+            return;
+        }
+        //检测退货数量与实退数量是否一致，不一致的话需要审核人确认
+        var details=$("#bill_detail").datagrid("getRows");
+        var isSame=true;
+        for(var i=0;i<details.length;i++){
+            if(details[i].qty - details[i].real_qty > 0.00001){
+                isSame=false;
+                break;
+            }
+        }        
+        $("#okFlag").val("true");        
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
+	        if (r){
+                if(!isSame){
+                    $.messager.confirm('@Html.Lang("confirm")', '退货数量与实退数量不一致，确定提交吗?', function(r2){
+	                    if (r2){
+                            submitForm();
+	                    }
+                    });             
+                }else{
+                    submitForm();
+                }
+	        }
+        });                
+    }
+
+    function noClick(){
+        $("#okFlag").val("false");        
+        if(parseInt("@ViewData["step"]")>1){
+            //可以退回下单者或者上一审批人
+            $("#dlg_No").dialog("open");
+        }else{
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
+	            if (r){                    
+                    submitForm();
+                }
+            });
+        }
+    }
+
+    function NoToSalerClick(){
+        $("#backToPrevious").val("0");
+        $("#dlg_No").dialog("close");
+        submitForm();
+    }
+
+    function NoToPreviousClick(){
+        $("#backToPrevious").val("1");
+        $("#dlg_No").dialog("close");
+        submitForm();
+    }
+
+    function block(){
+        var reason=$("#agency_comment").val();
+        if($.trim(reason)==""){
+            $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "挂起操作必须写明原因，提交失败"
+                });   
+        }else{
+             $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
+	         if (r){
+                 $.messager.progress();
+                 $("#audit_fm").form("submit",{
+                    url:"@Url.Content("~/Audit/BlockOrder")",
+                    success:function(data){
+                        $.messager.progress('close');
+                        var result=eval("("+data+")"); 
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg + ",正在跳转..."
+                        });
+                        setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                    }
+                });
+            }
+            });  
+        }
+    }
+
+    function submitForm(){
+        if(!validateQty())  return;
+        var FRealQty = new Array();
+        var FEntryNo=new Array();
+        var FIsOnline=new Array();
+        var FChDepName=new Array();
+        var FQtyComment = $("#qty_comment").val();         
+        var details=$("#bill_detail").datagrid("getRows");            
+        for(var i=0;i<details.length;i++){
+            FRealQty[i]=details[i].real_qty;
+            FEntryNo[i]=details[i].entry_no;
+            FIsOnline[i]=details[i].is_online;
+            FChDepName[i]=details[i].ch_dep_name;
+        }
+        $.messager.progress();
+        $("#audit_fm").form("submit",{
+            url:"@Url.Content("~/Audit/HandleQtyEditTHAudit")",
+            onSubmit: function(param){
+                param.FRealQty = FRealQty;
+                param.FEntryNo=FEntryNo;
+                param.FIsOnline=FIsOnline;
+                param.FQtyComment = FQtyComment;
+                param.FChDepName = FChDepName;
+            },
+            success:function(data){
+            $.messager.progress('close');
+                var result=eval("("+data+")"); 
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: result.msg + ",正在跳转..."
+                });
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+            }
+        });
+    }
+
+    function validateQty(){
+        endEditing();
+        var tmpEntryNo=0;
+        var tmpOnlineStatus="";
+        var details=$("#bill_detail").datagrid("getRows");
+        for(var i=0;i<details.length;i++){
+            var qty=details[i].qty;
+            var real_qty=details[i].real_qty;
+            if(real_qty == ""){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "第"+(i+1)+"行的实退数量不能为空"
+                });
+                return false;
+            }
+            if(real_qty<=0){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "第"+(i+1)+"行的实退数量必须大于0"
+                });
+                return false;
+            }
+            //如果复制出一行，则上线状态应该不一致。
+//            if(details[i].entry_no == tmpEntryNo && details[i].is_online == tmpOnlineStatus){
+//                $.messager.show({
+//                    title: '@Html.Lang("tip")',
+//                    msg: "行号都为"+tmpEntryNo+"的上线状态不能相同，必须是一行已上线一行未上线"
+//                });
+//                return false;
+//            }else{
+//                tmpEntryNo=details[i].entry_no;
+//                tmpOnlineStatus=details[i].is_online;
+//            }
+        }
+        return true;
+    }
+</script>
+
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    @*挂起信息*@
+    @if (blocks.Count()>0)
+    { 
+        <div data-options="region:'north',title:'订单挂起信息',split:true" style="background: #fafafa; height: 74px;
+            padding: 3px 10px;">
+            <table style="border: 0;  text-align: center" cellspacing="0">
+                <tr style="font-weight:bold;">
+                    <td style="width: 100px;border-bottom:1px solid;">
+                        审核步骤
+                    </td>
+                    <td style="width: 80px;border-bottom:1px solid;">
+                        操作人
+                    </td>
+                    <td style="width: 120px;border-bottom:1px solid;">
+                        挂起时间
+                    </td>
+                    <td style="width:500px;border-bottom:1px solid;">
+                        挂起原因
+                    </td>
+                </tr>
+                @foreach (var blo in blocks)
+                {
+                <tr>
+                    <td>
+                        @blo.step_name
+                    </td>
+                    <td>
+                        @blo.User.real_name
+                    </td>
+                    <td>
+                        @(((DateTime)(blo.block_time)).ToString("yyyy-MM-dd HH:mm"))
+                    </td>
+                    <td>
+                        @blo.reason
+                    </td>
+                </tr>
+                }
+            </table>
+        </div>
+    }
+    <div data-options="region:'south',collapsed:false" style="height: 145px; background: #fafafa;">
+        <div class="easyui-layout" data-options="fit:true" id="audit_div">
+            <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;
+        padding: 8px 10px;">
+                <form id="audit_fm" method="post" action="">
+                @Html.Lang("audit_opinion"):
+                <input type="hidden" name="step" value="@ViewData["step"]" />
+                <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
+                <input type="hidden" name="okFlag" id="okFlag" value="" />
+                <input type="hidden" name="sys_no" id="sys_no" value="@ViewData["sys_no"]" />
+                <input type="hidden" name="backToPrevious" id="backToPrevious" value="0" />                
+                <input id="agency_comment" name="agency_comment" style="width: 450px" />&nbsp; <a
+                    id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"
+                    onclick="okClick()">@Html.Lang("pass")</a> <a id="NOBt" href="#agency_div" class="easyui-linkbutton"
+                        data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'"
+                    onclick="block()">挂起</a>
+                </form>
+            </div>
+            <div data-options="region:'center'" style="+position: relative;">
+               @Html.Partial("_UploadFilePartial")
+            </div>
+        </div> 
+    </div>
+    <div data-options="region:'center'">
+    
+        <div id="order_div" class="easyui-panel" title="查看退货申请" style="width: 780px; padding: 10px;
+            background: #fafafa; +position: relative;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+                    <tr>
+                        <td>
+                            退货日期:
+                        </td>
+                        <td>
+                            <input type="text" name="fdate" value="@(((DateTime)bill.fdate).ToShortDateString())"/>
+                        </td>
+                        <td>
+                            退货编号:
+                        </td>
+                        <td>
+                            @bill.sys_no
+                        </td>
+                        <td>
+                            状态:
+                        </td>
+                        <td>
+                            <span style="color: red" id="status">
+                                @ViewData["status"]
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            退货事业部:
+                        </td>
+                        <td>
+                            <input type="text" name="return_dep" value="@ViewData["return_dep"]" />
+                        </td>
+                        <td>
+                            客户编码:
+                        </td>
+                        <td>
+                            @bill.customer_number
+                        </td>
+                        <td>
+                            客户名称:
+                        </td>
+                        <td>
+                            @bill.customer_name
+                        </td>
+                    </tr>
+                    <tr>
+                         <td>
+                            是否已开蓝字发票:
+                        </td>
+                        @if (bill.has_invoice == true)
+                        {
+                            <td>
+                                <input type="radio" name="has_invoice" value="0" />未开
+                                <input type="radio" name="has_invoice" value="1" checked="checked" />已开
+                            </td>
+                        }
+                        else if (bill.has_invoice == false)
+                        { 
+                            <td>
+                                <input type="radio" name="has_invoice" value="0" checked="checked" />未开
+                                <input type="radio" name="has_invoice" value="1" />已开
+                            </td>
+                        }
+                        <td>
+                            是否补货:
+                        </td>
+                        @if (bill.need_resend == true)
+                        {
+                            <td>
+                                @*<input type="radio" name="need_resend" value="0" />不补货*@
+                                <input type="radio" name="need_resend" value="1" checked="checked" />需补货
+                            </td>
+                        }
+                        else
+                        { 
+                            <td>
+                                <input type="radio" name="need_resend" value="0" checked="checked" />不补货
+                                @*<input type="radio" name="need_resend" value="1" />需补货*@
+                            </td>
+                        }
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            @ViewData["userName"]
+                        </td>
+                    </tr>
+                    <tr>  
+                        <td>
+                            旧退货编号:
+                        </td>
+                        <td>
+                            @bill.old_sys_no
+                        </td>
+                        <td></td><td></td><td></td><td></td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <div>
+                @*表体*@
+                <div id="detail_div" class="easyui-panel" title="退货信息明细" style="+position: relative;
+                    width: 740px; height: 225px">
+                    <table id="bill_detail">
+                        @foreach (var det in details)
+                        { 
+                            <tr>
+                                
+                                @*<td>@det.product_number</td>*@
+                                <td>@det.entry_no</td>
+                                <td>@det.product_name</td>
+                                <td>@det.product_model</td>
+                                <td>@det.aux_qty</td>
+                                <td>@det.return_qty</td>                                
+                                <td>@det.real_return_qty</td>
+                                <td>@(det.is_online==true?"已上线":"未上线")</td>
+                                @*<td>@det.has_replace_qty</td>
+                                <td>@det.has_red_qty</td>*@
+                                @*<td>@det.customer_back_qty</td>
+                                <td>@det.qc_good_qty</td>
+                                <td>@det.qc_bad_qty</td>*@
+                                <td>@det.ch_dep_name</td>
+                                <td>@det.seorder_no</td>
+                                <td>@det.stock_no</td>
+                                @*<td>@det.qc_comment</td>*@
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+            <br />
+            <div>
+                @*表尾*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+                    <tr>
+                        <td>
+                            快递公司名称:
+                        </td>
+                        <td>
+                            <input type="text" id="express_name" name="express_name" style="width: 120px" value="@bill.express_name"/>
+                        </td>
+                        <td>
+                            快递单号:
+                        </td>
+                        <td>
+                            <input type="text" id="express_no" name="express_no" style="width: 120px" value="@bill.express_no"/>
+                        </td>
+                        <td>
+                            件数:
+                        </td>
+                        <td>
+                            <input id="express_qty" type="text" name="express_qty" style="width: 120px" value="@bill.express_qty"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            退货原因:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="comment" id="comment" style="margin: 0;" >@bill.comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            营业备注:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="saler_comment" id="saler_comment" style="margin: 0;">@bill.saler_comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            市场部备注:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="market_comment" id="market_comment" style="margin: 0;">@bill.market_comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>                        
+                        <td>
+                            客服组备注:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="qty_comment" id="qty_comment" style="margin: 0;" >@bill.qty_comment</textarea>
+                        </td>
+                        @*<td>选择出货组:</td>
+                        <td>
+                            <input class="easyui-combobox" id="ch_dep" name="ch_dep" url='@Url.Content("~/Items/getAllCHZAuditors")' 
+                    valuefield="value" textfield="text" style="width: 120px"  required="true" panelheight="120px" editable="false" />
+                        </td>*@
+                    </tr>
+                </table>
+            </div>
+             <div style="line-height:18px;margin-top:8px;">
+                <div style="color:red">操作说明：</div>
+                <div>
+                    <1>. 【退货事业部】字段务必正确选择，后续审核人员对应于所选退货事业部。<br />
+	                <2>. 勾稽状态：Y表示已开发票，N表示未开发票；Y与N不能提交在同一张申请中。<br />
+      	            <3>. 同一客户同批退货包含多个型号的务必提交成一张申请。<br />
+	                <4>. <span style="color:red">【此规则已于2017-05-23作废】</span>如申请的数据包含当月的出货，那么出货日期当月与当月之前的不能放在同一张申请，并且必须在退货原因注明是本月出货退货，没有注明是本月出货退货的一律搁置到下月处理，不另行通知。<br />
+	                <5>. 提交申请后，原出货未开发票的申请在市场部未办理好K3数据之前，千万不要通知会计部开票；如在办理期间通知会计部开票造成申请的开票状态与K3不同的，一律退回申请重新走流程，不另行通知。<br />
+                </div>
+            </div>
+
+        </div>    
+   
+   </div>
+</div>
+
+<div id="dlg_No" class="easyui-dialog" style="width: 340px; height: 80px; padding: 10px 5px;" closed="true" title="确认拒绝方式">
+    <a id="NoToSaler" href="#agency_div" class="easyui-linkbutton"
+                data-options="iconCls:'icon-no'" onclick="NoToSalerClick()">拒绝到申请人</a>
+        <a id="NoToPrevious" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-undo'"
+            onclick="NoToPreviousClick()">拒绝到上一步审核人</a>
+</div>
+
+<div id="mm" class="easyui-menu" style="width:120px;">
+    <div onClick="addRow()" data-options="iconCls:'icon-add'">复制行</div>
+    <div onClick="removeRow()" data-options="iconCls:'icon-remove'">删除行</div>
+</div>

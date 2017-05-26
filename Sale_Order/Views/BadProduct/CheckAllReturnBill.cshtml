@@ -1,0 +1,345 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            singleSelect: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'FBillID', title: 'FBillID', width: 10, hidden: true },
+                        { field: 'FDate', title: '下单日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source) 
+                            var date_str = date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                            if(index==0){
+                                return date_str;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return date_str;
+                            }
+                        }},  
+                        { field: 'FSysNo', title: '退修编号', width: 80,
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } },
+    					{ field: 'FCustomerName', title: '客户名称', width: 120,
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } },
+                        { field: 'FStockNo', title: '出库订单号', width: 80 },
+    					{ field: 'FOrderBillNo', title: '订单号', width: 80 },
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'Fauxqty', title: '已发数量', width: 70, align: 'right' },
+                        { field: 'FReturnQty', title: '退货数量', width: 70, align: 'right' },
+                        { field: 'FHasInvoice', title: '蓝字发票', width: 60 },
+                        { field: 'FNeedResend', title: '处理类型', width: 60 },
+                        { field: 'apply_status', title: '审核状态', width: 60, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == '申请失败'){
+					            return 'color:red;';
+				            }else if(value == '申请成功'){
+					            return 'color:green;';
+				            }
+			            },
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } }
+    				]],
+            toolbar: [{
+                text: "查看详细",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            }, '-',
+            {
+                text: "编辑单据",
+                iconCls: 'icon-edit',
+                handler: EditOrder
+            }, '-',
+            {
+                text: "删除单据",
+                iconCls: 'icon-remove',
+                handler: RemoveOrder
+            }, '-',
+            {
+                text: "@Html.Lang("newFromOld")",
+                iconCls: 'icon-add',
+                handler: AddNewFromOld
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: function(){
+                    var row = $("#orderList").datagrid("getSelected");
+                    if(row){
+                        CheckStatus(row.FSysNo);
+                    }
+                }
+            }, '-',
+            {
+                text: "@Html.Lang("export_excel")",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "正在导出符合查询条件且已审核的数据，请稍等..."
+                    }); 
+                    $("#fm").form("submit", {
+                        url: "@Url.Content("~/Excels/exportTHExcel")",
+                        success: function (data) {
+                        }
+                    });
+                }
+            }, '-', {
+                text: "@Html.Lang("chk_report")",
+                iconCls: 'icon-document',
+                handler: CheckReport
+            }, '-', {
+                text: "打印退货签收报表",
+                iconCls: 'icon-document',
+                handler: PrintTHQS
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            if(!$('#fm').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "../BadProduct/CheckAllReturnBill",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    if(result.suc){
+                        $("#orderList").datagrid("loadData", result.list);
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+    });
+    
+    
+    function CheckDetail(){
+         var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+             window.location.href = "@Url.Content("~/BadProduct/CheckReturnBill")" +"?id="+row.FBillID;
+         }
+    }
+
+    function AddNewFromOld() {
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            window.location.href = "@Url.Content("~/BadProduct/NewOrderFromOld?sys_no=")" + row.FSysNo;
+        }                    
+    }
+
+    function EditOrder(){
+        var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+            //编辑之前检测是否已开始申请
+            $.post("@Url.Content("~/BadProduct/IsBeginApply")",{sys_no: row.FSysNo},
+                function(data){
+                    if(!data.suc){
+                        window.location.href = "@Url.Content("~/BadProduct/EditReturnBill")" +"?id="+row.FBillID;
+                    }else{
+                        $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "已提交的申请不能再次修改"
+                        });
+                    }
+                },"json"
+            );
+         }
+    }
+
+    function RemoveOrder(){
+        var row = $("#orderList").datagrid("getSelected");
+        if(!row) return;
+        if(row.apply_status=="申请成功" || row.apply_status=="审批中"){
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "审批中或者审批成功的单据不能删除"
+                });
+            return;
+        }        
+
+        $.post("@Url.Content("~/BadProduct/HideReturnBill")",{sys_no: row.FSysNo},
+                function(data){
+                    if(data.suc){
+                        //删除页面的单据
+                        var rows=$("#orderList").datagrid("getRows");
+                        var currentIdx=$("#orderList").datagrid("getRowIndex",row);
+                        var minIdx=currentIdx;//单据最小索引
+                        var maxIdx=currentIdx;//单据最大索引
+                        while(true){
+                            if(maxIdx<rows.length-1 && row.FSysNo==rows[maxIdx+1].FSysNo){
+                                maxIdx++;
+                            }else{
+                                break;
+                            }
+                        }
+                        while(true){
+                            if(minIdx > 0 && row.FSysNo==rows[minIdx-1].FSysNo){
+                                minIdx--;
+                            }else{
+                                break;
+                            }
+                        }
+        
+                        for(var i=maxIdx;i>=minIdx;i--){
+                            $("#orderList").datagrid("deleteRow",i);
+                        }
+
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "删除成功！"
+                        });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "删除失败："+data.msg
+                        });
+                    }
+                },"json"
+        );
+    }
+
+    function CheckReport(){
+        var row = $("#orderList").datagrid("getSelected");        
+        if (row) {
+            if(row.apply_status != "申请成功"){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "只有申请成功之后才可以导出报表。"
+                }); 
+            }else{
+                window.open("@Url.Content("~/Files/printTHReport")"+"?sysNo="+row.FSysNo);
+            }           
+        }
+    }
+
+    function PrintTHQS(){
+        var row = $("#orderList").datagrid("getSelected");        
+        if (row) {            
+           window.open("@Url.Content("~/Files/printTHQSReport")"+"?sysNo="+row.FSysNo);
+        }
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    客户编号/客户名称:
+                </td>
+                <td>
+                    下单日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    销售出库单号/订单号:
+                </td>
+                <td>
+                    退修编号/规格型号:
+                </td>
+                <td>
+                    审核结果:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-validatebox" id="cust_no" name="cust_no" style="width: 110px" value="@ViewData["cust_no"]"/>
+                </td>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px" value="@ViewData["from_date"]"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" value="@ViewData["to_date"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="stock_no" name="stock_no" style="width: 120px" value="@ViewData["stock_no"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="pro_model" name="pro_model" style="width: 120px" value="@ViewData["pro_model"]"/>
+                </td>
+                <td>
+                    <input id="auditResult" name="auditResult" style="width: 60px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 100,
+                        editable:false,
+                        value:'@ViewData["audit_result"]',
+		                data: [{
+			                label: '@Html.Lang("all")',
+			                value: '10'
+		                },{
+			                label: '@Html.Lang("not_finish")',
+			                value: '0'
+		                },{
+			                label: '@Html.Lang("success")',
+			                value: '1'
+		                },{
+			                label: '@Html.Lang("failure")',
+			                value: '-1'
+		                }]" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>
+</div>
+
+@Html.Partial("_CheckAuditStatus")

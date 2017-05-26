@@ -1,0 +1,548 @@
+﻿@using Sale_Order.Models;
+@{
+    List<vwK3SaleContract> list = (List<vwK3SaleContract>)ViewData["order"];
+    vwK3SaleContract or = list[0];    
+}
+<script type="text/javascript">    
+
+    var details_modifies=new Array();
+    var entry_id=0;
+    var temp;  
+
+    $(function () { 
+    
+        $(".not_mod").attr("readonly","readonly");
+        
+        $('#dilivery_date').datebox({
+	        onSelect: function(date){
+		        updateIntoList("","dilivery_date","@Html.Lang("delivery_date")",$("#d1").val(),date.getFullYear()+"-"+(date.getMonth()+1)+"-"+date.getDate());
+	        }
+        });
+
+        $("#order_detail").datagrid({
+//            height: "140",
+            width: "1000",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'entry_id', title: '分录ID', width: 120,hidden: true },
+                        { field: 'qtyPoint', title: '数量小数点', width: 120,hidden: true },
+                        { field: 'pricePoint', title: '价格小数点', width: 120,hidden: true },
+    					{ field: 'product_number', title: '@Html.Lang("pro_num")', width: 120 },
+    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 100 },
+                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 150 },
+    					{ field: 'qty', title: '@Html.Lang("qty")', width: 70, align: 'right' },
+                        { field: 'unit_name', title: '@Html.Lang("unit")', width: 70},
+                        { field: 'taxRate', title: '@Html.Lang("tax_rate")', width: 70, align: 'right' },
+                        { field: 'price', title: '@Html.Lang("price_without_tax")', width: 70, align: 'right' },
+//                        { field: 'send_back_no', title: '@Html.Lang("send_back_no")', width: 100 },
+                        { field: 'comment', title: '@Html.Lang("comment")', width: 200 },
+                        { field: 'comm', title: '@Html.Lang("comment")', width: 200,hidden: true }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("edit_item")",
+                iconCls: 'icon-edit',
+                handler: updateDetail
+            }]
+        });
+
+
+        //几个表头combobox的搜索方法
+        $(".remotebox").each(function () {
+            $(this).combobox({
+                valueField: "name",
+                textField: "name",
+                keyHandler: {
+                    query: function () { },
+                    enter: function () {
+                        var box_id = $(this).attr("id");
+                        var url = "";
+                        switch (box_id) {
+                            case "employee":
+                                url = "@Url.Content("~/Items/getClerks")";
+                                break;
+                            case "saler":
+                                url = "@Url.Content("~/Items/getSalers")";
+                                break;
+                            case "final_client":
+                            case "plan_firm":
+                                url = "@Url.Content("~/Items/getCostomers")";
+                                break;
+                        };
+                        var _this = "#" + box_id;
+                        var q = $(_this).combobox('getText');
+                        if (q != "" && url != "") {
+                            $.post(url, { q: q },
+                            function (data) {
+                                $(_this).combobox('loadData', data);
+                                $(_this).combobox('setText', q);
+                            },
+                            "json"
+                            );
+                        }
+                    }
+                }
+            });
+        }); 
+
+         $(".remotebox, .easyui-combobox").combobox({
+            onChange:function(newValue, oldValue){
+                var text=$.trim($(this).parents("td").prev("td").html());
+                var fieldName=$(this).attr("id");
+                updateIntoList("",fieldName,text,oldValue,newValue);
+            }
+        });
+        
+        $(".can_mod").focusin(function(){
+            temp=$(this).val();
+        });
+        $(".can_mod").focusout(function(){
+            var newTemp=$(this).val();
+            var text=$.trim($(this).parents("td").prev("td").html());
+            if(temp!=newTemp){
+                updateIntoList("",$(this).attr("id"),text,temp,newTemp);
+            }
+        });
+        //details_modifies     
+        $("#dlg_details").dialog({
+            onOpen:function(){
+                 $("#fm .easyui-numberbox").numberbox({
+                    onChange:function(newValue, oldValue){
+                        var text=$.trim($(this).parents("td").prev("td").html());
+                        var fieldName=$(this).attr("id");
+                        details_modifies.push({
+                            entryId:entry_id,
+                            en_name:$(this).attr("id"),
+                            cn_name:text,
+                            old_v:oldValue,
+                            new_v:newValue
+                        });
+                    }
+                }); 
+            }
+        });  
+
+         //提交申请按钮
+        $("#submit_but").click(function(){
+            var details=$("#tbchange").datagrid("getRows");
+            if(details.length==0){
+                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: "@Html.Lang("empty_change_table")"
+                                });
+                return;
+            }
+            $('#submit_but').linkbutton('disable');            
+            var en_name=new Array();
+            var cn_name=new Array();
+            var entry_id=new Array();
+            var old_v=new Array();
+            var new_v=new Array();
+            var change_comm=$("#changeComment").val();
+            var bill_no="@or.contract_no";
+            for(var k=0;k<details.length;k++){
+                en_name[k]=details[k].field_en_name;
+                cn_name[k]=details[k].field_cn_name;
+                entry_id[k]=details[k].entry_id;
+                old_v[k]=details[k].old_value;
+                new_v[k]=details[k].new_value;
+            }
+            $.post("@Url.Content("~/K3Saler/SubmitUpdate")",
+                {
+                    en_name:en_name,
+                    cn_name:cn_name,
+                    entry_id:entry_id,
+                    old_v:old_v,
+                    new_v:new_v,
+                    change_comm:change_comm,
+                    bill_no:bill_no,
+                    bill_type:"MB"      //提交类型
+                },
+                function(data){
+                    if(data.success){
+                        $.messager.show({
+                                        title: '@Html.Lang("tip")',
+                                        msg: data.msg
+                                    });
+                        setTimeout(function() {
+                            window.location.href="@Url.Content("~/K3Saler/CheckUpdateOrders")";
+                        }, 2000);
+                    }else{
+                        $.messager.show({
+                                        title: '@Html.Lang("tip")',
+                                        msg: data.msg
+                                    });
+                        $('#submit_but').linkbutton('enable');
+                    }
+                },'json'
+            );
+        });
+
+    });
+
+      
+    //以下是订单明细的增删改
+    var detailIndex=-1; 
+
+    function updateDetail(){
+        var row = $('#order_detail').datagrid('getSelected');
+        if (row) {
+            detailIndex = $('#order_detail').datagrid('getRowIndex', row);
+            entry_id=row.entry_id;
+            $("#qty").numberbox({ precision: row.qtyPoint });
+            $("#price").numberbox({ precision: row.pricePoint }); 
+            $("#fm").form("load",row);
+            $("#dlg_details").dialog("open").dialog("setTitle","@Html.Lang("edit_item")");            
+            $('#product_number').val(row.product_number);
+            $('#unit_name').val(row.unit_name);
+            details_modifies.splice(0);//删除临时数组所有元素
+        }
+    }
+
+    function saveOrderDetails() {
+        if(!$('#fm').form('validate')){
+                return;
+            }        
+        var theRow = {
+            qty: $('#qty').numberbox('getValue'),
+            price: $('#price').numberbox('getValue'),
+            unit_name: $('#unit_name').val(),
+            taxRate:$('#taxRate').numberbox('getValue'),
+            comment: $('#comment').val(),
+            comm:$('#comm').val()
+        };      
+          
+        $('#order_detail').datagrid('updateRow', {index:detailIndex,
+            row: theRow
+        });
+        //关闭对话框
+        $('#dlg_details').dialog('close');
+        //保存改动信息
+        updateIntoList(entry_id,"comment","@Html.Lang("comment"):",theRow.comm,theRow.comment);
+        if(details_modifies.length>0){
+            for(var i=0;i<details_modifies.length;i++){
+                updateIntoList(details_modifies[i].entryId,details_modifies[i].en_name,details_modifies[i].cn_name,details_modifies[i].old_v,details_modifies[i].new_v)
+            }
+        }
+        details_modifies.splice(0);//删除临时数组所有元素
+        Caculate();
+    }    
+
+    //计算总金额
+    function Caculate(){        
+        var details=$("#order_detail").datagrid("getRows");
+        var amount=0.0;
+        var amountFor=0.0;
+        var orignal_amount='@or.total_amount.ToString("0.00")';
+        var orignal_amountFor='@or.total_amount_for.ToString("0.00")';
+        for(var i=0;i<details.length;i++){
+            amountFor+=details[i].price * details[i].qty * (details[i].taxRate / 100 + 1);
+        }
+        amount = amountFor * parseFloat($("#exchange").val());        
+        $('#totalAmount').val(amount.toFixed(2));
+        $('#totalAmountFor').val(amountFor.toFixed(2));
+        updateIntoList("","totalAmountFor","@Html.Lang("amount")",orignal_amountFor,amountFor.toFixed(2));
+        updateIntoList("","totalAmount","@Html.Lang("amount_base")",orignal_amount,amount.toFixed(2));
+    }
+    
+</script>
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    <div data-options="region:'south',collapsed:false" style="height: 130px; background: #fafafa;">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'west'" style="width: 480px;">
+             @* change table *@
+            @Html.Partial("_ChangeTBPartial")
+            </div>
+            <div data-options="region:'center'" style="padding:3px;">
+                <div>@Html.Lang("bill_change_comment")：</div>
+                <div><textarea id="changeComment" cols="47" rows="4"></textarea></div>
+                <div style="padding-left:160px;"><a class="easyui-linkbutton" id="submit_but" data-options="iconCls:'icon-ok'">@Html.Lang("submit_apply")</a></div>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center'">
+        <form id="order_form" method="post">
+        <div id="order_div" class="easyui-panel" title="@Html.Lang("edit") @Html.Lang("repair_order")" style="width: 840px; padding: 10px;
+            background: #fafafa; +position: relative;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                    <tr>
+                        <td>
+                            @Html.Lang("order_date"):
+                        </td>
+                        <td>
+                            <input id="contract_date" name="contract_date" style="width: 115px" value="@(((DateTime)or.contract_date).ToShortDateString())" class="not_mod"/>
+                        </td>
+                        <td>
+                            @Html.Lang("bill_status"):
+                        </td>
+                        <td>
+                            @(or.audit_status == 1 ? "已审核" : or.audit_status == 2 ? "已关闭" : "")
+                        </td>
+                        <td>
+                            @Html.Lang("contract_no"):
+                        </td>
+                        <td>
+                            <input type="text" name="contract_no" id="contract_no" value="@or.contract_no" style="width:115px" class="not_mod" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("agency"):
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="department" name="department" value="@or.department_name" style="width: 120px" panelwidth="140" valuefield="name" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true"/>
+                        </td>
+                        <td>
+                            @Html.Lang("clerk"):
+                        </td>
+                        <td>
+                            <input id="employee" class="remotebox" name="employee" value="@or.employee_name" style="width: 120px" required="true" />
+                        </td>
+                        <td>
+                            @Html.Lang("original_order_no"):
+                        </td>
+                        <td>
+                            <input class="easyui-validatebox can_mod" id="order_num" name="order_num" value="@or.order_num" style="width: 115px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("contract_name"):
+                        </td>
+                        <td>
+                            <input type="text" id="contract_name" class="can_mod" name="contract_name" value="@or.contract_name" style="width: 115px"/>
+                        </td>
+                        <td>
+                            @Html.Lang("trade_type"):
+                        </td>
+                        <td>
+                            <input type="text" id="tradeType" name="tradeType" class="not_mod" value="@or.trade_type_name" style="width: 115px" />
+                        </td>
+                        <td>
+                            @Html.Lang("payment"):
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="clearing_way" name="clearing_way" value="@or.clear_type" url="@Url.Content("~/Items/getItems?what=clearing_way")"
+                        valuefield="name" textfield="name" style="width: 120px" panelWidth="240" required="true" value=""/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("pro_type"):
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="product_type" name="product_type" value="@or.product_type" url="@Url.Content("~/Items/getItems?what=product_type")"
+                        valuefield="name" textfield="name" style="width: 120px"  required="true"/>
+                        </td>
+                        <td>
+                            @Html.Lang("currency"):
+                        </td>
+                        <td>
+                            <input id="currency" type="text" name="currency" class="not_mod" value="@or.currency_name" style="width: 115px"/>
+                        </td>
+                        <td>
+                            @Html.Lang("exchange"):
+                        </td>
+                        <td>
+                            <input id="exchange" class="easyui-numberbox not_mod" name="exchange" value="@or.exchange_rate" min="0" precision="2"
+                                style="width: 115px" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("customer_name"):
+                        </td>
+                        <td>
+                            <input id="buy_unit" type="text" class="not_mod" name="buy_unit" value="@or.customer_name" style="width: 115px" />
+                        </td>
+                        <td>
+                            @Html.Lang("final customer"):
+                        </td>
+                        <td>
+                            <input id="final_client" class="remotebox" name="final_client" value="@or.final_customer" style="width: 120px"
+                                panelwidth="240px" />
+                        </td>
+                        <td>
+                            @Html.Lang("plan_firm"):
+                        </td>
+                        <td>
+                            <input id="plan_firm" class="remotebox" name="plan_firm" style="width: 120px" value="@or.plan_firm"
+                                panelwidth="240px" />
+                        </td>
+                    </tr>
+                    <tr>                        
+                        <td>
+                            @Html.Lang("summary"):
+                        </td>
+                        <td colspan="5">
+                            <input id="text" class="easyui-validatebox can_mod" name="text" validtype="length[0,255]" value="@or.text"
+                                style="width: 645px" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            @*订单明细*@
+            <br />
+            <div id="detail_div" class="easyui-panel" title="@Html.Lang("repair_order_details")" style="+position: relative;
+                width: 800px; height: 185px">
+                <table id="order_detail">
+                    @foreach (var de in list)
+                    {
+                    <tr>
+                        <td>@de.index_no</td>
+                        <td>@de.qty_decimal</td>
+                        <td>@de.price_decimal</td>
+                        <td>@de.product_no</td>
+                        <td>@de.product_name</td>
+                        <td>@de.product_model</td>
+                        <td>@de.qty</td>
+                        <td>@de.unit_name</td>
+                        <td>@(((double)de.tax_rate).ToString("0.00"))</td>
+                        <td>@de.priceFor</td>
+                        <td>@de.comment</td>
+                        <td>@de.comment</td>
+                    </tr>   
+                        }
+                 </table>
+            </div>
+            <br />
+            <div>
+                @*表尾*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                    <tr>
+                        <td>
+                            @Html.Lang("amount"):
+                        </td>
+                        <td>
+                            <input type="text" id="totalAmountFor" value="@(or.total_amount_for.ToString("0.00"))" name="totalAmountFor"  class="not_mod" style="width: 115px"/>
+                        </td>
+                        <td>
+                            @Html.Lang("amount_base"):
+                        </td>
+                        <td>
+                            <input type="text" id="totalAmount" name="totalAmount" value="@or.total_amount.ToString("0.00")"  class="not_mod" style="width: 120px"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("delivery_place"):
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" id="delivery_place" name="delivery_place" value="@or.dilivery_place" url="@Url.Content("~/Items/getItems?what=delivery_place")"
+                        valuefield="name" textfield="name" panelheight="130" panelwidth="140" style="width: 120px"  required="true"/>
+                        </td>
+                        <td>
+                            @Html.Lang("delivery_date"):
+                        </td>
+                        <td>
+                            <input id="dilivery_date" class="easyui-datebox" name="dilivery_date" editable="false" style="width: 125px" value="@(((DateTime)or.dilivery_date).ToShortDateString())"
+                                required="true" />
+                            <input type="hidden" id="d1" name="d1" value="@(((DateTime)or.dilivery_date).ToShortDateString())" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("biller"):
+                        </td>
+                        <td>
+                            <input id="biller" type="text" name="biller" class="not_mod" style="width: 115px" value="@or.biller_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("discount_way"):
+                        </td>
+                        <td>
+                            <input type="text" class="can_mod" id="cashDiscount" name="cashDiscount" style="width: 120px" value="@or.cash_discount"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("remarks"):
+                        </td>
+                        <td colspan="3">
+                            <input class="easyui-validatebox can_mod" id="description" name="description" validtype="length[0,255]"
+                                invalidmessage="the length of this field should be between 0 to 255" style="width: 575px" value="@or.explanation"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        </form>
+        @*弹出的订单明细对话框*@
+        <div id="dlg_details" class="easyui-dialog" style="width: 640px; padding: 10px 10px"
+            closed="true" buttons="#dlg_details_buttons" modal="true">
+            <div class="ftitle">
+                @Html.Lang("repair_order_details") @Html.Lang("info")</div>
+            <form id="fm" method="post">
+            <table border="0" cellpadding="0" cellspacing="3px" width="580px">
+                <tr>
+                    <td>
+                        @Html.Lang("pro_num"):
+                    </td>
+                    <td>
+                        <input type="text" class="not_mod" id="product_number" name="product_number" style="width: 125px" />
+                        <input type="hidden" name="qtyPoint" id="qtyPoint" />
+                        <input type="hidden" name="pricePoint" id="pricePoint" />
+                    </td>
+                    <td>
+                        @Html.Lang("pro_name"):
+                    </td>
+                    <td>
+                        <input id="product_name" class="not_mod" name="product_name" style="width: 120px" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Lang("pro_model"):
+                    </td>
+                    <td>
+                        <input id="product_model" class="not_mod" name="product_model" style="width: 120px"/>
+                    </td>
+                    <td>
+                        @Html.Lang("qty"):
+                    </td>
+                    <td>
+                        <input id="qty" class="easyui-numberbox" name="qty" style="width: 120px" required="true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Lang("unit"):
+                    </td>
+                    <td>
+                        <input type="text" id="unit_name" class="not_mod" class="not_mod" name="unit_name" style="width: 125px"/>                        
+                    </td>
+                    <td>
+                        @Html.Lang("tax_rate"):
+                    </td>
+                    <td>
+                        <input id="taxRate" class="easyui-numberbox" name="taxRate" style="width: 120px" min="0" precision="2" required="true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @Html.Lang("price_without_tax"):
+                    </td>
+                    <td>
+                        <input id="price" class="easyui-numberbox" name="price" style="width: 120px" required="true" />
+                    </td>
+                    <td>
+                        @Html.Lang("comment"):
+                    </td>
+                    <td>
+                        <input id="comment" class="easyui-validatebox" name="comment" style="width: 120px" />
+                        <input type="hidden" id="comm" name="comm" />
+                    </td>
+                </tr>
+            </table>
+            </form>
+        </div>
+        <div id="dlg_details_buttons">
+            <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveOrderDetails()">
+                @Html.Lang("save")</a> <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_details').dialog('close')">
+                   @Html.Lang("cancel") </a>
+        </div>
+    </div>
+</div>

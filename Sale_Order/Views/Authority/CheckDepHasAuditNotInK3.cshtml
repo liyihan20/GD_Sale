@@ -1,0 +1,47 @@
+﻿<script type="text/javascript">
+    
+    $(function(){
+        $("#orderList").datagrid({
+            title:'事业部已经审核但还未导入K3的客退列表',
+            fit: true,
+            url:"@Url.Content("~/Authority/LoadDepHasAuditNotInK3")",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,            
+            columns: [[                        
+                        { field: 'dep_name', title: '部门', width: 70 },
+                        { field: 'sys_no', title: '客退编号', width: 70 },
+    					{ field: 'seorder_no', title: '订单号', width: 70 },
+    					{ field: 'product_name', title: '品名', width: 100 },
+                        { field: 'product_model', title: '型号', width: 140 },
+    					{ field: 'real_return_qty', title: '数量', width: 70, align: 'right' },
+                        { field: 'dept_last_audit_time', title: '事业部审核时间', width: 80, align: 'center' ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source);
+                            return date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate()+' '+date.getHours()+':'+date.getMinutes();
+                        }}, 
+                        { field: 'finish_date', title: '完结时间', width: 80, align: 'center' ,
+                        formatter: function(value,row,index){ 
+                            if(value=="" || value==null) return"未完结";
+                            var date = eval('new ' + eval(value).source);
+                            return date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate()+' '+date.getHours()+':'+date.getMinutes();
+                        }}
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("export_excel")",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "正在导出符合查询条件且已审核的数据，请稍等..."
+                    });
+
+                    window.open("@Url.Content("~/Excels/exportAuditNotInK3Excel")");
+                }
+            }]
+        });
+    });
+     
+</script>
+
+<table id="orderList"></table>

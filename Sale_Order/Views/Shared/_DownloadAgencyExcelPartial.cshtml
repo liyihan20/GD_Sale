@@ -1,0 +1,37 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    //设置日期控件显示格式：yyyy-mm-dd
+    if ($.fn.datebox) {
+        $.fn.datebox.defaults.formatter = function (date) {
+            var y = date.getFullYear();
+            var m = date.getMonth() + 1;
+            var d = date.getDate();
+            return y + '-' + (m < 10 ? ('0' + m) : m) + '-' + (d < 10 ? ('0' + d) : d);
+        };
+    }
+
+    function beginDownloadAgencyExcel(){
+        $('#dlg_agencyExcel').dialog('close');
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在导出符合条件的数据，请稍等..."
+        });
+        window.location.href="@Url.Content("~/Excels/exportAgencyExcel")"+"?beginDate="+$("#a_fromDate").datebox("getValue")+"&toDate="+$("#a_toDate").datebox("getValue");
+    }
+</script>
+<div id="dlg_agencyExcel" class="easyui-dialog" style="width:400px;height:180px;padding:10px 20px" 
+        closed="true" buttons="#ceoExcel-buttons" title="@Html.Lang("ceo_excel")" modal="true">  
+    <div class="ftitle">导出办事处样品单Excel</div>              
+        @Html.Lang("order_date"):
+        <input id="a_fromDate" class="easyui-datebox" style="width: 120px" value="@DateTime.Now.ToString("yyyy-MM-dd")"/>
+        @Html.Lang("to")
+        <input id="a_toDate" class="easyui-datebox" style="width: 120px" value="@DateTime.Now.ToString("yyyy-MM-dd")"/>
+</div>  
+<div id="ceoExcel-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-xls" onclick="beginDownloadAgencyExcel()">@Html.Lang("download")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg_agencyExcel').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+
+

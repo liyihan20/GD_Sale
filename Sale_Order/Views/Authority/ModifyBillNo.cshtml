@@ -1,0 +1,40 @@
+﻿<script type="text/javascript">
+    $(function () {
+        $("#saveBut").click(function () {
+            $.post("@Url.Content("~/Authority/BeginModifyBillNo")", {
+                billType: $("#bill_type").combobox("getValue"),
+                oldBillNo: $("#old_no").val(),
+                newBillNo: $("#new_no").val()
+            }, function (data) {
+                if (data.suc) {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "单号修改成功"
+                    });
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: data.msg
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+<div id="login" class="easyui-panel" title="修改单号" style="width:800px; height:90px;padding:5px 10px">
+    单据类型：
+    <input class="easyui-combobox" style="width: 120px" name="bill_type" id="bill_type"
+           data-options="textField:'text',valueField:'value',panelHeight:'auto', editable:false,
+                                           data:[
+                                           {text:'销售订单', value:'SO'},{text:'样品单',value:'SB'},{text:'开改模单',value:'CM'},{text:'CCM开改模单',value:'CC'}
+                                           ]" />
+    &nbsp;
+    原单号：
+    <input id="old_no" class="easyui-validatebox" name="old_no" style="width: 115px" spellcheck="false" />
+    &nbsp;
+    修改为：
+    <input id="new_no" class="easyui-validatebox" name="new_no" style="width: 115px" spellcheck="false" />
+    &nbsp;
+    <a id="saveBut" href="#" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">确认修改</a>
+</div>

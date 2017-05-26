@@ -1,0 +1,498 @@
+﻿@using Sale_Order.Models;
+@{
+    List<VwOrder> list = (List<VwOrder>)ViewData["vots"];
+    var order = list[0];
+    var sys_no = order.sys_no;
+}
+<script type="text/javascript">
+    $(function () {
+        //订单明细表
+        $("#order_detail").datagrid({
+            //            height: "140",
+            width: "2200",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+    					{ field: 'product_number', title: '@Html.Lang("pro_num")', width: 120 },
+    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 100 },
+                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 150 },
+    					{ field: 'qty', title: '@Html.Lang("qty")', width: 70, align: 'right' },
+                        { field: 'quote_no', title: '@Html.Lang("quote_num")', width: 100 },
+                        { field: 'unit_name', title: '@Html.Lang("unit")', width: 50 },
+                        { field: 'tax_rate', title: '@Html.Lang("tax_rate")%', width: 60, align: 'right' },
+                        { field: 'unit_Price', title: '@Html.Lang("price")', width: 70, align: 'right' , hidden: @ViewData["hiddenPrice"],
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            } },
+    					{ field: 'cost', title: '@Html.Lang("cost")', width: 70, align: 'right' , hidden: @ViewData["hiddenAll"],
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenAll"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            } },
+                        { field: 'deal_price', title: '@Html.Lang("deal_price")', width: 70, align: 'right' , hidden: @ViewData["hiddenAll"],
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenAll"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            } },
+    					{ field: 'Aux_tax_price', title: '@Html.Lang("taxed_price")', width: 100, align: 'right', hidden: @ViewData["hiddenPrice"],
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            } },
+                        { field: 'diff_sum', title: '@Html.Lang("diff_sum")', width: 100, align: 'right', hidden: @ViewData["hiddenPrice"] ,
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            }},
+                        { field: 'deal_sum', title: '@Html.Lang("deal_sum")', width: 120, align: 'right' , hidden: @ViewData["hiddenAll"],
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenAll"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            } },
+                        { field: 'fee_rate', title: '@Html.Lang("fee_rate")%', width: 60, align: 'right', hidden: @ViewData["hiddenPrice"] ,
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            }},
+                        { field: 'discount_rate', title: '@Html.Lang("discount_rate")%', width: 60, align: 'right' },
+                        { field: 'MU', title: 'MU%', width: 60, align: 'right', hidden: @ViewData["hiddenPrice"] ,
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            }},
+                        { field: 'commission', title: '@Html.Lang("commission")', width: 60, align: 'right', hidden: @ViewData["hiddenPrice"] ,
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            }},
+                        { field: 'commission_rate', title: '@Html.Lang("commission_rate")%', width: 60, align: 'right', hidden: @ViewData["hiddenPrice"] ,
+                        formatter: function(value,row,index){
+				            if (@ViewData["hiddenPrice"]){
+					            return "###";
+				            } else {
+					            return value;
+				            }
+			            }},
+                        { field: 'delivery_date', title: '@Html.Lang("delivery_date")', width: 100, align: 'center' }, //开始交货期=》交货日期
+                        { field: 'suggestd_delivery_date', title: '@Html.Lang("suggest_delivery_date")', width: 100, align: 'center' },
+    					{ field: 'target_date', title: '@Html.Lang("finish_date")', width: 100, align: 'center' }, //完成交货期=>目标日期
+                        { field: 'confirm_date', title: '@Html.Lang("confirm_date")', width: 100, align: 'center' },
+                        { field: 'project_name', title: '@Html.Lang("project_name")', width: 120 },
+                        { field: 'comment', title: '@Html.Lang("pro_size")', width: 200 }
+    				]]
+        });
+
+        $("#order_div input[type='text']").attr("readonly", "readonly");
+
+        //加载营业员比例
+
+        //        $.post("@Url.Content("~/Audit/GetSalerPercentage")",{id:"@order.id"},function(data){
+        //            if(data.success){
+        //                $("#saler_percent").val(data.ps);
+        //            }
+        //        });
+
+    });
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    @*订单内容*@
+    <div data-options="region:'center'">
+        <div id="order_div" class="easyui-panel" title="@Html.Lang("check") @Html.Lang("sale_order")" style="width: 840px; padding: 10px;
+    background: #fafafa; +position: relative;font-size:12px;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="2px" width="800px">
+                    <tr>
+                        <td>
+                            @Html.Lang("order_date"):
+                        </td>
+                        <td>
+                            <input type="text" id="order_date" name="order_date" value="@(((DateTime)order.order_date).ToShortDateString())" style="width: 120px" />
+                        </td>
+                        <td>
+                            @Html.Lang("sys_num"):
+                        </td>
+                        <td>
+                            <input type="text" name="sys_no" id="sys_no" style="width:120px" value="@order.sys_no"/>
+                        </td>
+                        <td>
+                            @Html.Lang("order_no"):
+                        </td>
+                        <td>
+                            <input type="text" id="order_no"  name="order_no" style="width: 120px" value="@order.order_no"/>
+                        </td>
+                        <td>
+                            @Html.Lang("trade_type"):
+                        </td>
+                        <td>
+                            <input type="text" id="trade_type"  name="trade_type" style="width: 120px" value="@order.trade_type_name"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("agency"):
+                        </td>
+                        <td>
+                            <input type="text" id="agency" name="agency" style="width: 120px" value="@order.department_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("project_team"):
+                        </td>
+                        <td>
+                            <input type="text" id="project_group" name="project_group" value="@order.project_group_name" style="width: 120px"/>
+                        </td>
+                        <td>
+                            @Html.Lang("order_type"):
+                        </td>
+                        <td>
+                            <input type="text" id="order_type"  name="order_type" style="width: 120px" value="@order.order_type_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("pro_type"):
+                        </td>
+                        <td>
+                            <input type="text" id="product_type" name="product_type" style="width: 120px" value="@order.product_type_name"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("pro_use"):
+                        </td>
+                        <td>
+                            <input type="text" id="product_use" name="product_use" style="width: 120px" value="@order.product_use"/>
+                        </td>
+                        <td>
+                            @Html.Lang("payment"):
+                        </td>
+                        <td>
+                            <input type="text" id="clearing_way" name="clearing_way" style="width: 120px" value="@order.clearing_way_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("currency"):
+                        </td>
+                        <td>
+                            <input type="text" id="currency" name="currency" style="width: 120px"  value="@order.currency_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("exchange"):
+                        </td>
+                        <td>
+                            <input type="text" id="exchange" name="exchange" style="width: 120px" value="@order.exchange_rate"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("customer_name"):
+                        </td>
+                        <td>
+                            <input type="text" id="buy_unit" name="buy_unit" style="width: 120px" value="@order.buy_unit_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("oversea_customer"):
+                        </td>
+                        <td>
+                            <input type="text" id="oversea_client" name="oversea_client" style="width: 120px" value="@order.oversea_client_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("final customer"):
+                        </td>
+                        <td>
+                            <input type="text" id="final_client" name="final_client" style="width: 120px" value="@order.final_client_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("plan_firm"):
+                        </td>
+                        <td>
+                            <input type="text" id="plan_firm" name="plan_firm" style="width: 120px" value="@order.plan_firm_name"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("sale_type"):
+                        </td>
+                        <td>
+                            <input type="text" id="sale_way" name="sale_way" style="width: 120px" value="@order.sale_way_name"/>
+                        </td>                        
+                        <td>
+                            @Html.Lang("clerk1"):
+                        </td>
+                        <td>
+                            <input type="text" id="clerk" name="clerk" style="width: 120px" value="@order.clerk_name"/>
+                        </td>                       
+                        <td>
+                            @Html.Lang("clerk2"):
+                        </td>
+                        <td>
+                            <input type="text" id="clerk2" name="clerk2" style="width: 120px" value="@order.clerk2_name"/>
+                        </td>                       
+                        <td>
+                            @Html.Lang("clerk3"):
+                        </td>
+                        <td>
+                            <input type="text" id="clerk3" name="clerk3" style="width: 120px" value="@order.clerk3_name"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("trade_rule"):
+                        </td>
+                        <td>
+                            <input type="text" id="trade_rule" name="trade_rule" style="width: 120px" value="@order.trade_rule_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("percent1"):
+                        </td>
+                        <td>
+                            <input type="text" id="percent1" name="percent1" style="width: 120px" value="@order.percent1"/>
+                        </td>
+                        <td>
+                            @Html.Lang("percent2"):
+                        </td>
+                        <td>
+                            <input type="text" id="percent2" name="percent2" style="width: 120px" value="@order.percent2"/>
+                        </td>
+                        <td>
+                            @Html.Lang("percent3"):
+                        </td>
+                        <td>
+                            <input type="text" id="percent3" name="percent3" style="width: 120px" value="@order.percent3"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("proc_dep"):
+                        </td>
+                        <td>
+                            <input type="text" id="proc_dep" name="proc_dep" style="width: 120px" value="@order.proc_dep_name"/>
+                            <input type="hidden" id="proc_dep_id" name="proc_dep_id" value="@order.proc_dep_id" />
+                        </td>                    
+                        <td>
+                            &nbsp;
+                        </td>
+                        <td>&nbsp;</td>
+                        <td>
+                            &nbsp;
+                        </td>
+                        <td>&nbsp;</td>
+                        <td>
+                            &nbsp;
+                        </td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </table>
+            </div>
+            @*订单明细*@
+            <br />
+            <div id="detail_div" class="easyui-panel" title="@Html.Lang("sale_order_detail")" style="+position: relative; width: 800px; height: 185px">
+                <table id="order_detail">
+                    @foreach (var detail in list)
+                    {
+                        <tr>
+                            <td>
+                                @detail.product_no
+                            </td>
+                            <td>
+                                @detail.product_name
+                            </td>
+                            <td>
+                                @detail.product_model
+                            </td>
+                            <td>
+                                @(Math.Round((decimal)detail.qty, (int)(detail.qty_decimal)))
+                            </td>
+                            <td>
+                                @detail.quote_no
+                            </td>
+                            <td>
+                                @detail.unit_name
+                            </td>
+                            <td>
+                                @detail.taxRate
+                            </td>
+                            <td>
+                                @detail.unit_price
+                            </td>
+                            <td>
+                                @(Math.Round((decimal)detail.cost, (int)(detail.price_decimal)))
+                            </td>
+                            <td>
+                                @(Math.Round((decimal)detail.deal_price, (int)(detail.price_decimal)))
+                            </td>
+                            <td>
+                                @(Math.Round((decimal)detail.aux_tax_price, (int)(detail.price_decimal)))
+                            </td>
+                            <td>
+                                @(Math.Round((decimal)((detail.aux_tax_price - detail.deal_price) * detail.qty), (int)(detail.price_decimal)))
+                            </td>
+                            <td>
+                                @(Math.Round((decimal)(detail.deal_price * detail.qty), (int)(detail.price_decimal)))
+                            </td>
+                            <td>
+                                @detail.fee_rate
+                            </td>
+                            <td>
+                                @detail.discount_rate
+                            </td>
+                            <td>
+                                @detail.MU
+                            </td>
+                            <td>
+                                @detail.commission
+                            </td>
+                            <td>
+                                @detail.commission_rate
+                            </td>
+                            <td>
+                                @(detail.delivery_date == null ? "" : ((DateTime)(detail.delivery_date)).ToShortDateString())
+                            </td>
+                            <td>
+                                @(detail.suggested_delivery_date == null ? "" : ((DateTime)(detail.suggested_delivery_date)).ToShortDateString())
+                            </td>
+                            <td>
+                                @(detail.target_date == null ? "" : ((DateTime)(detail.target_date)).ToShortDateString())
+                            </td>
+                            <td>
+                                @(detail.confirm_date == null ? "" : ((DateTime)(detail.confirm_date)).ToShortDateString())
+                            </td>
+                            <td>
+                                @detail.project_name
+                            </td>
+                            <td>
+                                @detail.comment
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </div>
+            <br />
+            <div>
+                @*表尾*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                    <tr>
+                        <td>
+                            @Html.Lang("biller"):
+                        </td>
+                        <td>
+                            <input type="text" id="create_user" name="create_user" style="width: 120px" value="@ViewData["create_user"]"/>
+                        </td>
+                        <td>
+                            @Html.Lang("manager"):
+                        </td>
+                        <td>
+                            <input type="text" id="charger" name="charger" style="width: 120px" value="@order.charger_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("contract_num"):
+                        </td>
+                        <td>
+                            <input type="text" id="contract_no" name="contract_no" style="width: 120px" value="@order.contract_no"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("oversea_percent"):
+                        </td>
+                        <td>
+                            <input type="text" id="oversea_percentage" name="oversea_percentage" style="width: 120px" value="@order.oversea_percentage"/>
+                        </td>
+                        <td>
+                            @Html.Lang("backPaper"):
+                        </td>
+                        <td>
+                            <input type="text" id="backpaper_confirm" name="backpaper_confirm" style="width: 120px" value="@order.backpaper_confirm_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("produce_way"):
+                        </td>
+                        <td>
+                            <input type="text" id="produce_way" name="produce_way" style="width: 120px" value="@order.produce_way_name"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("truly_logo"):
+                        </td>
+                        <td>
+                            <input type="text" id="print_truly" name="print_truly" style="width: 120px" value="@order.print_truly_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("customer_logo")：
+                        </td>
+                        <td>
+                            <input type="text" id="client_logo" name="client_logo" style="width: 120px" value="@order.client_logo_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("delivery_place"):
+                        </td>
+                        <td>
+                            <input type="text" id="delivery_place" name="delivery_place" style="width: 120px" value="@order.delivery_place"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("description"):
+                        </td>
+                        <td colspan="5">
+                            @*<input type="text" id="description" name="description" style="width: 650px" value="@order.description"/>*@
+                            <textarea cols="90" rows="3" name="description" id="description" style="margin: 0;"
+                                readonly="readonly">@order.description</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("further_info"):
+                        </td>
+                        <td colspan="5">                    
+                            <textarea cols="90" rows="4" name="further_info" id="further_info" style="margin:0;" readonly="readonly">@order.further_info</textarea>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            @*营业员比例*@
+            <br />
+            <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
+        title="@Html.Lang("sale_percent")">
+                <div id="Saler_div">
+                    <input type="text" name="saler_percent" id="saler_percent" style="width:760px" value="@order.salePs" />
+                </div>
+            </div>
+            <br />
+            <div id="downloadPanel">
+                <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
+            title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + sys_no)">
+                </div>
+            </div>
+        </div>
+    </div>
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+</div>

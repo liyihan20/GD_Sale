@@ -1,0 +1,186 @@
+﻿<script type="text/javascript">  
+
+    $(function(){
+         $("#rel_dg").datagrid({
+            //title:"事业部审核人管理",
+            fit:true, 
+            url:"getProcDepAuditors",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            toolbar:"#toolbar",
+            columns: [[
+                        { field: 'id', title: 'id', width: 120, align: "center",hidden:"true" },
+                        { field: 'auditor_id', title: 'auditor_id', width: 120, align: "center",hidden:"true" },
+                        { field: 'proc_dep_id', title: 'proc_dep_id', width: 120, align: "center",hidden:"true" },
+                        { field: 'billType', title: '订单类型', width: 120, align: "center",
+                            formatter: function(value,row,index){
+				                if (value == "SO"){
+					                return '销售订单';
+				                }else if(value == 'MB'){
+                                    return '维修单';
+                                }else if(value == 'CM'){
+                                    return '开模改模单';
+                                }else if(value == 'FS'){
+                                    return '免费样品单';
+                                }else if(value == 'CS'){
+                                    return '收费样品单';
+                                }else if(value == 'TH'){
+                                    return '退修货申请';
+                                }
+                                else{
+                                    return value;
+                                }
+			                } },
+                        { field: 'procDep', title: '生产事业部名称', width: 120, align: "center"},
+                        { field: 'auditType', title: '审核类型', width: 120, align: "center",formatter: function(value,row,index){
+				                if (value == "0"){
+					                return '下单';
+				                }else if(value == '4'){
+                                    return '4_退货_事业部客服';
+                                }else if(value == '5'){
+                                    return '5_退货_事业部计划';
+                                }else if(value == '6'){
+                                    return '6_退货_事业部品质';
+                                }else if(value == '7'){
+                                    return '7_退货_事业部出货组';
+                                }else if(value == '8'){
+                                    return '8_退货_办事处审核';
+                                }else if(value == '9'){
+                                    return '9_退货_主管审核';
+                                }
+                                else{
+                                    return value;
+                                }
+			                }},
+                        { field: 'auditor', title: '审核人', width: 120, align: "center" }
+                    ]]
+        });
+
+    }); 
+
+
+    var url;
+    function newRel() {
+        $('#rel_dlg').dialog('open').dialog('setTitle', '新建关系');
+        $('#fm').form('clear');
+        url = 'saveProcDepAuditor';
+    }
+    function editRel() {
+        var row = $('#rel_dg').datagrid('getSelected');
+        if (row) {
+            $('#rel_dlg').dialog('open').dialog('setTitle', '编辑关系');
+            $('#fm').form('load', row);
+            $("#procDep").combobox("setValue",row.proc_dep_id);
+            $("#auditor").combobox("setValue",row.auditor_id);
+            url = 'updateProcDepAuditor/' + row.id;
+        }
+    }
+    function saveRel() {
+        $('#fm').form('submit', {
+            url: '' + url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {                
+                var result = eval('(' + data + ')');
+                if (result.suc) {
+                    $('#rel_dlg').dialog('close');      // close the dialog   
+                    $('#rel_dg').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }  
+    function removeRel(){
+        var row = $('#rel_dg').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_delete")?', function(r){
+	            if (r){
+                    $.post("@Url.Content("~/Authority/RemoveProcDepAuditor")",{id:row.id},function(data){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: data.msg
+                        });
+                        if(data.suc){
+                            $('#rel_dg').datagrid('reload'); 
+                        }
+                    });
+                }
+            });
+        }
+    }
+    function qq(value,name){   
+        $('#rel_dg').datagrid('load',{
+        value: value,   
+        name: name   
+        });
+    } 
+   
+</script>
+<div id="Tabs" class="easyui-tabs" fit="true">
+    <div title="事业部审核人管理">
+<table id="rel_dg"></table>  
+<div id="toolbar">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newRel()">新建关系</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editRel()">编辑关系</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="removeRel()">删除关系</a>
+    <input id="ss" class="easyui-searchbox" style="width:220px"  searcher="qq" menu="#mm" prompt="@Html.Lang("please_input")" /> 
+    <div id="mm" style="width:100px">  
+        <div name="name">搜索内容</div>  
+    </div>  
+</div>  
+    
+<div id="rel_dlg" class="easyui-dialog" style="width:400px;height:260px;padding:10px 20px"  
+        closed="true" buttons="#dlg-buttons">  
+    <div class="ftitle">事业部---审核人关系维护</div>  
+    <form id="fm" method="post">  
+        <div class="fitem">  
+            <label>订单类型:</label>  
+            <select class="easyui-combobox" name="billType" id="billType" style="width: 160px;"
+            panelheight="140px">
+            <option value="SO">销售订单</option>
+            <option value="MB">维修单</option>
+            <option value="CM">开模改模单</option>
+            <option value="FS">免费样品单</option>
+            <option value="CS">收费样品单</option>
+            <option value="TH">退修货申请</option>
+        </select>
+        </div> 
+        <div class="fitem">  
+            <label>生产事业部:</label>  
+            <input class="easyui-combobox" id="procDep" name="procDep" valuefield="id" textfield="name" url="@Url.Content("~/Items/getProcDeps")" style="width: 160px;"/>
+        </div>
+        <div class="fitem">  
+            <label>审核类型:</label>  
+            <select class="easyui-combobox" id="auditType" name="auditType" style="width: 160px;" panelheight="150px">
+                <option value="0">下单</option>
+                <option value="4">4_退货_事业部客服</option>
+                <option value="5">5_退货_事业部计划</option>
+                <option value="6">6_退货_事业部品质</option>
+                <option value="7">7_退货_事业部出货组</option>
+                <option value="8">8_退货_办事处审核</option>
+                <option value="9">9_退货_主管审核</option>
+            </select>
+        </div>
+        <div class="fitem">  
+            <label>审核人:</label>  
+            <input name="auditor" id="auditor" class="easyui-combobox" url="@Url.Content("~/Items/getSysUsers")" valuefield="id" textfield="name" style="width: 160px;"/> 
+        </div>
+    </form>  
+</div>  
+
+<div id="dlg-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveRel()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#rel_dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div> 
+
+    </div>
+    <div title="各级审核步骤管理">
+        
+    </div>
+</div>

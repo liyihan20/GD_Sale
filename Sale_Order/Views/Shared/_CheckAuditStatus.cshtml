@@ -1,0 +1,59 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    function CheckStatus (sys_no) {
+        //清空信息
+        var trs=$("#status_table tbody tr");
+        if(trs.length > 1)
+        {
+            var tr1=trs[0];
+            $("#status_table tbody").empty();
+            $("#status_table tbody").append(tr1);
+        }
+        $("#nextStepName").html("");
+        $("#nextAuditors").html("");
+        $.post("@Url.Content("~/Audit/CheckApplyStatusSO")",{sys_no: sys_no},function(data){
+            if(data.success){
+                $("#nextStepName").html(data.nextStepName);
+                $("#nextAuditors").html(data.nextAuditors);
+                var list=data.result;
+                for(var i=0;i<list.length;i++){
+                    var content= '<tr><td>'+list[i].date + ' ' + list[i].time+'</td><td>'+list[i].stepName+'</td><td>'+(list[i].comment==null?' ':list[i].comment)+'</td><td>'+(list[i].pass==true?'<span style="color:green">@Html.Lang("success")</span>':'<span style="color:red">@Html.Lang("failure")</span>')+'</td><td>'+list[i].auditor+'</td><td>'+list[i].department+'</td></tr>';
+                    $("#status_table tbody").append(content);
+                }
+            }
+        }); 
+        $("#dlg_st").dialog("open");
+        
+    }
+</script>
+<div id="dlg_st" class="easyui-dialog" style="width: 800px; height: 340px; padding: 10px 5px;" closed="true" title="@Html.Lang("check_status")">
+    <div style="margin-left: 10px; margin-top: 5px; font-weight: bold">
+        下一审核步骤名称:<span id="nextStepName" style="color: red; margin-right: 20px;"></span>步骤审核人:<span
+            id="nextAuditors" style="color: red"></span></div>
+    <table id="status_table" style="width: 97%; margin: 16px 0 0 10px;" border="0" cellspacing="0">
+        <tbody>
+            <tr>
+                <th style="width: 15%">
+                    @Html.Lang("operation_time")
+                </th>
+                <th style="width: 17%">
+                    @Html.Lang("operation_content")
+                </th>
+                <th style="width: 35%">
+                    @Html.Lang("audit_opinion")
+                </th>
+                <th style="width: 8%">
+                    @Html.Lang("operation_result")
+                </th>
+                <th style="width: 10%">
+                    @Html.Lang("operator")
+                </th>
+                <th style="width: 15%">
+                    @Html.Lang("department")
+                </th>
+            </tr>
+        </tbody>
+    </table>
+</div>

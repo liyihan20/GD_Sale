@@ -1,0 +1,308 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="aux_tax_price" xml:space="preserve">
+    <value>FAuxTaxPrice</value>
+    <comment>合同含税单价</comment>
+  </data>
+  <data name="backpaper_confirm" xml:space="preserve">
+    <value>FHeadSelfS0154</value>
+    <comment>回头纸是否确认</comment>
+  </data>
+  <data name="buy_unit" xml:space="preserve">
+    <value>FCustID</value>
+    <comment>购货单位</comment>
+  </data>
+  <data name="charger" xml:space="preserve">
+    <value>FMangerID</value>
+    <comment>主管</comment>
+  </data>
+  <data name="clearing_way" xml:space="preserve">
+    <value>FSettleID</value>
+    <comment>结算方式</comment>
+  </data>
+  <data name="clerk" xml:space="preserve">
+    <value>FEmpID</value>
+    <comment>业务员</comment>
+  </data>
+  <data name="client_logo" xml:space="preserve">
+    <value>FHeadSelfS0181</value>
+    <comment>是否印有客户LOGO</comment>
+  </data>
+  <data name="comment" xml:space="preserve">
+    <value>Fnote</value>
+    <comment>备注</comment>
+  </data>
+  <data name="commission" xml:space="preserve">
+    <value>FEntrySelfS0165</value>
+    <comment>佣金</comment>
+  </data>
+  <data name="commission_rate" xml:space="preserve">
+    <value>FEntrySelfS0168</value>
+    <comment>佣金率</comment>
+  </data>
+  <data name="confirm_date" xml:space="preserve">
+    <value>FEntrySelfS0173</value>
+    <comment>确认日期</comment>
+  </data>
+  <data name="contract_no" xml:space="preserve">
+    <value>FHeadSelfS0153</value>
+    <comment>合同编号P/O</comment>
+  </data>
+  <data name="cost" xml:space="preserve">
+    <value>FEntrySelfS0160</value>
+    <comment>成本</comment>
+  </data>
+  <data name="create_user" xml:space="preserve">
+    <value>FBillerID</value>
+    <comment>K3制单人</comment>
+  </data>
+  <data name="currency" xml:space="preserve">
+    <value>FCurrencyID</value>
+    <comment>币别</comment>
+  </data>
+  <data name="deal_price" xml:space="preserve">
+    <value>FEntrySelfS0167</value>
+    <comment>成交价</comment>
+  </data>
+  <data name="delivery_date" xml:space="preserve">
+    <value>FDate</value>
+    <comment>交货日期</comment>
+  </data>
+  <data name="delivery_place" xml:space="preserve">
+    <value>FFetchAdd</value>
+    <comment>交货地点</comment>
+  </data>
+  <data name="agency" xml:space="preserve">
+    <value>FDeptID</value>
+    <comment>部门</comment>
+  </data>
+  <data name="description" xml:space="preserve">
+    <value>FHeadSelfS0158</value>
+    <comment>说明</comment>
+  </data>
+  <data name="discount_rate" xml:space="preserve">
+    <value>FTaxRate</value>
+    <comment>折扣率</comment>
+  </data>
+  <data name="entry_id" xml:space="preserve">
+    <value>Fentryid</value>
+    <comment>明细自增号码</comment>
+  </data>
+  <data name="exchange_rate" xml:space="preserve">
+    <value>FExchangeRate</value>
+    <comment>汇率</comment>
+  </data>
+  <data name="fee_rate" xml:space="preserve">
+    <value>FEntrySelfS0164</value>
+    <comment>费用率</comment>
+  </data>
+  <data name="final_client" xml:space="preserve">
+    <value>FHeadSelfS0162</value>
+    <comment>终极客户</comment>
+  </data>
+  <data name="MU" xml:space="preserve">
+    <value>FEntrySelfS0166</value>
+    <comment>MU</comment>
+  </data>
+  <data name="order_date" xml:space="preserve">
+    <value>Fdate</value>
+    <comment>下单日期</comment>
+  </data>
+  <data name="order_no" xml:space="preserve">
+    <value>FBillNo</value>
+    <comment>订单编号</comment>
+  </data>
+  <data name="order_type" xml:space="preserve">
+    <value>FHeadSelfS0148</value>
+    <comment>订单类型</comment>
+  </data>
+  <data name="oversea_client" xml:space="preserve">
+    <value>FHeadSelfS0152</value>
+    <comment>海外客户</comment>
+  </data>
+  <data name="oversea_percentage" xml:space="preserve">
+    <value>FHeadSelfS0169</value>
+    <comment>最终海外销售比例</comment>
+  </data>
+  <data name="plan_firm" xml:space="preserve">
+    <value>FHeadSelfS0150</value>
+    <comment>方案公司</comment>
+  </data>
+  <data name="print_truly" xml:space="preserve">
+    <value>FHeadSelfS0180</value>
+    <comment>外包装印TRULY</comment>
+  </data>
+  <data name="produce_way" xml:space="preserve">
+    <value>FHeadSelfS0157</value>
+    <comment>生产方式（冒险做货）</comment>
+  </data>
+  <data name="product_id" xml:space="preserve">
+    <value>FItemID</value>
+    <comment>产品代码</comment>
+  </data>
+  <data name="product_type" xml:space="preserve">
+    <value>FHeadSelfS0146</value>
+    <comment>产品类型</comment>
+  </data>
+  <data name="product_use" xml:space="preserve">
+    <value>FHeadSelfS0147</value>
+    <comment>产品用途</comment>
+  </data>
+  <data name="project_group" xml:space="preserve">
+    <value>FHeadSelfS0149</value>
+    <comment>对应项目组</comment>
+  </data>
+  <data name="qty" xml:space="preserve">
+    <value>Fqty</value>
+    <comment>数量</comment>
+  </data>
+  <data name="quote_no" xml:space="preserve">
+    <value>FEntrySelfS0175</value>
+    <comment>报价编号</comment>
+  </data>
+  <data name="sale_way" xml:space="preserve">
+    <value>FSaleStyle</value>
+    <comment>销售方式</comment>
+  </data>
+  <data name="suggestd_delivery_date" xml:space="preserve">
+    <value>FAdviceConsignDate</value>
+    <comment>建议交货日期</comment>
+  </data>
+  <data name="target_date" xml:space="preserve">
+    <value>FEntrySelfS0158</value>
+    <comment>目标日期</comment>
+  </data>
+  <data name="tax_rate" xml:space="preserve">
+    <value>fcess</value>
+    <comment>税率</comment>
+  </data>
+  <data name="trade_type" xml:space="preserve">
+    <value>FHeadSelfS0179</value>
+    <comment>贸易类型</comment>
+  </data>
+  <data name="unit" xml:space="preserve">
+    <value>FUnitID</value>
+    <comment>单位</comment>
+  </data>
+  <data name="unit_Price" xml:space="preserve">
+    <value>Fprice</value>
+    <comment>单价</comment>
+  </data>
+</root>

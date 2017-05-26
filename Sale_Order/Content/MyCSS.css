@@ -1,0 +1,150 @@
+﻿ #fm{
+			margin:0;
+			padding:10px 30px;
+		}
+		.ftitle{
+			font-size:14px;
+			font-weight:bold;
+			color:#666;
+			padding:5px 0;
+			margin-bottom:10px;
+			border-bottom:1px solid #ccc;
+		}
+		.fitem{
+			margin-bottom:5px;
+		}
+		.fitem label{
+			display:inline-block;
+			width:80px;
+		}
+
+.saler_per
+{
+        float:left;
+        width:110px;
+        height:16px;
+        border-style:dotted;
+        border-width:1px;
+        padding:2px;
+        margin-right:10px;
+        
+    }
+.saler_per:hover
+{
+    border-color:#35A1EC;
+    }
+.saler
+{
+    float:left;
+    height:16px;
+    line-height:16px;   
+    font-size:12px; 
+    }
+.sale_edit
+{
+    float:right;
+    display:inline-block;
+    width:16px;
+    height:16px;
+    background-image:url('themes/base/images/ui-icons_888888_256x240.png');
+    background-repeat:no-repeat;
+    background-position:-64px -114px;
+    }
+ .sale_edit:hover
+ {
+     background-image:url('themes/base/images/ui-icons_2e83ff_256x240.png');
+     }
+.sale_del
+{
+    float:right;
+    display:inline-block;
+    width:16px;
+    height:16px;
+    background-image:url('themes/base/images/ui-icons_888888_256x240.png');
+    background-repeat:no-repeat;
+    background-position:-80px -130px;
+    }
+.sale_del:hover
+{
+    background-image:url('themes/base/images/ui-icons_2e83ff_256x240.png');
+    }
+    
+.browser
+        {
+            color:White;
+        }
+    
+.node {
+    width: 13px;    
+}    
+.proce
+{
+    width: 114px;
+    border-width: 0 5px;
+    }
+.proce,.node
+{
+    float: left;
+    position: relative;
+    height: 13px;
+    background-image: url('themes/base/images/processbar.jpg');
+    background-repeat: no-repeat;
+    }
+.proce.wait
+{
+    background-position: 0 -40px;
+    }
+.proce.ready{
+    background-position: 0 0;
+}
+.proce.handling{
+    background-position: 0 -20px;
+}
+.node.ready {
+    background-position: -114px 0px ;
+}
+.proce.wait {
+    background-position: 0 -40px;
+}
+.node.wait {
+    background-position: -114px -40px;
+}
+.node.stuck {
+    background-position: -114px -60px;
+}
+.nodeInfo
+{
+    float:left;
+    width:73px;
+    margin-left:10px;
+    margin-right:44px;
+    margin-top:5px;
+    text-align:center;
+    }
+#procInfo .nodeInfo span
+{
+    color:#999;
+    }
+    
+ /*
+#status_table tr td
+{
+    text-align:center;
+    }
+*/
+#status_table tr th
+{
+    border-bottom:1px;
+    border-bottom-color:Gray;
+    border-bottom-style:solid;
+    }
+#status_table tr
+{
+    height:24px;
+    }    
+
+/*不能修改*/
+.not_mod
+{
+    background-color:#EFEFEF;
+    }

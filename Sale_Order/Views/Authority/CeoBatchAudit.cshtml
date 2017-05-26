@@ -1,0 +1,94 @@
+﻿
+<script type="text/javascript">
+    $(function () {
+        $("#AuditList").datagrid({
+            fit: true,
+            fitColumns: true,
+            url: '@Url.Content("~/Authority/GetCeoNoAuditBill")',
+            rownumbers: true,
+            singleSelect: false,
+            //loadMsg:"默认加载待审核的单据",
+            columns: [[
+                        { field: 'ck', checkbox: true },
+                        { field: 'applyId', title: 'ID', width: 10, hidden: true },
+                        { field: 'applyDetailId', title: 'DetailID', width: 10, hidden: true },
+                        { field: 'applyTimeStr', title: '@Html.Lang("order_date")', width: 120 },
+                        { field: 'orderType', title: '@Html.Lang("bill_type")', width: 100 },
+                        { field: 'sysNum', title: '@Html.Lang("sys_num")', width: 100 },
+                        { field: 'model', title: '@Html.Lang("pro_model")', width: 160 },
+    					{ field: 'depName', title: '@Html.Lang("agency")', width: 100 },
+    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 80 },
+                        { field: 'step', title: '@Html.Lang("audit_step")', width: 100, hidden:true },
+                        { field: 'stepName', title: '@Html.Lang("audit_step")', width: 100 }
+    				]],
+            toolbar: [{
+                text: "刷新列表",
+                iconCls: 'icon-reload',
+                handler: function () { $('#AuditList').datagrid("reload"); }
+            }],
+            onLoadSuccess: function (data) {
+                $("#AuditList").datagrid("selectAll")
+            }
+        });
+
+        $("#contDiv").css("visibility","visible");
+    });
+
+    function okClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
+            if (r) {
+                beginAudit(1);
+            }
+        });
+
+    }
+
+    function noClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function (r) {
+            if (r) {
+                beginAudit(0);
+            }
+        });
+    }
+
+    function beginAudit(passFlag) {
+        var rows = $("#AuditList").datagrid("getChecked");
+        if (rows.length > 0) {
+            var ids = "";
+            for (var i = 0; i < rows.length; i++) {
+                ids += rows[i].applyDetailId + ",";
+            }
+            console.log(ids);
+            $.post("@Url.Content("~/Authority/BeginCeoBatchAudit")", {
+                applyDetailIds: ids,
+                pass: passFlag,
+                opinion: $("#opinion").val()
+            }, function (data) {
+                if (data.suc) {
+                    $('#AuditList').datagrid("reload");
+                }
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: data.msg
+                });
+            });
+        } else {
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "请先选择需要审批的单据"
+            });
+        }
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true" style="visibility:hidden" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 55px; background: #fafafa; padding: 10px 20px;">
+        @Html.Lang("audit_opinion"):
+        <input id="opinion" name="opinion" style="width: 500px" />&nbsp;
+        <a id="OKBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">批量通过</a>
+        <a id="NOBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">批量拒绝</a>
+    </div>
+    <div data-options="region:'center'">
+        <table id="AuditList" class="easyui-datagrid"></table>
+    </div>
+</div>

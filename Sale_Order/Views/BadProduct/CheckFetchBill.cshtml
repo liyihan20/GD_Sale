@@ -1,0 +1,126 @@
+﻿@using Sale_Order.Models;
+@{
+    List<VwFetchBill> list = (List<VwFetchBill>)ViewData["list"];
+    VwFetchBill vw = list.First();
+}
+<script type="text/javascript">
+    $(function () {
+
+        $("#bill_detail").datagrid({
+            //height: "140",
+            width: "1100",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'FRenturnBillDetailID', title: 'FDetailID', hidden: true },
+                        { field: 'FStockNumber', title: '销售出库单号', width: 90 },
+    					{ field: 'FProductNumber', title: '产品编码', width: 90 },
+    					{ field: 'FProductName', title: '产品名称', width: 140 },
+                        { field: 'FProductModel', title: '规格型号', width: 130 },
+                        { field: 'FReturnQty', title: '退换数量', width: 70, align: 'right' },
+    					{ field: 'FHasFetchQty', title: '已出数量', width: 70, align: 'right' },
+                        { field: 'FStoreQty', title: '库存数量', width: 70, align: 'right' },
+                        { field: 'FApplyQty', title: '申请数量', width: 70, align: 'right' },
+                        { field: 'FComment', title: '备注', width: 200 }
+    				]]
+        });
+
+        $("#order_div input[type='text'],textarea").attr("readonly", "readonly");
+        $("input[type='radio']").not("input:checked").attr("disabled", "true");
+    });
+</script>
+<form id="bill_form" method="post" action="">
+<div id="order_div" class="easyui-panel" title="查看出货申请" style="width: 780px; padding: 10px;
+    background: #fafafa; +position: relative;">
+    <div>
+        @*表头*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+            <tr>
+                <td>
+                    出货日期:
+                </td>
+                <td>
+                    <input type="text" id="fdate" name="fdate" style="width: 120px" value="@(((DateTime)vw.fdate).ToShortDateString())"/>
+                </td>
+                <td>
+                    流水号:
+                </td>
+                <td>
+                    <span id="sysNo">@vw.sys_no</span> 
+                </td>
+                <td>
+                    客户名称:
+                </td>
+                <td>
+                    @vw.customer_name
+                </td>
+            </tr>
+            <tr>                
+                <td>                    
+                    收货单位:
+                </td>
+                <td>
+                    <input type="text" id="accepte_unit" name="accepte_unit" value="@vw.accepte_unit" style="width:120px" />                    
+                </td>
+                <td>
+                    联系电话:
+                </td>
+                <td>
+                    <input type="text" id="phone" name="phone" value="@vw.phone" style="width:120px" />  
+                </td>    
+                <td>
+                    收货地址:
+                </td>
+                <td rowspan="2">
+                    <textarea cols="28" rows="3" name="address" id="address" style="margin: 0;">@vw.address</textarea>      
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    联系人:
+                </td>
+                <td>
+                    <input type="text"  id="contact" name="contact" value="@vw.contact" style="width:120px" />
+                </td>
+                <td>
+                    传真号码:
+                </td>
+                <td>
+                    <input type="text" id="tax" name="tax" value="@vw.tax" style="width:120px" />
+                </td>
+            </tr>
+            <tr>
+                <td>说明:</td>
+                <td colspan="5"><textarea cols="83" rows="2" name="description" id="description" style="margin: 0;">@vw.description</textarea></td>
+            </tr>
+        </table>
+    </div>
+    <br />
+    <div>
+        @*表体*@
+        <div id="detail_div" class="easyui-panel" title="出货信息明细" style="+position: relative;
+            width: 740px; height: 185px">
+            <table id="bill_detail">
+                @foreach (var li in list)
+                { 
+                    <tr>
+                        <td>@li.return_detail_id</td>
+                        <td>@li.stock_no</td>
+                        <td>@li.product_no</td>
+                        <td>@li.product_name</td>
+                        <td>@li.product_model</td>
+                        <td>@li.return_qty</td>
+                        <td>@li.has_fetch_qty</td>
+                        <td>@li.store_qty</td>
+                        <td>@li.fetch_qty</td>
+                        <td>@li.comment</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <br />    
+    
+</div>
+</form>

@@ -1,0 +1,176 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            url:"@Url.Content("~/BadProduct/CheckRedBills")",
+            fit: true,
+            fitColumns: true,
+            singleSelect: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'FRedType', title: 'FRedType', width: 10, hidden: true },
+                        { field: 'FBillID', title: 'FBillID', width: 10, hidden: true },
+                        { field: 'FArriveDate', title: '到达日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source) 
+                            var date_str = date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                            if(index==0){
+                                return date_str;
+                            }else{                                
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return date_str;
+                            }
+                        }},  
+                        { field: 'FSysNo', title: '退修编号', width: 80,
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } },
+    					{ field: 'FCustomerName', title: '客户名称', width: 120,
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } },
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'FReturnQty', title: '退货数量', width: 70, align: 'right' },
+                        { field: 'FImportK3No', title: 'K3关联单号', width: 80 , align: 'center',
+                            styler: function(value,row,index){
+				                if (value == 'N'){
+					                return 'color:red;';
+				                }else if(value == 'Y'){
+					                return 'color:green;';
+				                }
+			                }
+                        }
+    				]],
+            toolbar: [{
+                text: "查看详细",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            if(!$('#fm').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "../BadProduct/SearchRedBills",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#orderList").datagrid("loadData", result);
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+    });
+    
+    
+    function CheckDetail(){
+         var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+            if(row.FRedType=="TH"){
+                window.location.href = "@Url.Content("~/BadProduct/CheckReturnBill")" +"?id="+row.FBillID;
+            }
+            else if(row.FRedType=="HH"){
+                window.location.href = "@Url.Content("~/BadProduct/CheckResendBill")" +"?id="+row.FBillID;
+            }
+         }
+    }
+
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    客户编号/客户名称:
+                </td>
+                <td>
+                    到达日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    退修编号/规格型号:
+                </td>
+                <td>
+                    已导进K3:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-validatebox" id="cust_info" name="cust_info" style="width: 110px"/>
+                </td>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="pro_model" name="pro_model" style="width: 120px"/>
+                </td>
+                <td>
+                    <input id="hasImportK3" name="hasImportK3" style="width: 80px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 100,
+                        editable:false,
+                        value:'-1',
+		                data: [{
+			                label: '未导入',
+			                value: '-1'
+		                },{
+			                label: '已导入',
+			                value: '1'
+		                },{
+			                label: '全部',
+			                value: '0'
+		                }]" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>    
+</div>
+

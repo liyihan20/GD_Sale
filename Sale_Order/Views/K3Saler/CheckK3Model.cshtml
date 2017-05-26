@@ -1,0 +1,282 @@
+﻿@using Sale_Order.Models;
+@{
+    List<VwK3ModelContract> list = (List<VwK3ModelContract>)ViewData["order"];
+    var or=list[0];
+    string auditStatus = or.FCheckerID > 0 ? "已审核" : "未审核";
+    }
+<script type="text/javascript">
+
+    $(function () { 
+        //订单明细表
+        $("#order_detail").datagrid({
+            //height: "140",
+            //width: "780",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[                        
+    					{ field: 'product_number', title: '@Html.Lang("pro_num")', width: 120 },
+    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 100 },
+                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 150 },
+                        { field : "unit", title:'@Html.Lang("unit")', width:100 },
+    					{ field: 'qty', title: '@Html.Lang("qty")', width: 70, align: 'right' },
+    					{ field: 'cost', title: '@Html.Lang("cost")', width: 70, align: 'right' },
+                        { field: 'tax_rate', title: '@Html.Lang("tax_rate")', width: 70, align: 'right' },
+    				]]
+        });
+
+        $("#order_div input[type='text']").attr("readonly", "readonly");
+
+        //进入修改
+        $("#edit_but").click(function () {
+            if("@auditStatus"=="未审核"){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "@Html.Lang("can_modify_after_audit")"
+                    });
+            }else{
+                $.post("@Url.Content("~/K3Saler/IfChangeApplySubimted")",{bill_no:"@or.contract_no"},function(data){
+                    if(!data.suc){
+                        window.location.href="@Url.Content("~/K3Saler/ModifyK3Model")" + "/" + @or.FID;
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: data.msg
+                        });
+                    }
+                },"json");                            
+            }
+        });
+
+    });
+
+</script>
+
+<div id="order_div" class="easyui-panel" title="@Html.Lang("check_create_model_contract")" style="width: 840px; padding: 10px;
+    background: #fafafa;+position: relative;">
+    <div>
+        @*表头*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+            <tr>
+                <td>
+                    @Html.Lang("order_date"):
+                </td>
+                <td>
+                    <input type="text" id="order_date" name="order_date" style="width: 120px" value="@(((DateTime)or.bill_date).ToShortDateString())"/>
+                </td>
+                <td>
+                    @Html.Lang("contract_no"):
+                </td>
+                <td>
+                    <input type="text" id="contract_no" name="contract_no" style="width: 120px" value="@or.contract_no"/>
+                </td>
+                <td>
+                    @Html.Lang("audit_status"):
+                </td>
+                <td>
+                    @auditStatus
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("trade_type"):
+                </td>
+                <td>
+                    <input type="text" id="trade_type" name="trade_type" style="width: 120px" value="@or.trade_name"/>
+                </td>
+                <td>
+                    @Html.Lang("agency"):
+                </td>
+                <td>
+                    <input type="text" id="agency" name="agency" style="width: 120px" value="@or.department_name"/>
+                </td>
+                <td>
+                    @Html.Lang("clerk"):
+                </td>
+                <td>
+                    <input type="text" id="clerk" name="clerk" style="width: 120px" value="@or.employee_name"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("original_order_no"):
+                </td>
+                <td>
+                    <input type="text" name="old_bill_no" id="old_bill_no" style="width:120px" value="@or.old_bill_no"/>
+                </td>
+                <td>
+                    @Html.Lang("pro_type"):
+                </td>
+                <td>
+                    <input type="text" id="product_type" name="product_type" style="width: 120px" value="@or.product_type_name"/>
+                </td>
+                <td>
+                    @Html.Lang("contract_name"):
+                </td>
+                <td>
+                    <input type="text" name="contract_name" id="contract_name" style="width:120px" value="@or.contract_name"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("currency"):
+                </td>
+                <td>
+                    <input id="currency" type="text" name="currency" style="width: 120px" value="@or.currency_name"/>
+                </td>
+                <td>
+                    @Html.Lang("exchange"):
+                </td>
+                <td>
+                    <input id="exchange" type="text" name="exchange" style="width: 120px" value="@or.exchange_rate"/>
+                </td>
+                <td>
+                    @Html.Lang("payment"):
+                </td>
+                <td>
+                    <input type="text" id="clearing_way" name="clearing_way" style="width: 120px" value="@or.clear_way_name"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("customer_name"):
+                </td>
+                <td>
+                    <input id="customer" type="text" name="customer" style="width: 120px"  value="@or.customer_name"/>
+                </td>
+                <td>
+                    @Html.Lang("final customer"):
+                </td>
+                <td>
+                    <input id="zj_customer" type="text" name="zj_customer" style="width: 120px" value="@or.zj_customer_name"/>
+                </td>
+                <td>
+                    @Html.Lang("end_customer"):
+                </td>
+                <td>
+                    <input id="zz_customer" type="text" name="zz_customer" style="width: 120px"  value="@or.zz_customer_name" />
+                </td>
+            </tr>
+             <tr>
+                <td>
+                    @Html.Lang("plan_firm"):
+                </td>
+                <td>
+                    <input id="plan_firm" type="text" name="plan_firm" style="width: 120px" value="@or.plan_firm_name"/>
+                </td>
+                <td>
+                    @Html.Lang("invoice_amount"):
+                </td>
+                <td>
+                    <input id="invoice_amount" type="text" name="invoice_amount" style="width: 120px" value="@(Math.Round(or.invoice_amount,2))"/>
+                </td>
+                <td>
+                    @Html.Lang("contract_amount"):
+                </td>
+                <td>
+                    <input id="contract_amount" type="text" name="contract_amount" style="width: 120px" value="@(Math.Round(or.contract_amount,2))"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("debate_amount"):
+                </td>
+                <td>
+                    <input id="debate_amount" type="text" name="debate_amount" style="width: 120px" value="@(Math.Round(or.debate_amount,2))"/>
+                </td>
+                <td>
+                    @Html.Lang("amount"):
+                </td>
+                <td>
+                    <input id="total_amount" type="text" name="total_amount" style="width: 120px" value="@(Math.Round(or.total_amount,2))"/>
+                </td>                
+                <td>
+                    @Html.Lang("amount_base"):
+                </td>
+                <td>
+                    <input id="total_amount_for" type="text" name="total_amount_for" style="width: 120px" value="@(Math.Round(or.total_amount_for,2))"/>
+                </td>                
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("summary")
+                </td>
+                <td colspan="5">
+                    <input type="text" name="explanation" id="explanation" style="width:685px" value="@or.explanation"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+    @*订单明细*@
+    <br />
+    <div id="detail_div" class="easyui-panel" title="@Html.Lang("create_model_invoice_detail")" style="+position: relative;width:800px;height:185px">       
+        <table id="order_detail">
+        @if (or.FProductID != null)
+        {
+            foreach (var de in list)
+            { 
+                <tr>
+                    <td>
+                        @de.product_no
+                    </td>
+                    <td>
+                        @de.product_name
+                    </td>
+                    <td>
+                        @de.product_model
+                    </td>
+                    <td>
+                        @de.unitName
+                    </td>
+                    <td>
+                        @Html.myRound(de.FQuantity, de.qty_decimal)
+                    </td>
+                    <td>
+                        @Html.myRound(de.FAmountHKD, de.price_decimal)
+                    </td>
+                    <td>
+                        @Html.myRound((decimal?)de.FTaxRate, (short?)2)
+                    </td>
+                </tr>
+            }
+        }
+        </table>
+    </div>
+    <br />
+    <div>
+        @*表尾*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+            <tr>
+                <td>
+                    @Html.Lang("delivery_place"):
+                </td>
+                <td>
+                    <input type="text" id="delivery_place" name="delivery_place" style="width: 120px" value="@or.fetch_add"/>
+                </td>
+                <td>
+                    @Html.Lang("delivery_date"):
+                </td>
+                <td>
+                    <input id="fetch_date" type="text" name="fetch_date" style="width: 120px" value="@(((DateTime)or.fetch_date).ToShortDateString())"/>
+                </td>
+                
+                <td>
+                    @Html.Lang("biller"):
+                </td>
+                <td>
+                    <input id="biller" type="text" name="biller" style="width: 120px" value="@or.biller_name"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Html.Lang("description"):
+                </td>
+                <td colspan="5">
+                    <input type="text" id="description" name="description" style="width: 660px" value="@or.comment"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="text-align: center; margin: 10px 0;">
+        <a class="easyui-linkbutton" id="edit_but" data-options="iconCls:'icon-edit'">@Html.Lang("apply_modification")</a></div> 
+</div>

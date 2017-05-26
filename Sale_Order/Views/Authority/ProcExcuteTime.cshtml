@@ -1,0 +1,123 @@
+﻿@using Sale_Order.Models;
+@using Sale_Order.Utils;
+@{    
+    List<ProcTimeModel> list = (List<ProcTimeModel>)ViewData["result"];
+    int maxStep = (int)ViewData["maxStep"];
+    SomeUtils utl = new SomeUtils();
+    }
+<script type="text/javascript">
+    
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#orderList").datagrid({
+            fit: true,
+            //fitColumns: true,
+            rownumbers: true,
+            singleSelect: true, 
+            noWap:false,
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: function () {
+                    var row=$("#orderList").datagrid("getSelected");
+                    if(row){ 
+                        window.open("@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+row.apply_id);
+                    }
+                }
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            $("#fm").submit();
+        });
+        
+        $("#contDiv").css("visibility","visible");
+    });
+    
+</script>
+<div class="easyui-layout" data-options="fit:true" style="visibility:hidden" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 40px; background: #fafafa;padding: 1px;">
+        <form id="fm" method="post" action="@Url.Content("~/Authority/GetProcExcuteTimeList")" style="padding:2px 5px;">
+        @Html.Lang("sys_num"):
+        <input id="sys_no" name="sys_no" style="width: 110px" value="@ViewData["sys_no"]"/>&nbsp; 
+        @Html.Lang("apply_user"):
+        <input id="saler" name="saler" style="width: 80px"  value="@ViewData["saler"]"/>&nbsp;    
+        @Html.Lang("apply_date"):
+        <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 100px" value="@ViewData["from_date"]"/>
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 100px" value="@ViewData["to_date"]"/>
+        @Html.Lang("audit_result"): <input id="auditResult" name="auditResult" style="width: 80px" class="easyui-combobox" data-options="
+		valueField: 'value',
+		textField: 'label',
+        panelHeight: 100,
+        editable:false,
+        value:'@ViewData["audit_result"]',
+		data: [{
+			label: '@Html.Lang("all")',
+			value: '10'
+		},{
+			label: '@Html.Lang("not_finish")',
+			value: '0'
+		},{
+			label: '@Html.Lang("success")',
+			value: '1'
+		},{
+			label: '@Html.Lang("failure")',
+			value: '-1'
+		}]" />
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+            @Html.Lang("search")</a>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList" class="easyui-datagrid">
+        <thead>
+            <tr>
+                <th data-options="field:'apply_id',width:100,hidden:true">申请号</th>
+                <th data-options="field:'sys_no',width:100,align:'center'">申请信息</th>
+                <th data-options="field:'applier',width:120,align:'center'">提交申请</th>
+                @for (var index = 1; index <= maxStep; index++) { 
+                    <th data-options="field:'step_@index',width:120,align:'center'">审核步骤<text>@index</text></th>
+                }
+            </tr>
+        </thead>
+            <tbody>
+                @foreach (var li in list)
+                {
+                <tr>                    
+                    <td>@li.applyId</td>
+                    <td>@utl.getBillType(li.orderType) <br /> @li.sysNo <br /> @li.ProduceDep</td>
+                    <td>@li.agency<br /> @li.applier<br />@li.applyDate @li.applyTime</td>
+                    @foreach (var aud in li.auditList)
+                    {
+                        var color = "inherit";
+                        var status = "---";
+                        if (aud.pass == true) {
+                            color = "Green";
+                            status = "OK";
+                        }
+                        else if (aud.pass == false) {
+                            color = "Red";
+                            status = "NG";
+                        }
+                        else if (aud.blocking == true) {
+                            color = "Red";
+                            status = "挂起";
+                        }
+                        <td>@aud.stepName【<span style="color:@color;font-weight:bold">@status</span>】<br />@aud.auditor @aud.auditTime<br />费时: @aud.timeCost</td>
+                    }
+                    @for (var left = 1; left <= maxStep - li.auditList.Count(); left++) { 
+                        <td>&nbsp;</td>
+                    } 
+                </tr> 
+                }
+            </tbody>
+        </table>        
+    </div>
+</div>
+

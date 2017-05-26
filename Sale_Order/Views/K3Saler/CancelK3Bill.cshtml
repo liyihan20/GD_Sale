@@ -1,0 +1,51 @@
+﻿<script type="text/javascript">
+    $(function () {
+        var order_type = "@ViewData["billType"]";
+        var url="";
+        if(order_type=="SO"){
+            url="@Url.Content("~/K3Saler/CheckK3SaleOrder/")"+"@ViewData["order_id"]";
+        }else if(order_type=="MB"){
+            url="@Url.Content("~/K3Saler/K3ContractDetail/")"+"@ViewData["order_id"]";
+        }        
+        $("#agency_div").layout("panel","center").panel({            
+            href:url
+        });      
+
+        $("#submit_but").click(function(){
+            $('#submit_but').linkbutton('disable');
+            $.post("@Url.Content("~/K3Saler/SubmitCancelApply")",
+            {
+                comment:$("#changeComment").val(),
+                bill_type:"@ViewData["billType"]",
+                bill_id:"@ViewData["order_id"]"
+            },
+            function(data){
+                if(data.success){
+                    $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: data.msg
+                            });
+                        setTimeout(function() {
+                            window.location.href="@Url.Content("~/K3Saler/CheckUpdateOrders")";
+                        }, 2000);
+                }else{
+                    $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: data.msg
+                        });
+                    $('#submit_but').linkbutton('enable');
+                }
+            });
+        });
+    });
+</script>
+
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    <div data-options="region:'south',collapsed:false" style="height: 110px; background: #fafafa; padding:5px;">
+        <div>@Html.Lang("bill_cancel_comment")：</div>
+        <div><textarea id="changeComment" cols="110" rows="3"></textarea></div>
+        <div style="padding-left:300px;"><a class="easyui-linkbutton" id="submit_but" data-options="iconCls:'icon-ok'">@Html.Lang("submit_apply")</a></div>
+        </div>
+  <div data-options="region:'center'">
+    </div>
+</div>

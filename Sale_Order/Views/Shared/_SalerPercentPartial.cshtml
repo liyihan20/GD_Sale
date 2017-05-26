@@ -1,0 +1,64 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    $(function () { 
+        //以下是营业员比例的增删改
+        var saveFlag = 0;
+        $("#Saler_div .sale_edit").live("click", function () {
+            saveFlag = 0;
+            $(this).addClass("updating");
+            var v = $(this).siblings(".saler").html().split(" ");
+            var obj = {
+                saler: v[0],
+                saler_percentage: v[1]
+            };
+            $("#fm_percentage").form("load", obj);
+            $("#dlg_percentage").dialog("open").dialog("setTitle", "@Html.Lang("update") @Html.Lang("sale_percent")");
+        });
+
+        $("#addSalerBut").click(function () {
+            saveFlag = 1;
+            $("#fm_percentage").form("clear");
+            $("#dlg_percentage").dialog("open").dialog("setTitle", "@Html.Lang("add") @Html.Lang("sale_percent")");
+        });
+
+        //营业员比例的增&改
+        $("#saveSalerBut").click(function () {
+            if (!$("#fm_percentage").form('validate')) {
+                return;
+            }
+            var name = $("#saler").combobox("getText");
+            var id = $("#saler").combobox("getValue");
+            var percent = $("#saler_percentage").numberbox("getValue");
+            $.post("@Url.Content("~/Items/verifySaler")",{q:name},function(data){
+                 if (data.success) {
+                    if (saveFlag == 0) {
+                        var _this = $("#Saler_div .updating");
+                        _this.siblings(".saler").html(name + " " + percent + "%");
+                        _this.siblings("input[name='sale_id']").val(id);
+                        _this.siblings("input[name='sale_pencent']").val(percent);
+                        _this.removeClass("updating");
+                    } else {
+                        $('#Saler_div').append('<div class="saler_per"><a href="#uploadInfo" class="sale_del" title="@Html.Lang("delete")"></a><a href="#uploadInfo" class="sale_edit" title="@Html.Lang("edit")""></a><input type="hidden" name="sale_id" value="' + id + '" /><input type="hidden" name="sale_pencent" value="' + percent + '" /><span class="saler">' + name + ' ' + percent + '%</span></div>');
+                    }
+                } else {
+                    var invalid = "@Html.Lang("invalid_sale_percent")";
+                    $.messager.alert('@Html.Lang("failure_save")', invalid, '@Html.Lang("tip")');                   
+                }
+            });
+            
+            $("#dlg_percentage").dialog("close");
+        });
+
+        $("#Saler_div .sale_del").live("click", function () {
+            $(this).parents(".saler_per").remove();
+        });
+
+    });
+</script>
+<div class="easyui-panel" style="background: #fafafa;padding:10px;width:800px;" title="@Html.Lang("clerk_percent")" tools="#saler_tool">
+    <div id="Saler_div">
+        @*放置营业员比例div*@
+    </div>
+</div>

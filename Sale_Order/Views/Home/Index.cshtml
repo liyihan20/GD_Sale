@@ -1,0 +1,77 @@
+﻿@*<h3>We suggest the following:</h3>
+<ol class="round">
+    <li class="one">
+        <h5>Getting Started @Html.getRand(6)</h5>
+        @Html.ActionLink("report in a new window", "printReport", "Orders", null, new { target = "_blank" });
+        </li>
+    <li class="two">
+        <h5>Add NuGet packages and jump start your coding @Html.getRand(4)</h5>
+        NuGet makes it easy to install and update free libraries and tools. <a href="http://go.microsoft.com/fwlink/?LinkId=245153">
+            Learn more</a></li>
+    <li class="three">
+        <h5>Find Web Hosting @Html.getRand(5)</h5>
+        You can easily find a web hosting company that offers the right mix of features
+        and price for your applications. <a href="http://go.microsoft.com/fwlink/?LinkId=245157">Learn
+            more</a></li>
+    <li class="four">
+        <h5>good day</h5>
+        @Html.ActionLink("this is a doc", "writeDoc","Orders");
+    </li>
+    <li class="five">
+        <h5>be carefule</h5>
+        hello,world;
+    </li>
+        <li class="three">
+        <h5>Find Web Hosting @Html.getRand(5)</h5>
+        You can easily find a web hosting company that offers the right mix of features
+        and price for your applications. <a href="http://go.microsoft.com/fwlink/?LinkId=245157">Learn
+            more</a></li>
+    <li class="four">
+        <h5>good day</h5>
+        @Html.ActionLink("this is a doc", "writeDoc","Orders");
+    </li>
+    <li class="five">
+        <h5>be carefule</h5>
+        hello,world;
+    </li>
+        <li class="three">
+        <h5>Find Web Hosting @Html.getRand(5)</h5>
+        You can easily find a web hosting company that offers the right mix of features
+        and price for your applications. <a href="http://go.microsoft.com/fwlink/?LinkId=245157">Learn
+            more</a></li>
+    <li class="four">
+        <h5>good day</h5>
+        @Html.ActionLink("this is a doc", "writeDoc","Orders");
+    </li>
+    <li class="five">
+        <h5>be carefule</h5>
+        hello,world;
+    </li>
+</ol>
+*@
+<script type="text/javascript">
+    var browserType = window.ActiveXObject ? "IE" :
+        document.getBoxObjectFor ? "FireFox" :
+        window.opera ? "Opera" : "";         
+    $(function(){        
+        if(browserType!=""){
+            $("#browserCheck").show();
+            $("#clientBrowserName").html(browserType);
+        }        
+    });
+
+</script>
+<div id="browserCheck" style="margin:10px 12px;display:none;line-height:24px;">
+   系统检测到你当前使用的浏览器内核是<span id="clientBrowserName" style="color:red"></span>,为了系统的兼容性以及响应速度，请安装Google公司的Chrome浏览器。<br />   
+   外网用户：<a href="http://dl.pconline.com.cn/download/51614.html" target="_blank">请点击此链接下载</a><br />
+   内网用户：请直接联系管理员安装。<br />
+</div>
+<div style="margin:10px 12px;">
+<div style="font-size:large;font-family:微软雅黑;margin-bottom:10px;">销售订单审核流程图：</div>
+<div><img src="@Url.Content("~/Images/proDiagram.jpg")" alt="流程图"/></div>
+</div>
+<div style="margin:10px 12px;">
+<div style="font-size:large;font-family:微软雅黑;margin-bottom:10px;">客退红字审核流程图：</div>
+<div><img src="@Url.Content("~/Images/tt.jpg")" alt="红字流程图"/></div>
+</div>
+

@@ -1,0 +1,278 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            singleSelect: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'FBillID', title: 'FBillID', width: 10, hidden: true },
+                        { field: 'FDate', title: '下单日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source) 
+                            var date_str = date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                            if(index==0){
+                                return date_str;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return date_str;
+                            }
+                        }},  
+                        { field: 'FSysNo', title: '换货编号', width: 80,
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } },
+    					{ field: 'FCustomerName', title: '客户名称', width: 120,
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } },
+                        { field: 'FStockNo', title: '出库订单号', width: 80 },
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'FReturnQty', title: '退货数量', width: 70, align: 'right' },
+                        { field: 'FApplyQty', title: '申请数量', width: 70, align: 'right' },
+                        { field: 'FIsRed', title: '申请类型', width: 70 },
+                        { field: 'FApplyStatus', title: '审核状态', width: 60, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == '申请失败'){
+					            return 'color:red;';
+				            }else if(value == '申请成功'){
+					            return 'color:green;';
+				            }
+			            },
+                        formatter: function(value,row,index){ 
+                            if(index==0){
+                                return value;
+                            }else{
+                                var rows=$("#orderList").datagrid("getRows");
+                                if(row.FBillID==rows[index-1].FBillID)
+                                    return "";
+                                else
+                                    return value;
+                            }
+                        } }
+    				]],
+            toolbar: [{
+                text: "查看详细",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            }, '-',
+            {
+                text: "编辑单据",
+                iconCls: 'icon-edit',
+                handler: EditOrder
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: CheckStatus
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            if(!$('#fm').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "../BadProduct/CheckAllResendBill",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    if(result.suc){
+                        $("#orderList").datagrid("loadData", result.list);
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+    });
+    
+    
+    function CheckDetail(){
+         var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+             window.location.href = "@Url.Content("~/BadProduct/CheckResendBill")" +"?id="+row.FBillID;
+         }
+    }
+
+    function EditOrder(){
+        var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+            //编辑之前检测是否已开始申请
+            $.post("@Url.Content("~/BadProduct/IsBeginApply")",{sys_no: row.FSysNo},
+                function(data){
+                    if(!data.suc){
+                        window.location.href = "@Url.Content("~/BadProduct/EditResendBill")" +"?id="+row.FBillID;
+                    }else{
+                        $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "已提交的申请不能再次修改"
+                        });
+                    }
+                },"json"
+            );
+         }
+    }
+
+    function CheckStatus(){
+        //清空信息
+        var trs=$("#status_table tbody tr");
+        if(trs.length > 1)
+        {
+            var tr1=trs[0];
+            $("#status_table tbody").empty();
+            $("#status_table tbody").append(tr1);
+        }
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            $.post("@Url.Content("~/Audit/CheckApplyStatusSO")",{sys_no: row.FSysNo},function(data){
+                if(data.success){
+                        $("#nextStepName").html(data.nextStepName);
+                        $("#nextAuditors").html(data.nextAuditors);
+                        var list=data.result;                           
+                        for(var i=0;i<list.length;i++){
+                            var content= '<tr><td>'+list[i].date + ' ' + list[i].time+'</td><td>'+list[i].stepName+'</td><td>'+(list[i].comment==null?' ':list[i].comment)+'</td><td>'+(list[i].pass==true?'<span style="color:green">@Html.Lang("success")</span>':'<span style="color:red">@Html.Lang("failure")</span>')+'</td><td>'+list[i].auditor+'</td></tr>';
+                            $("#status_table tbody").append(content);
+                        }                                
+                }
+            }); 
+            $("#dlg_st").dialog("open");
+        }
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    客户编号/客户名称:
+                </td>
+                <td>
+                    下单日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    销售出库单号:
+                </td>
+                <td>
+                    换货编号/规格型号:
+                </td>
+                <td>
+                    审核结果:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-validatebox" id="cust_no" name="cust_no" style="width: 110px" value="@ViewData["cust_no"]"/>
+                </td>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px" value="@ViewData["from_date"]"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" value="@ViewData["to_date"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="stock_no" name="stock_no" style="width: 120px" value="@ViewData["stock_no"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="pro_model" name="pro_model" style="width: 120px" value="@ViewData["pro_model"]"/>
+                </td>
+                <td>
+                    <input id="auditResult" name="auditResult" style="width: 60px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 100,
+                        editable:false,
+                        value:'0',
+		                data: [{
+			                label: '@Html.Lang("all")',
+			                value: '10'
+		                },{
+			                label: '@Html.Lang("not_finish")',
+			                value: '0'
+		                },{
+			                label: '@Html.Lang("success")',
+			                value: '1'
+		                },{
+			                label: '@Html.Lang("failure")',
+			                value: '-1'
+		                }]" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>
+
+    <div data-options="region:'center'">
+        <table id="AuditList" class="easyui-datagrid"></table>
+        <div id="dlg_st" class="easyui-dialog" style="width: 800px; height: 330px; padding: 10px 5px;" closed="true" title="@Html.Lang("check_status")">            
+            <div style="margin-left:10px;margin-top:5px;font-weight:bold">下一审核步骤名称:<span id="nextStepName" style="color:red;margin-right:20px;"></span>步骤审核人:<span id="nextAuditors" style="color:red"></span></div>
+            <table id="status_table" style="width:97%; margin:16px 0 0 10px" border="0" cellspacing="0">
+                <tbody>
+                <tr>
+                    <th style="width:15%">
+                        @Html.Lang("operation_time")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operation_content")
+                    </th>
+                    <th style="width:45%">
+                        @Html.Lang("audit_opinion")
+                    </th>
+                    <th style="width:10%">
+                        @Html.Lang("operation_result")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operator")
+                    </th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

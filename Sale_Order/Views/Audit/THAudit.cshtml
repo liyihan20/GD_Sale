@@ -1,0 +1,211 @@
+﻿<script type="text/javascript">
+    $(function () {
+        var orderType="@ViewData["orderType"]";
+        var orderId="@ViewData["order_id"]";
+        var url="@Url.Content("~/Saler/CheckOrderDetail")"+"?id=@ViewData["order_id"]"+"&billType="+orderType;
+
+        $("#agency_div").layout("panel","center").panel({
+                href:url
+        });       
+        getAuditResult();
+
+        $('#dlg_selectNext').dialog({
+            title: '选择品质审批人',
+            width: 460,
+            height: 240,
+            closed: true,
+            cache: false,
+            modal: true,
+            buttons: '#next-buttons'
+        });
+
+        $("#tb_select").datagrid({
+            title:"可选择人员列表",
+            fit:true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'ck', checkbox: true },
+                        { field: 'id', title: 'id', width: 120,hidden: true },
+                        { field: 'card', title: '厂牌', width: 120, align: "center" },
+                        { field: 'name', title: '姓名', width: 160, align: "center" }
+                    ]]
+        });
+    });    
+    
+    function selectComplete(){
+        var rows=$("#tb_select").datagrid("getChecked");
+        if(rows.length<1){
+            $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "请至少选择一个审核人员"
+                });   
+        }else{
+            var ids="";
+            for(var i=0;i<rows.length;i++){
+                if(i==0){
+                    ids=rows[i].id;
+                }else{
+                    ids+=","+rows[i].id;
+                }
+            }
+            $('#nextDetails').val(ids);
+            $("#dlg_selectNext").dialog("close");
+            submitForm();
+        }
+    }
+
+    function okClick(){
+        if($.trim($("#up_name").html())==""){
+            alert("品质部审核必须上传品质报告！");
+            return;
+        }
+         $("#okFlag").val("true");
+        if('@ViewData["can_select_next"]' == 'Y'){
+           
+            //选择出货组审核人
+            $("#dlg_selectNext").dialog("open");
+            $("#tb_select").datagrid({url:"@Url.Content("~/Items/getPZAuditors")",queryParams:{apply_id:'@ViewData["applyId"]'} });
+        }else{
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
+	            if (r){
+                    submitForm();
+	            }
+            });   
+        }     
+    }
+    function noClick(){
+        $("#okFlag").val("false");        
+        if(parseInt("@ViewData["step"]")>1){
+            //可以退回下单者或者上一审批人
+            $("#dlg_No").dialog("open");
+        }else{
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
+	            if (r){                    
+                    submitForm();
+                }
+            });
+        }
+    }
+
+    function NoToSalerClick(){
+        $("#backToPrevious").val("0");
+        $("#dlg_No").dialog("close");
+        submitForm();
+    }
+
+    function NoToPreviousClick(){
+        $("#backToPrevious").val("1");
+        $("#dlg_No").dialog("close");
+        submitForm();
+    }
+
+    function block(){
+        var reason=$("#agency_comment").val();
+        if($.trim(reason)==""){
+            $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "挂起操作必须写明原因，提交失败"
+                });   
+        }else{
+             $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
+	         if (r){
+                 $.messager.progress();
+                 $("#audit_fm").form("submit",{
+                    url:"@Url.Content("~/Audit/BlockOrder")",
+                    success:function(data){
+                        $.messager.progress('close');
+                        var result=eval("("+data+")"); 
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg + ",正在跳转..."
+                        });
+                        setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                    }
+                });
+            }
+            });  
+        }
+    }
+
+    function submitForm(){
+        $.messager.progress();
+        $("#audit_fm").form("submit",{
+            url:"@Url.Content("~/Audit/HandleAgencyAudit")",
+            success:function(data){
+            $.messager.progress('close');
+                var result=eval("("+data+")"); 
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: result.msg + ",正在跳转..."
+                });
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+            }
+        });
+    }
+
+    //获取审批信息
+    function getAuditResult(){
+        $.post("@Url.Content("~/Audit/RefleshAuditResult")",
+        {applyId:"@ViewData["applyId"]",step:"@ViewData["step"]"},
+        function(data){
+            if(data.success){
+                $("#agency_comment").val(data.comment);
+                $("#agency_comment").attr("readonly","readonly");
+                $("#blockBt").hide();
+                if(data.pass){
+                    $("#NOBt").hide();
+                    $("#OKBt").linkbutton({text:"@Html.Lang("audit_pass")",});
+                    $('#OKBt').linkbutton('disable');
+                }else{
+                    $("#OKBt").hide();
+                    $("#NOBt").linkbutton({text:"@Html.Lang("audit_reject")",});
+                    $('#NOBt').linkbutton('disable');
+                }
+            }
+        });
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    <div data-options="region:'south',collapsed:false" style="height: 145px; background: #fafafa;">
+        <div class="easyui-layout" data-options="fit:true" id="audit_div">
+            <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;
+        padding: 8px 10px;">
+                <form id="audit_fm" method="post" action="">
+                @Html.Lang("audit_opinion"):
+                <input type="hidden" name="step" value="@ViewData["step"]" />
+                <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
+                <input type="hidden" name="okFlag" id="okFlag" value="" />
+                <input type="hidden" name="sys_no" id="sys_no" value="@ViewData["sys_no"]" />
+                <input type="hidden" name="backToPrevious" id="backToPrevious" value="0" />
+                <input type="hidden" name="nextDetails" id="nextDetails" value="" />
+                <input id="agency_comment" name="agency_comment" style="width: 450px" />&nbsp; <a
+                    id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"
+                    onclick="okClick()">@Html.Lang("pass")</a> <a id="NOBt" href="#agency_div" class="easyui-linkbutton"
+                        data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'"
+                    onclick="block()">挂起</a>
+                </form>
+            </div>
+            <div data-options="region:'center'" style="+position: relative;">
+               @Html.Partial("_UploadFilePartial")
+            </div>
+        </div> 
+    </div>
+    <div data-options="region:'center'"></div>
+</div>
+<div id="dlg_No" class="easyui-dialog" style="width: 340px; height: 80px; padding: 10px 5px;" closed="true" title="确认拒绝方式">
+    <a id="NoToSaler" href="#agency_div" class="easyui-linkbutton"
+                data-options="iconCls:'icon-no'" onclick="NoToSalerClick()">拒绝到申请人</a>
+        <a id="NoToPrevious" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-undo'"
+            onclick="NoToPreviousClick()">拒绝到上一步审核人</a>
+</div>
+<div id="dlg_selectNext">
+    <table id="tb_select"></table>
+</div>
+<div id="next-buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="selectComplete()">确认提交</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_selectNext').dialog('close')">@Html.Lang("cancel")</a>
+</div>

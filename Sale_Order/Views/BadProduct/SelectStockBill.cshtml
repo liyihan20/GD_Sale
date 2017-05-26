@@ -1,0 +1,265 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'ck', checkbox: true },
+                        { field: 'FInterID', title: 'FInterID', width: 10, hidden: true },
+                        { field: 'FEntryID', title: 'FEntryID', width: 10, hidden: true },
+                        { field: 'FDate', title: '出库日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source);
+                            return date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                        }},  
+                        { field: 'FBillNo', title: '出库订单号', width: 80 },
+    					{ field: 'FOrderBillNo', title: '订单号', width: 80 },
+    					{ field: 'FCustomerName', title: '客户名称', width: 120 },
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'Fauxqty', title: '实发数量', width: 70, align: 'right' },
+                        { field: 'FcanApplyQty', title: '可申请数量', width: 70, align: 'right' },
+                        { field: 'FEmpName', title: '业务员', width: 60 },
+                        { field: 'FHookStatus', title: '勾稽状态', width: 60,
+                        formatter: function(value,row,index){ 
+                            if(value == 2)
+                                return "Y";
+                            else
+                                return "N";
+                        }}
+    				]],
+            toolbar: [{
+                text: "添加到已选择单据",
+                iconCls: 'icon-add',
+                handler: AddBill
+            }]
+        });
+
+        $("#selectList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'ck', checkbox: true },
+                        { field: 'FInterID', title: 'FInterID', width: 10, hidden: true },
+                        { field: 'FEntryID', title: 'FEntryID', width: 10, hidden: true },
+                        { field: 'FDate', title: '出库日期', width: 60 ,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source);
+                            return date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                        }},  
+                        { field: 'FBillNo', title: '出库订单号', width: 80 },
+    					{ field: 'FOrderBillNo', title: '订单号', width: 80 },
+    					{ field: 'FCustomerName', title: '客户名称', width: 120 },
+                        { field: 'FProductName', title: '产品名称', width: 100 },
+    					{ field: 'FProductModel', title: '产品型号', width: 120 },
+                        { field: 'Fauxqty', title: '实发数量', width: 70, align: 'right' },
+                        { field: 'FcanApplyQty', title: '可申请数量', width: 70, align: 'right' },
+                        { field: 'FEmpName', title: '业务员', width: 60},
+                        { field: 'FHookStatus', title: '勾稽状态', width: 60,
+                        formatter: function(value,row,index){ 
+                            if(value == 2)
+                                return "Y";
+                            else
+                                return "N";
+                        }}
+    				]],
+            toolbar: [{
+                text: "新建退换货申请",
+                iconCls: 'icon-add',
+                handler: CreateReturnBill
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            if(!$('#fm').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "../BadProduct/SelectStockBill",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    if(result.suc){
+                        $("#orderList").datagrid("loadData", result.list);
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+    });
+
+    function CreateReturnBill(){
+        var row=$("#selectList").datagrid("getChecked");
+        if (row.length > 0) {
+            var FInterIDS = "";
+            var FEntryIDS = "";
+            var HookStatus = 0;
+            var customerName=row[0].FCustomerName;            
+            var firstDayInCurrentMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+            var firstStockItemDate=eval('new ' + eval(row[0].FDate).source);            
+            var isCurrentMonth = 0;
+            if(firstDayInCurrentMonth <= firstStockItemDate)
+                isCurrentMonth = 1;
+            
+            for (var i = 0; i < row.length; i++) {
+                if (i > 0) {
+                    if(customerName != row[i].FCustomerName){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "只能选择同一客户退货"
+                        });
+                        return;
+                    }
+                    //2017-05-23 取消以下限制
+                    @*var StockItemDate=eval('new ' + eval(row[i].FDate).source);
+                    if((firstDayInCurrentMonth <= StockItemDate && isCurrentMonth == 0) || (firstDayInCurrentMonth > StockItemDate && isCurrentMonth == 1)){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "当月的出库单不能与以往月的出库单做同一张退货申请"
+                        });
+                        return;
+                    }*@
+
+                    FInterIDS += ",";
+                    FEntryIDS += ",";
+                }
+                FInterIDS += row[i].FInterID;
+                FEntryIDS += row[i].FEntryID;
+                HookStatus += row[i].FHookStatus;
+            }
+            if(HookStatus != 0 && HookStatus != row.length * 2){                
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "勾稽状态不一致的单必须分开申请:"+HookStatus
+                });
+                return;
+            }
+            window.location.href = "@Url.Content("~/BadProduct/CreateReturnBill")" +"?FInterIDS="+FInterIDS+"&FEntryIDS="+FEntryIDS;
+        }else{
+            alert("至少选择一行才能新增申请");
+        }
+    }
+    
+    //添加到已选择单据
+    function AddBill(){
+        var rows=$("#orderList").datagrid("getChecked");
+        if (rows.length > 0) {
+            for (var i=0;i<rows.length;i++){   
+                var s_rows=$("#selectList").datagrid("getRows"); 
+                //验证是否重复加入到已选择单据列表
+                var flag=0;     
+                for(var j=0;j<s_rows.length;j++){
+                    if(s_rows[j].FInterID == rows[i].FInterID && s_rows[j].FEntryID == rows[i].FEntryID){
+                        flag=1;
+                        break;
+                    }
+                }       
+                if(flag==0){
+                    //将行加入到新的grid
+                    $("#selectList").datagrid("appendRow",rows[i]);
+                    //默认选择新加入的行
+                    $("#selectList").datagrid("checkRow",s_rows.length-1);
+                }
+            }
+        }
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    客户编号:
+                </td>
+                <td>
+                    出库日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    销售出库单号:
+                </td>
+                <td>
+                    订单号:
+                </td>
+                <td>
+                    规格型号:
+                </td>
+                <td>
+                    钩稽状态:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-validatebox" id="cust_no" name="cust_no" style="width: 80px" value="@ViewData["cust_no"]" required="true"/>
+                </td>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px" value="@ViewData["from_date"]" required="true"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" value="@ViewData["to_date"]" required="true"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="stock_no" name="stock_no" style="width: 100px" value="@ViewData["stock_no"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="order_no" name="order_no" style="width: 100px" value="@ViewData["order_no"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="pro_model" name="pro_model" style="width: 100px" value="@ViewData["pro_model"]"/>
+                </td>
+                <td>
+                    <input id="hook_status" name="hook_status" style="width: 80px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 100,
+                        editable:false,
+                        value:'@ViewData["hook_status"]',
+		                data: [{
+			                label: '所有',
+			                value: 'A'
+		                },{
+			                label: '已钩稽',
+			                value: 'Y'
+		                },{
+			                label: '未钩稽',
+			                value: 'N'
+		                }]" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'south',collapsed:false,split:true,title:'已选择单据'" style="height: 200px;
+        background: #fafafa; padding: 1px;">
+        <table id="selectList"></table>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>
+</div>

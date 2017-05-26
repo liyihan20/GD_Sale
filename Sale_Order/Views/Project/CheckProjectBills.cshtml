@@ -1,0 +1,225 @@
+﻿<script type="text/javascript">
+document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            singleSelect: true,
+            rownumbers: true,
+            columns: [[
+                        { field: 'FBillID', title: 'FBillID', width: 10, hidden: true },
+                        { field: 'FUserNumber', title: 'FUserNumber', width: 10, hidden: true },
+                        { field: 'FScreenSize', title: 'FScreenSize', width: 10, hidden: true },
+                        { field: 'FAmount', title: 'FAmount', width: 10, hidden: true },
+                        { field: 'FProductSerial', title: 'FProductSerial', width: 10, hidden: true },
+                        { field: 'FDate', title: '@Html.Lang("create_date")', width: 60 , align: 'center',
+                            formatter: function(value,row,index){ 
+                                var date = eval('new ' + eval(value).source) 
+                                var date_str = date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate();
+                                return date_str;
+                            }
+                        },
+                        { field: 'FSysNo', title: '@Html.Lang("sys_num")', width: 80 , align: 'center'},
+                        { field: 'FCustomerName', title: '@Html.Lang("client_name")', width: 100 , align: 'center'},
+                        { field: 'FProjectName', title: '@Html.Lang("pj_name")', width: 120 , align: 'center'},
+                        { field: 'FUserName', title: '@Html.Lang("biller")', width: 80 , align: 'center'},                   
+                        { field: 'FApplyStatus', title: '@Html.Lang("apply_status")', width: 60, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == '申请失败'){
+					            return 'color:red;';
+				            }else if(value == '申请成功'){
+					            return 'color:green;';
+				            }
+			            } }       
+                     ]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            }, '-',
+            {
+                text: "@Html.Lang("edit_bill")",
+                iconCls: 'icon-edit',
+                handler: EditOrder
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: function(){
+                    var row = $("#orderList").datagrid("getSelected");
+                    if(row){
+                        CheckStatus(row.FSysNo);
+                    }
+                }
+            },{
+                text: "@Html.Lang("emergency_quot")",
+                iconCls: 'icon-add',
+                handler: EmergencyQuot
+            }],
+            onDblClickRow:CheckDetail
+        });
+
+        $("#checkBt").click(function () {
+            if(!$('#fm').form('validate')){
+                return;
+            }
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "../Project/CheckProjectBills",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    if(result.suc){
+                        $("#orderList").datagrid("loadData", result.list);
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: result.msg
+                        });
+                    }
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+
+        $("#resetBt").click(function(){
+            $("#fm").form("reset");
+        });
+
+    });
+
+    function CheckDetail(){
+         var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+             window.location.href = "@Url.Content("~/Project/CheckAProjectBill")" +"?id="+row.FBillID;
+         }
+    }
+
+    function EditOrder(){
+         var row = $("#orderList").datagrid("getSelected");
+         if (row) {
+            var isNew = 0;
+            if(row.FApplyStatus=="未开始申请"){
+                isNew = 0;
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "准备修改此申请单，请等待处理..."
+                });
+            }else{
+                isNew = 1;
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "准备根据此申请单内容新增一张申请，请等待处理..."
+                });
+            }            
+            setTimeout("editJump("+row.FBillID+",'"+row.FSysNo+"',"+isNew+")",2000);             
+            
+         }
+    }
+
+    function editJump(id,sys_no,is_new){
+        window.location.href="@Url.Content("~/Project/EditProjectBill?id=")"+id+"&sys_no="+sys_no+"&is_new="+is_new;
+    }
+        
+    function EmergencyQuot(){
+        var href = window.location.href;
+        if(href.indexOf("192.168")>-1){
+        //内网
+        window.open("http://192.168.125.199:8080/pinfo/main.do");
+        }else {
+        //外网访问
+        window.open("http://59.37.42.5:8023/pinfo/sy_login.do");
+        }
+        
+    }
+
+</script>
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 58px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 1px 5px;">
+        <table cellpadding="0" cellspacing="2px">
+            <tr>
+                <td>
+                    @Html.Lang("customer_info"):
+                </td>
+                <td>
+                    @Html.Lang("create_date"):
+                </td>
+                <td>
+                    @Html.Lang("to"):
+                </td>
+                <td>
+                    @Html.Lang("pj_name"):
+                </td>
+                <td>
+                    @Html.Lang("sys_num"):
+                </td>
+                <td>
+                    @Html.Lang("audit_result"):
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-validatebox" id="cust_no" name="cust_no" style="width: 110px" value="@ViewData["cust_no"]"/>
+                </td>
+                <td>
+                    <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px" value="@ViewData["from_date"]"/>
+                </td>
+                <td>
+                    <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" value="@ViewData["to_date"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="project_name" name="project_name" style="width: 120px" value="@ViewData["project_name"]"/>
+                </td>
+                <td>
+                    <input class="easyui-validatebox" id="sys_no" name="sys_no" style="width: 120px" value="@ViewData["sys_no"]"/>
+                </td>
+                <td>
+                    <input id="auditResult" name="auditResult" style="width: 60px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 100,
+                        editable:false,
+                        value:'@ViewData["audit_result"]',
+		                data: [{
+			                label: '@Html.Lang("all")',
+			                value: '10'
+		                },{
+			                label: '@Html.Lang("not_finish")',
+			                value: '0'
+		                },{
+			                label: '@Html.Lang("success")',
+			                value: '1'
+		                },{
+			                label: '@Html.Lang("failure")',
+			                value: '-1'
+		                }]" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">@Html.Lang("search")</a>
+                    <a id="resetBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-reload'">@Html.Lang("clear_search_con")</a>
+                </td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>
+    </div>
+
+    <div data-options="region:'center'">
+        <table id="AuditList" class="easyui-datagrid"></table>
+    </div>
+
+</div>
+
+@Html.Partial("_CheckAuditStatus")

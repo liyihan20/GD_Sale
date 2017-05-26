@@ -1,0 +1,288 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'update_id', title: 'update_id', width: 100, hidden: 'true' },
+                        { field: 'previousStepTime', title: '@Html.Lang("arrive_time")', width: 120}, 
+                        { field: 'bill_type', title:'@Html.Lang("bill_type")', width:100, align: 'center',
+                        formatter: function(value,row,index){
+                            switch(value){
+                                case 'SO':
+                                    return '@Html.Lang("sale_order")';
+                                    break;
+                                case 'MB':
+                                    return '@Html.Lang("repair_order")';
+                                    break;       
+                                case 'CM':
+                                    return '@Html.Lang("create_model_invoice")';    
+                                    break;    
+                                case 'FS':
+                                    return '@Html.Lang("free_sample")';    
+                                    break; 
+                                case 'CS':
+                                    return '@Html.Lang("charge_sample")';    
+                                    break;                         
+                                case 'SO_CANCEL':
+                                    return '@Html.Lang("sale_order")' + '_'+'@Html.Lang("cancel")';
+                                    break;
+                                case 'MB_CANCEL':
+                                    return '@Html.Lang("repair_order")' + '_'+'@Html.Lang("cancel")';
+                                    break;      
+                                case 'CM_CANCEL':
+                                    return '@Html.Lang("create_model_invoice")' + '_'+'@Html.Lang("cancel")';    
+                                    break;   
+                                case 'FS_CANCEL':
+                                    return '@Html.Lang("free_sample")' + '_'+'@Html.Lang("cancel")';    
+                                    break; 
+                                case 'CS_CANCEL':
+                                    return '@Html.Lang("charge_sample")' + '_'+'@Html.Lang("cancel")';       
+                                    break;  
+                                defalut:
+                                    return value;
+                                    break;
+                            }    
+                        }},
+                        { field: 'bill_no', title: '@Html.Lang("bill_no")', width: 100 },
+                        { field: 'depName', title: '@Html.Lang("agency")', width: 120 },
+    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 100 },      
+                        { field: 'step', title: '@Html.Lang("audit_step")', width: 100,formatter: function(value,row,index){
+                            switch(value){
+                                case 1:
+                                    return "@Html.Lang("audit_1")";
+                                    break;
+                                case 2:
+                                    return "@Html.Lang("audit_2")";
+                                    break;
+                                case 3:
+                                    return "@Html.Lang("audit_3")";
+                                    break;
+                                case 4:
+                                    return "@Html.Lang("audit_4")";
+                                    break;
+                                default:
+                                    return value;
+                            }
+                        } },                 
+                        { field: 'status', title: '@Html.Lang("audit_result")', width: 80, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == '审核失败'){
+					            return 'color:red;';
+				            }else if(value == '审核成功'){
+					            return 'color:green;';
+				            }
+			            }}
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("audit_bill")",
+                iconCls: 'icon-edit',
+                handler: function () {
+                    var row=$("#orderList").datagrid("getSelected");
+                    if(row){ 
+                        if(row.bill_type.length==2){
+                            window.location.href="@Url.Content("~/K3Audit/BeginAuditUpdate")"+"?step="+row.step+"&updateId="+row.update_id;
+                            }
+                        else{
+                            window.location.href="@Url.Content("~/K3Audit/BeginAuditCancel")"+"?step="+row.step+"&updateId="+row.update_id;
+                            }
+                    }
+                }
+            },  '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: function () {
+                    //清空信息
+                    var trs=$("#status_table tbody tr");
+                    if(trs.length > 1)
+                    {
+                        var tr1=trs[0];
+                        $("#status_table tbody").empty();
+                        $("#status_table tbody").append(tr1);
+                    }
+                    $("#procInfo span").empty();
+                    var row = $("#orderList").datagrid("getSelected");
+                    if (row) {
+                        $.post("@Url.Content("~/K3Audit/CheckApplyUpdateStatus")",{id: row.update_id},function(data){
+                            if(data.success){
+                                var list=data.result;
+                                var node=$("#processbar .node");
+                                var proc=$("#processbar .proce");
+                                var nodeInfo=$("#procInfo .nodeInfo");
+                                $(node).removeClass("ready stuck").addClass("wait");
+                                $(proc).removeClass("ready handling").addClass("wait");
+                                for(var i=0;i<list.length;i++){
+
+                                    //填充审核状态说明
+                                    if(list[i].pass!=null){
+                                        $(node[i]).removeClass("wait");
+                                        var spans = $(nodeInfo[i]).find("span");
+                                        $(spans[0]).html(list[i].date);
+                                        $(spans[1]).html(list[i].time);
+                                        if(i>0){
+                                            $(proc[i-1]).removeClass("wait");
+                                            $(proc[i-1]).addClass("ready");
+                                        }
+                                        if(list[i].pass==true){
+                                            $(node[i]).addClass("ready");
+                                        }else{
+                                            $(node[i]).addClass("stuck"); 
+                                        }
+                                        var content= '<tr><td>'+list[i].date + ' ' + list[i].time+'</td><td>'+list[i].stepName+'</td><td>'+(list[i].comment==null?' ':list[i].comment)+'</td><td>'+(list[i].pass==true?'@Html.Lang("success")':'@Html.Lang("failure")')+'</td><td>'+list[i].auditor+'</td></tr>';
+                                        $("#status_table tbody").append(content);
+                                    }else{
+                                        if(i<5){
+                                            $(proc[i-1]).removeClass("wait");
+                                            $(proc[i-1]).addClass("handling");
+                                        }
+                                    }
+                                }                                
+                            }
+                        });                        
+                        $("#dlg_st").dialog("open");
+                    }
+                }
+            }]
+        });
+
+        $("#checkBt").click(function () {
+            $("#fm").form("submit", {
+                url: "@Url.Content("~/K3Audit/SearchUpdateOrders")",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#orderList").datagrid("loadData", result.list);
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "@Html.Lang("record_number") "+result.count
+                    });
+                }
+            });
+
+        });
+    });
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false" style="height: 40px; background: #fafafa;
+        padding: 2px;">
+        <form id="fm" method="post" style="padding:2px 5px;">
+        @Html.Lang("bill_no"):
+        <input class="easyui-validatebox" id="bill_no" name="bill_no" style="width: 100px" />
+        @Html.Lang("apply_user"):
+        <input id="saler" name="saler" style="width: 100px" />&nbsp;
+        @Html.Lang("arrive_time"):<input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px" />
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" />
+        @Html.Lang("audit_result"): <input id="auditResult" name="auditResult" style="width: 100px" class="easyui-combobox" data-options="
+		valueField: 'value',
+		textField: 'label',
+        panelHeight: 100,
+        editable:false,
+        value:'10',
+		data: [{
+			label: '@Html.Lang("all")',
+			value: '10'
+		},{
+			label: '@Html.Lang("not_finish")',
+			value: '0'
+		},{
+			label: '@Html.Lang("success")',
+			value: '1'
+		},{
+			label: '@Html.Lang("failure")',
+			value: '-1'
+		}]" />
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+            @Html.Lang("search")</a>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList"></table>
+        <div id="dlg_st" class="easyui-dialog" style="width: 800px; height: 330px; padding: 10px 5px;" closed="true" title="@Html.Lang("check_status")">
+            <div id="processbar" style="margin-left:40px;margin-top:10px;">
+                <div class="node wait"></div>
+                <div class="proce wait"></div>
+                <div class="node wait"></div>
+                <div class="proce wait"></div>
+                <div class="node wait"></div>
+                <div class="proce wait"></div>
+                <div class="node wait"></div>
+                <div class="proce wait"></div>
+                <div class="node wait"></div>
+                <div class="proce wait"></div>
+                <div class="node wait"></div>
+            </div>
+            <div style="clear:both"></div>
+            <div id="procInfo">
+                <div class="nodeInfo">
+                    @Html.Lang("submit_apply") <br />
+                    <span>2012-02-03</span><br />
+                    <span>8:15:00</span>
+                </div>
+                <div class="nodeInfo">
+                    @Html.Lang("audit_1") <br />
+                    <span>2012-02-03</span><br />
+                    <span>8:15:00</span>
+                </div>
+                <div class="nodeInfo">
+                    @Html.Lang("audit_2") <br />
+                    <span>2012-02-03</span><br />
+                    <span>8:15:00</span>
+                </div>
+                <div class="nodeInfo">
+                    @Html.Lang("audit_3") <br />
+                    <span>2012-02-03</span><br />
+                    <span>8:15:00</span>
+                </div>
+                <div class="nodeInfo">
+                    @Html.Lang("audit_4") <br />
+                    <span>2012-02-03</span><br />
+                    <span>8:15:00</span>
+                </div>
+                <div class="nodeInfo">
+                    @Html.Lang("finish_apply") <br />
+                    <span>2012-02-03</span><br />
+                    <span>8:15:00</span>
+                </div>
+            </div>
+            <div style="clear:both"></div>
+            <table id="status_table" style="width:97%; margin:16px 0 0 10px" border="0" cellspacing="0">
+                <tbody>
+                <tr>
+                    <th style="width:15%">
+                        @Html.Lang("operation_time")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operation_content")
+                    </th>
+                    <th style="width:45%">
+                        @Html.Lang("audit_opinion")
+                    </th>
+                    <th style="width:10%">
+                        @Html.Lang("operation_result")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operator")
+                    </th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@*审核状态对话框
+    .node.ready:节点已处理
+    .node.wait:节点未处理
+    .node.stuck:节点处理失败
+    .proce.ready:进度已完成
+    .proce.wait:进度未开始
+    .proce.handling:进度正进行
+    *@

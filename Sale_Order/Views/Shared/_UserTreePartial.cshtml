@@ -1,0 +1,35 @@
+﻿@{
+    Layout = null;
+}
+
+<script type="text/javascript">
+    function saveTree() {
+        var nodes = $('#dep_tree').tree('getChecked');
+        var s = '';
+        for (var i = 0; i < nodes.length; i++) {
+            if ($('#dep_tree').tree('isLeaf', nodes[i].target)) {
+                if (s != '') s += ',';
+                s += nodes[i].id;
+            }
+        }
+        $('#dlg_add_people').dialog('close');//不管是否成功，都关闭对话框
+        if(s==""){
+            return;//若没有选中，则不调用callback方法
+        }
+        saveTreeCallBack(s);//获取s之后要做的事情，每个调用页面必须实现
+    }
+</script>
+
+<div id="dlg_add_people" class="easyui-dialog" modal="true" closed="true" style="width: 300px;
+    height: 400px; padding: 10px;" buttons="#tree-buttons">
+    <div class="ftitle">
+        Tree View</div>
+    <ul id="dep_tree" class="easyui-tree" checkbox="true">
+    </ul>
+</div>
+<div id="tree-buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveTree()">Save</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_add_people').dialog('close')">
+        Cancel</a>
+</div>
+

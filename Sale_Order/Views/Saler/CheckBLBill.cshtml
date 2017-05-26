@@ -1,0 +1,308 @@
+﻿@using Sale_Order.Models;
+@{
+    Sale_BL bl = (Sale_BL)ViewData["BL"];
+}
+
+<script type="text/javascript">
+
+    $(function () {
+        $("#order_div input[type='text']").attr("readonly", "readonly");
+        $("#order_div textarea").attr("readonly", "readonly");
+
+        $("#dg_detail").datagrid({
+            width: 1000,
+            loadMsg: "加载中...",
+            rownumbers: true,
+            singleSelect: true,
+            fitColumns: true,
+            columns: [[
+                { field: 'levels', title: '层级', width: 60, align: 'center', hidden: true },
+                { field: 'fnumber', title: '物料编码', width: 150, align: 'center', hidden: true },
+                { field: 'fmodel', title: '物料型号', width: 300 },
+                { field: 'fname', title: '物料名称', width: 100, align: 'center' },
+                { field: 'unitname', title: '单位', width: 60, align: 'center' },
+                { field: 'fqty', title: '单位用量', width: 100, align: 'center' },
+                { field: 'total_qty', title: '数量', width: 60, align: 'center' },
+                { field: 'highest_price', title: '最高采购价', width: 80, align: 'center' },
+                { field: 'comment', title: '备注', width: 200 },
+                { field: 'source', title: '来源', width: 80, align: 'center' }
+            ]]
+        });
+    });
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    @*订单内容*@
+    <div data-options="region:'center'">
+        <div id="order_div" class="easyui-panel" title="查看备料单" style="width: 840px; padding: 10px;
+    background: #fafafa;+position: relative;">
+            <div>
+                <table border="0" cellpadding="1" cellspacing="3" width="800">
+                    <tr>
+                        <td>
+                            备料日期:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@(((DateTime)bl.bl_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            系统流水号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.sys_no" />
+                        </td>
+                        <td>
+                            备料编号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.bill_no" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            备料性质:
+                        </td>
+                        <td>
+                            @if (bl.bl_property == null || bl.bl_property == "") {
+                                <span>
+                                    <input type="radio" name="bl_property" value="非全套" disabled /> 非全套 &nbsp;&nbsp;
+                                    <input type="radio" name="bl_property" value="全套" disabled /> 全套
+                                </span>
+                            }
+                            else if (bl.bl_property == "单料") {
+                                <span>
+                                    <input type="radio" name="bl_property" value="非全套" checked disabled /> 非全套 &nbsp;&nbsp;
+                                    <input type="radio" name="bl_property" value="全套" disabled /> 全套
+                                </span>
+                            }
+                            else {
+                                <span>
+                                    <input type="radio" name="bl_property" value="非全套" disabled /> 非全套 &nbsp;&nbsp;
+                                    <input type="radio" name="bl_property" value="全套" checked disabled /> 全套
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            备料类型:
+                        </td>
+                        <td>
+                            @if (bl.bl_type == null || bl.bl_type == "") {
+                                <span>
+                                    <input type="radio" name="bl_type" value="市场预测" disabled /> 市场预测
+                                    <input type="radio" name="bl_type" value="有合同协议" disabled /> 有合同协议 &nbsp;
+                                </span>
+                            }
+                            else if (bl.bl_type == "有合同协议") {
+                                <span>
+                                    <input type="radio" name="bl_type" value="市场预测" disabled /> 市场预测
+                                    <input type="radio" name="bl_type" value="有合同协议" checked disabled /> 有合同协议 &nbsp;
+                                </span>
+                            }
+                            else {
+                                <span>
+                                    <input type="radio" name="bl_type" value="市场预测" checked disabled /> 市场预测
+                                    <input type="radio" name="bl_type" value="有合同协议" disabled /> 有合同协议 &nbsp;
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            协议号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.bl_contract_no" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            计划下订单日期:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@(bl.plan_order_date==null?"":((DateTime)bl.plan_order_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            订单数量:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.qty" />
+                        </td>
+                        <td>
+                            计划交货期:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@(bl.fetch_date == null ? "" : ((DateTime)bl.fetch_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            客户代码:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.customer_no" />
+                        </td>
+                        <td>
+                            客户名称:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.customer_name" />
+                        </td>
+                        <td>
+                            贸易类型:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.trade_type_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            产品代码:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.product_no" />
+                        </td>
+                        <td>
+                            产品名称:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.product_name" />
+                        </td>
+                        <td>
+                            产品型号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.product_model" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            产品用途:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.product_use" />
+                        </td>
+                        <td>
+                            产品类别:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.product_type" />
+                        </td>
+                        <td>
+                            成交价(不含税):
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.deal_price" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            事业部:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.bus_dep" />
+                        </td>
+                        <td>
+                            对应项目组:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.project_group" />
+                        </td>
+                        <td>
+                            市场部:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.market_dep" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            TFT型号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.TFT_model" />
+                        </td>
+                        <td>
+                            TP型号:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.TP_model" />
+                        </td>
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            <input type="text" style="width:140px" value="@bl.User.real_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            办事处:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.agency_name" />
+                        </td>
+                        <td>
+                            营业员:
+                        </td>
+                        <td>
+                            <input type="text" style="width: 140px" value="@bl.clerk_name" />
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    @*<tr>
+                            <td>
+                                备料项目:
+                            </td>
+                            <td colspan="5">
+                                <textarea cols="92" rows="8" spellcheck="false" style="margin: 0;">@bl.bl_project</textarea>
+                            </td>
+                        </tr>*@
+                    <tr>
+                        <td>摘要:</td>
+                        <td colspan="5">
+                            <textarea cols="92" rows="4" spellcheck="false" style="margin: 0;">@bl.comment</textarea>
+                        </td>
+                    </tr>
+                </table>
+                <br />
+                <div id="detail_div" class="easyui-panel" title="备料清单明细" style="+position: relative; width: 815px; height: 240px">
+                    <table id="dg_detail">
+                        @foreach (var det in bl.Sale_BL_details) {
+                            <tr>
+                                <td>@det.levels</td>
+                                <td>@det.fnumber</td>
+                                <td>@det.fmodel</td>
+                                <td>@det.fname</td>
+                                <td>@det.unitname</td>
+                                <td>@(det.fqty == null ? 0 : Math.Round((decimal)det.fqty, 4))</td>
+                                <td>@(det.total_qty == null ? 0 : Math.Round((decimal)det.total_qty, 4))</td>
+                                <td>@(det.highest_price == null ? 0 : Math.Round((decimal)det.highest_price, 4))</td>
+                                <td>@det.comment</td>
+                                <td>@det.source</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+            <br />
+            <div id="downloadPanel">
+                <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;" title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + bl.sys_no)">
+                </div>
+            </div>
+            <div style="line-height:18px;margin-top:8px;">
+                <div style="color:red">操作说明：</div>
+                <div>
+                    <1>
+                        . 运作中心审核人只可修改保存【事业部】这个字段，此事业部决定后续接单、成控和计划经理由谁审批。<br />
+                        <2>
+                            . 计划经理只可修改保存【订单数量】和【备料清单明细】，如果有修改，审批OK后会流转给下单营业员确认。<br />
+                            <3>
+                                .【备料清单】可取自BOM，也可以自己手动录入。<br />
+                                <4>
+                                    .【备料编号】是根据市场部提供的规则，并根据营业所选择的【市场部】字段在流程正常结束后系统生成的。<br />
+                </div>
+            </div>
+        </div>
+    </div>
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+</div>

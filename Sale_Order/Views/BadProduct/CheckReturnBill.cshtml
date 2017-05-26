@@ -1,0 +1,269 @@
+﻿@using Sale_Order.Models;
+@using System.Linq;
+@{
+    ReturnBill bill = (ReturnBill)ViewData["bill"];
+    List<ReturnBillDetail> details = (List<ReturnBillDetail>)ViewData["details"];
+    var sys_no = bill.sys_no;
+}
+<script type="text/javascript">
+    $(function () {
+        $("#bill_detail").datagrid({
+            //height: "140",
+            width: "900",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+
+            //    					{ field: 'product_number', title: '产品编码', width: 120 },
+                        {field: 'entry_no', title: '行号', width: 50, align: 'center' },
+    					{ field: 'product_name', title: '产品名称', width: 120 },
+                        { field: 'product_model', title: '规格型号', width: 150 },
+                        { field: 'aux_qty', title: '已发数量', width: 70, align: 'right' },
+    					{ field: 'qty', title: '退货数量', width: 70, align: 'right' },
+                        { field: 'real_qty', title: '实退数量', width: 70, align: 'right' },
+                        { field: 'is_online', title: '是否已上线', width: 70, align: 'center',
+                            styler: function (value, row, index) {
+                                if (value == '已上线') {
+                                    return 'color:green;';
+                                } else {
+                                    return 'color:red;';
+                                }
+                            }
+                        },
+                        { field: 'ch_dep_name', title: '出货组', width:100},
+                        //{ field: 'can_apply_qty', title: '可退数量', width: 70, align: 'right' },
+//                        { field: 'has_replace_qty', title: '已换货数量', width: 100, align: 'right' },
+//                        { field: 'has_red_qty', title: '已退红字数量', width: 100, align: 'right' },
+//                        { field: 'customer_back_qty', title: '客户退货数量', width: 100, align: 'right' },
+//                        { field: 'qc_good_qty', title: 'QC复检后良品数量', width: 100, align: 'right' },
+//                        { field: 'qc_bad_qty', title: 'QC复检后不良品数量', width: 120, align: 'right' },
+                        { field: 'seorder_no', title: '销售订单编号', width: 100 },
+                        { field: 'stock_no', title: '销售出库单号', width: 100 }
+//                        { field: 'qc_comment', title: '驻点QC复检情况', width: 300 }
+    				]]
+        });
+        $("#order_div input[type='text'],textarea").attr("readonly", "readonly");
+        $("input[type='radio']").not("input:checked").attr("disabled", "true");
+
+    });
+    
+</script>
+@*<form id="bill_form" method="post" action="">*@
+<div class="easyui-layout" data-options="fit:true">
+    @*订单内容*@
+    <div data-options="region:'center'">
+        <div id="order_div" class="easyui-panel" title="查看退货申请" style="width: 780px; padding: 10px;
+            background: #fafafa; +position: relative;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+                    <tr>
+                        <td>
+                            退货日期:
+                        </td>
+                        <td>
+                            <input type="text" name="fdate" value="@(((DateTime)bill.fdate).ToShortDateString())"/>
+                        </td>
+                        <td>
+                            退货编号:
+                        </td>
+                        <td>
+                            @bill.sys_no
+                        </td>
+                        <td>
+                            状态:
+                        </td>
+                        <td>
+                            <span style="color: red" id="status">
+                                @ViewData["status"]
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            退货事业部:
+                        </td>
+                        <td>
+                            <input type="text" name="return_dep" value="@ViewData["return_dep"]" />
+                        </td>
+                        <td>
+                            客户编码:
+                        </td>
+                        <td>
+                            @bill.customer_number
+                        </td>
+                        <td>
+                            客户名称:
+                        </td>
+                        <td>
+                            @bill.customer_name
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            是否已开蓝字发票:
+                        </td>
+                        @if (bill.has_invoice == true)
+                        {
+                            <td>
+                                <input type="radio" name="has_invoice" value="0" />未开
+                                <input type="radio" name="has_invoice" value="1" checked="checked" />已开
+                            </td>
+                        }
+                        else if (bill.has_invoice == false)
+                        { 
+                            <td>
+                                <input type="radio" name="has_invoice" value="0" checked="checked" />未开
+                                <input type="radio" name="has_invoice" value="1" />已开
+                            </td>
+                        }
+                        <td>
+                            是否补货:
+                        </td>
+                        @if (bill.need_resend == true)
+                        {
+                            <td>
+                                @*<input type="radio" name="need_resend" value="0" />不补货*@
+                                <input type="radio" name="need_resend" value="1" checked="checked" />需补货
+                            </td>
+                        }
+                        else
+                        { 
+                            <td>
+                                <input type="radio" name="need_resend" value="0" checked="checked" />不补货
+                                @*<input type="radio" name="need_resend" value="1" />需补货*@
+                            </td>
+                        }
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            @ViewData["userName"]
+                        </td>
+                    </tr>
+                    <tr>  
+                        <td>
+                            旧退货编号:
+                        </td>
+                        <td>
+                            @bill.old_sys_no
+                        </td>
+                        <td></td><td></td><td></td><td></td>
+                    </tr>
+                </table>
+            </div>
+            <br />
+            <div>
+                @*表体*@
+                <div id="detail_div" class="easyui-panel" title="退货信息明细" style="+position: relative;
+                    width: 740px; height: 225px">
+                    <table id="bill_detail">
+                        @foreach (var det in details.OrderBy(d => d.id).OrderBy(d => d.entry_no))
+                        { 
+                            <tr>                                
+                                @*<td>@det.product_number</td>*@
+                                <td>@det.entry_no</td>
+                                <td>@det.product_name</td>
+                                <td>@det.product_model</td>
+                                <td>@det.aux_qty</td>
+                                <td>@det.return_qty</td>
+                                <td>@det.real_return_qty</td>
+                                <td>@(det.is_online == null ? "" : (((bool)det.is_online) ? "已上线" : "未上线"))</td>
+                                <td>@det.ch_dep_name</td>
+                                @*<td>@det.can_apply_qty</td>
+                                <td>@det.has_replace_qty</td>
+                                <td>@det.has_red_qty</td>*@
+                                @*<td>@det.customer_back_qty</td>
+                                <td>@det.qc_good_qty</td>
+                                <td>@det.qc_bad_qty</td>*@
+                                <td>@det.seorder_no</td>
+                                <td>@det.stock_no</td>
+                                @*<td>@det.qc_comment</td>*@
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+            <br />
+            <div>
+                @*表尾*@
+                <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+                    <tr>
+                        <td>
+                            快递公司名称:
+                        </td>
+                        <td>
+                            <input type="text" id="express_name" name="express_name" style="width: 120px" value="@bill.express_name"/>
+                        </td>
+                        <td>
+                            快递单号:
+                        </td>
+                        <td>
+                            <input type="text" id="express_no" name="express_no" style="width: 120px" value="@bill.express_no"/>
+                        </td>
+                        <td>
+                            件数:
+                        </td>
+                        <td>
+                            <input id="express_qty" type="text" name="express_qty" style="width: 120px" value="@bill.express_qty"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            退货原因:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="comment" id="comment" style="margin: 0;" >@bill.comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            营业备注:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="saler_comment" id="saler_comment" style="margin: 0;">@bill.saler_comment</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            市场部备注:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="market_comment" id="market_comment" style="margin: 0;">@bill.market_comment</textarea>
+                        </td>
+                    </tr>
+                     <tr>
+                        <td>
+                            客服组备注:
+                        </td>
+                        <td colspan="5">
+                            <textarea cols="83" rows="3" name="qty_comment" id="qty_comment" style="margin: 0;" >@bill.qty_comment</textarea>
+                        </td>                        
+                    </tr>
+                </table>
+            </div>
+            <div id="downloadPanel">
+                <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 750px;"
+                    title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + sys_no)">
+                </div>
+            </div>
+             <div style="line-height:18px;margin-top:8px;">
+                <div style="color:red">操作说明：</div>
+                <div>
+                    <1>. 【退货事业部】字段务必正确选择，后续审核人员对应于所选退货事业部。<br />
+	    <2>. 勾稽状态：Y表示已开发票，N表示未开发票；Y与N不能提交在同一张申请中。<br />
+      	    <3>. 同一客户同批退货包含多个型号的务必提交成一张申请。<br />
+	    <4>. <span style="color:red">【此规则已于2017-05-23作废】</span>如申请的数据包含当月的出货，那么出货日期当月与当月之前的不能放在同一张申请，并且必须在退货原因注明是本月出货退货，没有注明是本月出货退货的一律搁置到下月处理，不另行通知。<br />
+	    <5>. 提交申请后，原出货未开发票的申请在市场部未办理好K3数据之前，千万不要通知会计部开票；如在办理期间通知会计部开票造成申请的开票状态与K3不同的，一律退回申请重新走流程，不另行通知。<br />
+            @*<2>. 【是否补货】字段，若选择不补货，则审核成功结束后，会直接由市场部人员导入K3红字出库单；若选择需补货，审核成功结束后，进入换货流程。<br />
+            <2>. 已上线部分流程暂未开通，未上线部分暂全部走退红字流程，并由市场部人员导入K3红字出库单。<br />*@
+                </div>
+            </div>
+
+        </div>
+    </div>
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+</div>
+@*</form>*@

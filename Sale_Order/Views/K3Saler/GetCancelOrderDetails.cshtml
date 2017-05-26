@@ -1,0 +1,34 @@
+﻿<script type="text/javascript">
+    $(function () { 
+        var bill_type="@ViewData["bill_type"]";
+        var urlPath="";
+        switch(bill_type){
+                    case 'SO_CANCEL':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3SaleOrderByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'MB_CANCEL':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3ContractByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'CS_CANCEL':
+                        urlPath = "@Url.Content("~/K3Saler/CheckK3ChargeSampleByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    defalut:
+                        return value;
+                        break;
+                }
+        $("#lay").layout("panel","center").panel({
+                href:urlPath
+        });
+        $("#submit_but").linkbutton("disable");
+    });
+</script>
+
+<div class="easyui-layout" data-options="fit:true" id="lay">
+    <div data-options="region:'south',collapsed:false" style="height: 110px; background: #fafafa;padding:3px;">        
+        <div>@Html.Lang("bill_change_comment")：</div>
+        <div><textarea id="changeComment" cols="110" rows="3" readonly="readonly">@ViewData["changeComment"]</textarea></div>
+        <div style="padding-left:300px;"><a class="easyui-linkbutton" id="submit_but" data-options="iconCls:'icon-ok'">@Html.Lang("apply_has_submit")</a></div>            
+    </div>
+    <div data-options="region:'center'">
+    </div>
+</div>

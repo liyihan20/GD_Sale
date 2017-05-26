@@ -1,0 +1,225 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#AuditList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,            
+            onRowContextMenu:function(e, rowIndex, rowData){
+                e.preventDefault();
+                $("#AuditList").datagrid("selectRow",rowIndex);
+                $('#mm').menu('show', {
+                    left:e.pageX,
+                    top:e.pageY
+                }); 
+            },
+            columns: [[                        
+                        { field: 'applyId', title: 'ID', width: 10, hidden: true },                        
+                        { field: 'orderDate', title: '退货日期', width: 80,
+                        formatter: function(value,row,index){ 
+                            var date = eval('new ' + eval(value).source) 
+                            return date.getFullYear()+'-'+(date.getMonth() + 1)+'-'+date.getDate()+' '+date.getHours()+':'+date.getMinutes();
+                        }},                          
+                        { field: 'sysNum', title: '流水号', width: 100 },
+                        { field: 'customerName', title: '客户', width: 120 },
+                        { field: 'procDep', title: '退货部门', width: 100 },
+                        { field: 'seorderNo', title: '销售订单号', width: 100 },  
+                        { field: 'stockNo', title: '出库单号', width: 100 }, 
+                        { field: 'model', title: '规格型号', width: 120 },
+                        { field: 'qty', title: '退货数量', width: 100, align: 'right' },
+    					{ field: 'depName', title: '办事处', width: 100 },
+    					{ field: 'salerName', title: '营业员', width: 100 }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: CheckStatus
+            }, '-', {
+                text: "@Html.Lang("chk_report")",
+                iconCls: 'icon-document',
+                handler: CheckReport
+            }, '-',
+            {
+                text: "@Html.Lang("export_excel")",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "正在导出符合查询条件且已审核的数据，请稍等..."
+                    }); 
+                    $("#fm").form("submit", {
+                        url: "@Url.Content("~/Excels/exportTHExcelByCon")",
+                        success: function (data) {
+                        }
+                    });
+                }
+            }],
+            onDblClickRow:CheckDetail
+        });
+
+        $("#checkBt").click(function () {
+            $.messager.progress(); 
+             $("#fm").form("submit", {
+                url: "@Url.Content("~/Authority/BackgroundSearchReturnBills")",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#AuditList").datagrid("loadData", result);
+                    $.messager.progress("close"); 
+                }
+            });
+        });
+
+        $("#proc_dep").combobox({url:"@Url.Content("~/Items/GetMyCheckingDep")"+"?userid=@ViewData["userid"]&orderType=TH"});
+    });
+
+    function CheckDetail(){
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+             window.open("@Url.Content("~/BadProduct/CheckReturnBill")"+"?id="+row.returnId);
+        }
+    }
+
+    function CheckStatus(){
+        //清空信息
+        var trs=$("#status_table tbody tr");
+        if(trs.length > 1)
+        {
+            var tr1=trs[0];
+            $("#status_table tbody").empty();
+            $("#status_table tbody").append(tr1);
+        }
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+            $.post("@Url.Content("~/Audit/CheckApplyStatusSO")",{sys_no: row.sysNum},function(data){
+                if(data.success){
+                        $("#nextStepName").html(data.nextStepName);
+                        $("#nextAuditors").html(data.nextAuditors);
+                        var list=data.result;                           
+                        for(var i=0;i<list.length;i++){
+                            var content= '<tr><td>'+list[i].date + ' ' + list[i].time+'</td><td>'+list[i].stepName+'</td><td>'+(list[i].comment==null?' ':list[i].comment)+'</td><td>'+(list[i].pass==true?'<span style="color:green">@Html.Lang("success")</span>':'<span style="color:red">@Html.Lang("failure")</span>')+'</td><td>'+list[i].auditor+'</td></tr>';
+                            $("#status_table tbody").append(content);
+                        }                                
+                }
+            }); 
+            $("#dlg_st").dialog("open");
+        }
+    }
+    
+    function CheckReport(){
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+            window.open("@Url.Content("~/Files/printTHReport")"+"?sysNo="+row.sysNum);
+        }
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 55px; background: #fafafa;
+        padding: 1px;">
+        <form id="fm" method="post" style="padding:2px 5px;">
+        <table cellpadding="0" cellspacing="0" border="0" width="740px">
+            <thead>
+                <tr>
+                    <td>
+                        客户编号/客户名称:
+                    </td>
+                    <td>
+                        流水号/规格型号:
+                    </td>
+                    <td>
+                        销售订单/出库单号:
+                    </td>                    
+                    <td>
+                        退货日期:
+                    </td>
+                    <td>
+                        至
+                    </td> 
+                    <td>
+                        退货部门:
+                    </td>
+                    <td>&nbsp;</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input class="easyui-validatebox" id="cust_no" name="cust_no" style="width: 110px" value="@ViewData["cust_no"]"/>
+                    </td>
+                    <td>
+                        <input id="sys_no" name="sys_no" style="width: 110px" value="@ViewData["sys_no"]"/>
+                    </td>
+                    <td>
+                        <input id="bill_no" name="bill_no" style="width: 100px" value="@ViewData["bill_no"]"/>
+                    </td>              
+                    <td>
+                        <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 100px" value="@ViewData["from_date"]"/>
+                    </td>
+                    <td>
+                        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 100px" value="@ViewData["to_date"]"/>
+                    </td>
+                    <td>
+                       <input id="proc_dep" class="easyui-combobox" name="proc_dep" style="width:100px" data-options="
+		                valueField: 'value',
+		                textField: 'text',
+                        panelHeight: 166,
+                        editable:false,
+                        value:'@ViewData["proc_dep"]'" />
+                    </td>                    
+                    <td>
+                        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+                        @Html.Lang("search")</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="AuditList" class="easyui-datagrid"></table>
+        <div id="dlg_st" class="easyui-dialog" style="width: 800px; height: 330px; padding: 10px 5px;" closed="true" title="@Html.Lang("check_status")">            
+            <div style="margin-left:10px;margin-top:5px;font-weight:bold">下一审核步骤名称:<span id="nextStepName" style="color:red;margin-right:20px;"></span>步骤审核人:<span id="nextAuditors" style="color:red"></span></div>
+            <table id="status_table" style="width:97%; margin:16px 0 0 10px" border="0" cellspacing="0">
+                <tbody>
+                <tr>
+                    <th style="width:15%">
+                        @Html.Lang("operation_time")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operation_content")
+                    </th>
+                    <th style="width:45%">
+                        @Html.Lang("audit_opinion")
+                    </th>
+                    <th style="width:10%">
+                        @Html.Lang("operation_result")
+                    </th>
+                    <th style="width:15%">
+                        @Html.Lang("operator")
+                    </th>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="mm" class="easyui-menu" style="width:120px;">
+    <div onClick="CheckDetail()" data-options="iconCls:'icon-edit'">@Html.Lang("check_detail")</div>
+    <div onClick="CheckStatus()" data-options="iconCls:'icon-help'">@Html.Lang("check_status")</div>
+    <div onClick="CheckReport()" data-options="iconCls:'icon-document'">@Html.Lang("chk_report")</div>
+</div>
+
+
+@Html.Partial("_DownloadAuditorExcelPartial")

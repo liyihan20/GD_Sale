@@ -1,0 +1,107 @@
+﻿<script type="text/javascript">
+    $(function () { 
+        var url;
+        var change_url;
+        var bill_type="@ViewData["bill_type"]"; 
+        var step="@ViewData["step"]";
+        switch(bill_type){
+                    case 'SO_CANCEL':
+                        url = "@Url.Content("~/K3Saler/CheckK3SaleOrderByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'MB_CANCEL':
+                        url = "@Url.Content("~/K3Saler/K3ContractDetailByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    case 'CS_CANCEL':
+                        url = "@Url.Content("~/K3Saler/CheckK3ChargeSampleDetailByNo?bill_no=")"+"@ViewData["bill_no"]";
+                        break;
+                    defalut:
+                        return value;
+                        break;
+                }        
+
+        $("#lay").layout("panel","center").panel({
+                href:url
+        });       
+
+        getAuditResult();
+
+    });
+    function okClick(){
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
+	        if (r){
+                $("#okFlag").val("true");
+                submitForm();
+	        }
+        });        
+    }
+    function noClick(){
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
+	        if (r){
+                $("#okFlag").val("false");
+                submitForm();
+            }
+        });        
+    }
+    function submitForm(){
+        $.messager.progress(); 
+        $("#audit_fm").form("submit",{
+            url:"@Url.Content("~/K3Audit/HandleAgencyAuditUpdate")",
+            success:function(data){
+                $.messager.progress('close');
+                var result=eval("("+data+")");
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: result.msg
+                });
+                getAuditResult();
+
+            }
+        });
+    }
+    //获取审批信息
+    function getAuditResult(){
+        $.post("@Url.Content("~/K3Audit/RefleshAuditUpdateResult")",
+        {updateId:"@ViewData["update_id"]",step:"@ViewData["step"]"},
+        function(data){
+            if(data.success){
+                $("#agency_comment").val(data.comment);
+                $("#agency_comment").attr("readonly","readonly");
+
+                if(data.pass){
+                    $("#NOBt").hide();
+                    $("#OKBt").linkbutton({text:"@Html.Lang("audit_pass")",});
+                    $('#OKBt').linkbutton('disable');
+                }else{
+                    $("#OKBt").hide();
+                    $("#NOBt").linkbutton({text:"@Html.Lang("audit_reject")",});
+                    $('#NOBt').linkbutton('disable');
+                }
+            }
+        });
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true" id="lay">
+    <div data-options="region:'south',collapsed:false" style="height: 115px; background: #fafafa;">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'south',collapsed:false" style="height: 30px; background: #fafafa;">
+                <form id="audit_fm" method="post" action="">
+                @Html.Lang("audit_opinion"):
+                <input type="hidden" name="step" value="@ViewData["step"]" />
+                <input type="hidden" name="updateId" value="@ViewData["update_id"]" />
+                <input type="hidden" name="okFlag" id="okFlag" value="" />
+                <input id="agency_comment" name="agency_comment" style="width: 560px" />&nbsp; <a
+                    id="OKBt" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"
+                    onclick="okClick()">@Html.Lang("pass")</a> <a id="NOBt" class="easyui-linkbutton"
+                        data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                </form>
+            </div>            
+            <div data-options="region:'center'" style="padding: 3px;">
+                <div>@Html.Lang("bill_cancel_comment")：</div>
+                <div>
+                    <textarea id="changeComment" cols="100" rows="3" readonly="readonly">@ViewData["changeComment"]</textarea></div>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center'">
+    </div>
+</div>

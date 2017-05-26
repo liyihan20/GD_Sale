@@ -1,0 +1,139 @@
+﻿<script type="text/javascript">
+
+    $(function () {
+        $("#currency").combobox({
+            onSelect: function (record) {
+                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
+                    function (data) {
+                        $('#exchange').numberbox('setValue', data);
+                    }, "json"
+                );
+            }
+        });
+        $("#tbCur").datagrid({
+            title:"@Html.Lang("cur_manage")",
+            url:"@Url.Content("~/Authority/getCurrency")",
+            fit:true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'id', title: 'ID', width: 120,hidden: true },
+                        { field: 'currency', title: '币别', width: 120, align: "center" },
+                        { field: 'exchange', title: '汇率', width: 120, align: "right" },
+                        { field: 'begin_date', title: '生效日期', width: 120, align: "center"},
+                        { field: 'end_date', title: '失效日期', width: 120, align: "center"}
+                    ]],
+             toolbar: [{
+                text: "新增条目",
+                iconCls: 'icon-add',
+                handler: addItem
+            }, '-', {
+                text: "编辑条目",
+                iconCls: 'icon-edit',
+                handler: editItem
+            }, '-', {
+                text: "删除条目",
+                iconCls: 'icon-remove',
+                handler: removeItem
+            }]
+        });
+    });
+
+    var url;
+    function addItem() {
+        $('#cur_dlg').dialog('open').dialog('setTitle', '新建条目');
+        $('#fm').form('clear');
+        url = 'addCurrency';
+    }
+    function editItem() {
+        var row = $('#tbCur').datagrid('getSelected');
+        if (row) {
+            $('#cur_dlg').dialog('open').dialog('setTitle', '编辑条目');
+            $('#fm').form('load', row);
+            url = 'updateCurrency/' + row.id;
+        }
+    }
+    function removeItem(){
+        var row = $('#tbCur').datagrid('getSelected');
+        if(!row){return;}
+         $.messager.confirm('删除确认','确定要删除这一行条目吗?',function(r){
+	        if (r){
+                $.post("@Url.Content("~/Authority/removeCurrency")",{id:row.id},
+                function(data){
+                    if(data.success){
+                            $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "删除成功"
+                        });
+                    }else{
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "删除失败"
+                        });                        
+                    }
+                    $('#tbCur').datagrid('reload');    // reload the user data  
+                });
+            }
+         });        
+    }
+    function saveItem() {
+        var b_d=$("#begin_date").datebox("getValue");
+        var e_d=$("#end_date").datebox("getValue");
+        var b_d_date=new Date(Date.parse(b_d.replace(/-/g,   "/")));
+        var e_d_date=new Date(Date.parse(e_d.replace(/-/g,   "/")));
+        if(b_d_date > e_d_date){
+            alert("生效日期不能在失效日期之前");
+            return;
+        }
+        $('#fm').form('submit', {
+            url: '' + url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (data) {                
+                var result = eval('(' + data + ')');
+                if (result.success) {
+                    $('#cur_dlg').dialog('close');      // close the dialog   
+                    $('#tbCur').datagrid('reload');    // reload the user data   
+                } else {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                }
+            }
+        });
+    }  
+
+</script>
+
+<table id="tbCur"></table>
+
+<div id="cur_dlg" class="easyui-dialog" style="width:400px;height:260px;padding:10px 20px"  
+        closed="true" buttons="#dlg-buttons">  
+    <div class="ftitle">汇率信息</div>  
+    <form id="fm" method="post">  
+        <div class="fitem">  
+            <label>币别:</label>  
+            <input id="currency" name="currency" class="easyui-combobox" panelHeight="130" url="@Url.Content("~/Items/getItems?what=currency")" valuefield="name" textfield="name" required="true"/>  
+        </div> 
+        <div class="fitem">  
+            <label>汇率:</label>  
+            <input id="exchange" name="exchange" class="easyui-numberbox" required="true" min="0" precision="4"/>  
+        </div>  
+        <div class="fitem">  
+            <label>生效日期:</label>  
+            <input id="begin_date" name="begin_date" class="easyui-datebox" required="true"/>  
+        </div>  
+        <div class="fitem">  
+            <label>失效日期:</label>  
+            <input id="end_date" name="end_date" class="easyui-datebox" required="true"/>  
+        </div>  
+    </form>  
+</div>
+<div id="dlg-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveItem()">@Html.Lang("save")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#cur_dlg').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+  

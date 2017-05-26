@@ -1,0 +1,37 @@
+﻿@{
+    Layout = null;
+}
+<script type="text/javascript">
+    //设置日期控件显示格式：yyyy-mm-dd
+    if ($.fn.datebox) {
+        $.fn.datebox.defaults.formatter = function (date) {
+            var y = date.getFullYear();
+            var m = date.getMonth() + 1;
+            var d = date.getDate();
+            return y + '-' + (m < 10 ? ('0' + m) : m) + '-' + (d < 10 ? ('0' + d) : d);
+        };
+    }
+
+    function beginDownloadCeoExcel(){
+        $('#dlg_ceoExcel').dialog('close');
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在导出符合条件的数据，请稍等..."
+        });
+        window.location.href="@Url.Content("~/Excels/exportCeoExcel")"+"?beginDate="+$("#fromDate").datebox("getValue")+"&toDate="+$("#toDate").datebox("getValue");
+    }
+</script>
+<div id="dlg_ceoExcel" class="easyui-dialog" style="width:400px;height:180px;padding:10px 20px" 
+        closed="true" buttons="#ceoExcel-buttons" title="@Html.Lang("ceo_excel")" modal="true">  
+    <div class="ftitle">导出总裁办Excel报表<span id="copName" style="color:Red"/></div>              
+        @Html.Lang("order_date"):<input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 120px" value="@DateTime.Now.ToString("yyyy-MM-dd")"/>
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 120px" value="@DateTime.Now.ToString("yyyy-MM-dd")"/>
+        <div style="font-size:10px;margin-top:14px;">说明:总裁办报表只包含正常的生产单</div>
+</div>  
+<div id="ceoExcel-buttons">  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-xls" onclick="beginDownloadCeoExcel()">@Html.Lang("download")</a>  
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg_ceoExcel').dialog('close')">@Html.Lang("cancel")</a>  
+</div>  
+
+

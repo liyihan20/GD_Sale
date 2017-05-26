@@ -1,0 +1,198 @@
+﻿@using Sale_Order.Models;
+@using Sale_Order.Utils;
+@{    
+    List<backBills> list = (List<backBills>)ViewData["result"];
+    SomeUtils utl=new SomeUtils();
+    }
+<script type="text/javascript">
+    
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#orderList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            onRowContextMenu:function(e, rowIndex, rowData){
+                e.preventDefault();
+                $("#orderList").datagrid("selectRow",rowIndex);
+                $('#mm').menu('show', {
+                    left:e.pageX,
+                    top:e.pageY
+                }); 
+            },
+            columns: [[
+                        { field: 'encryptNo', title: 'encryptNo', width: 10, hidden: true },
+                        { field: 'applyId', title: 'ID', width: 10, hidden: true },
+                        { field: 'apply_date', title: '@Html.Lang("apply_date")', width: 120 },
+                        { field: 'orderType', title: '@Html.Lang("bill_type")', width: 100 },          
+                        { field: 'sysNum', title: '@Html.Lang("sys_num")', width: 100 },
+                        { field: 'model', title: '@Html.Lang("pro_model")', width: 100 },
+    					{ field: 'depName', title: '@Html.Lang("agency")', width: 120 },
+    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 100 },               
+                        { field: 'status', title: '@Html.Lang("audit_result")', width: 80, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == 'NG'){
+					            return 'color:red;';
+				            }else if(value == 'PASS'){
+					            return 'color:green;';
+				            }
+			            } }
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: function () {
+                    var row=$("#orderList").datagrid("getSelected");
+                    if(row){ 
+                        window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+row.applyId;
+                    }
+                }
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: function(){
+                    var row = $("#orderList").datagrid("getSelected");
+                    if (row) {
+                        CheckStatus(row.sysNum)
+                    }
+                }
+            }, '-', {
+                text: "@Html.Lang("chk_report")",
+                iconCls: 'icon-document',
+                handler: CheckReport
+            }, '-',
+            {
+                text: "@Html.Lang("export_excel")",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    var rows = $("#orderList").datagrid("getRows");
+                    if(rows.length==0){
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "列表中无数据，请先搜索之后再导出Excel报表"
+                        }); 
+                    }else{
+                        var ids="";
+                        var type=rows[0].sysNum;
+                        for(var i=0;i<rows.length;i++){
+                            if(type.substring(0,2)==rows[i].sysNum.substring(0,2)){
+                                if(i==rows.length-1){
+                                    ids+=rows[i].applyId;
+                                }else{
+                                    ids+=rows[i].applyId+",";
+                                }
+                            }
+                        }            
+                        if(type.indexOf("SO")>=0){
+                            window.location.href='@Url.Content("~/Excels/exportAuditorSOExcel")'+'?ids='+ids;
+                        }else if(type.indexOf("CM")>=0 || type.indexOf("CC")>=0){
+                            window.location.href="@Url.Content("~/Excels/exportAuditorCMExcel")"+"?ids="+ids;
+                        }    
+                        //openDownloadDialog(ids);           
+                        //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;
+                    }
+                }
+            }],
+            onDblClickRow:function(rowIndex, rowData){
+                window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+rowData.applyId;
+            }
+        });
+
+        $("#checkBt").click(function () {
+            $("#fm").submit();
+        });
+        
+        $("#contDiv").css("visibility","visible");
+    });    
+
+    function CheckReport(){
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            if(row.sysNum.substring(0,2)=="SO"){
+                window.open("@Url.Content("~/Files/printReport")"+"?sysNo="+row.encryptNo);
+            }else if(row.orderType=="退换货"){
+                window.open("@Url.Content("~/Files/printTHReport")"+"?sysNo="+row.sysNum);
+            }else if(row.sysNum.substring(0,2)=="CM"){
+                window.open("@Url.Content("~/Files/printCMYFReport")"+"?sysNo="+row.sysNum);
+            }else if(row.sysNum.substring(0,2)=="SB"){
+                window.open("@Url.Content("~/Files/printSBYFReport")"+"?sysNo="+row.sysNum);
+            }else if(row.sysNum.substring(0,2)=="CC"){
+                window.open("@Url.Content("~/Files/printCCYFReport")"+"?sysNo="+row.sysNum);
+            }else{
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "不能导出报表。"
+                }); 
+            }
+        }
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true" style="visibility:hidden" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 40px; background: #fafafa;padding: 1px;">
+        <form id="fm" method="post" action="@Url.Content("~/Authority/BackgroundSearchBills")" style="padding:2px 5px;">
+        @Html.Lang("sys_num"):
+        <input id="sys_no" name="sys_no" style="width: 110px" value="@ViewData["sys_no"]"/>&nbsp; 
+        @Html.Lang("pro_model"):
+        <input id="proModel" name="proModel" style="width: 100px" value="@ViewData["pro_model"]"/>
+        @Html.Lang("apply_user"):
+        <input id="saler" name="saler" style="width: 80px"  value="@ViewData["saler"]"/>&nbsp;            
+        @Html.Lang("apply_date"):
+        <input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 100px" value="@ViewData["from_date"]"/>
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 100px" value="@ViewData["to_date"]"/>
+        @Html.Lang("audit_result"): <input id="auditResult" name="auditResult" style="width: 80px" class="easyui-combobox" data-options="
+		valueField: 'value',
+		textField: 'label',        
+        panelHeight: 100,
+        editable:false,
+        value:'@ViewData["audit_result"]',
+		data: [{
+			label: '@Html.Lang("all")',
+			value: '10'
+		},{
+			label: '@Html.Lang("not_audit")',
+			value: '0'
+		},{
+			label: '@Html.Lang("success")',
+			value: '1'
+		},{
+			label: '@Html.Lang("failure")',
+			value: '-1'
+		}]" />
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+            @Html.Lang("search")</a>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList" class="easyui-datagrid">
+            <tbody>  
+            @foreach (var li in list) { 
+                <tr>
+                    <td>@li.encryptNo</td>
+                    <td>@li.applyId</td>
+                    <td>@li.apply_date</td>
+                    <td>@li.orderType</td>
+                    <td>@li.sysNum</td>
+                    <td>@li.model</td>
+                    <td>@li.depName</td>
+                    <td>@li.salerName</td>
+                    <td>@li.status</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="mm" class="easyui-menu" style="width:120px;">
+    <div onClick="CheckStatus()" data-options="iconCls:'icon-help'">@Html.Lang("check_status")</div>
+</div>
+
+@Html.Partial("_DownloadAuditorExcelPartial")
+
+@Html.Partial("_CheckAuditStatus")

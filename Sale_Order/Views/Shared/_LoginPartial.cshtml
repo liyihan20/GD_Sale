@@ -1,0 +1,257 @@
+﻿@using Sale_Order.Models;
+@{
+    string[] powers = (string[])ViewData["powers"];
+}
+<script type="text/javascript">
+    //    $(function () {
+    //        $("#menu_tree > li > ul > li").each(function (i) {
+    //            if ($(this).children().length < 2) {
+    //                alert($(this).html());
+    //            }
+    //        });
+    //    });
+</script>
+<ul id="menu_tree" class="easyui-tree" style="visibility:hidden">
+    <li><span>@Html.Lang("invoice_manage")</span>
+        <ul>
+            @if ((Array.IndexOf(powers, Powers.new_order.ToString()) != -1) || (Array.IndexOf(powers, Powers.ceo_excel.ToString()) != -1) || (Array.IndexOf(powers, Powers.chk_dep_bills.ToString()) != -1) || (Array.IndexOf(powers, Powers.new_fix.ToString()) != -1) || (Array.IndexOf(powers, Powers.new_model.ToString()) != -1) || (Array.IndexOf(powers, Powers.new_sample.ToString()) != -1))
+            {
+            <li><span>@Html.Lang("sale_order")</span>
+                <ul>
+                    @if (Array.IndexOf(powers, Powers.new_order.ToString()) != -1)
+                    {
+                        <li id="~/Saler/CreateSaleOrder"><span>@Html.Lang("new_sale_order")</span> </li>   
+                        <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>                
+                    }
+                    @if (Array.IndexOf(powers, Powers.ceo_excel.ToString()) != -1)
+                    {
+                        <li id="downCeoExcel"><span>@Html.Lang("ceo_excel")</span> </li>  
+                    }
+                    @if (Array.IndexOf(powers, Powers.chk_dep_bills.ToString()) != -1)
+                    {
+                        <li id="~/Authority/CheckProcBills"><span>@Html.Lang("chk_dep_bills")</span> </li>  
+                    }
+                </ul>
+            </li>
+            }@if ((Array.IndexOf(powers, Powers.new_model.ToString()) != -1))
+             {
+            <li><span>@Html.Lang("model_bill")</span>
+                <ul>                    
+                    <li id="~/Saler/CreateCCMModelContract"><span>@Html.Lang("create_ccm_model_bill")</span> </li>                     
+                    <li id="~/Saler/CreateModelContract"><span>@Html.Lang("create_model_bill")</span> </li>                    
+                    <li id="~/Saler/CheckAllOrders?bill_type=3"><span>@Html.Lang("check_add_apply")</span> </li>
+                </ul>
+            </li> 
+             }
+            @if ((Array.IndexOf(powers, Powers.new_sample.ToString()) != -1) || (Array.IndexOf(powers, Powers.agency_sb_excel.ToString()) != -1))
+            {
+            <li><span>@Html.Lang("sample_invoice")</span>
+                <ul>                    
+                    <li id="~/Saler/CreateSampleBill"><span>@Html.Lang("create_sample_bill")</span> </li>
+                    @if (Array.IndexOf(powers, Powers.agency_sb_excel.ToString()) != -1) { 
+                        <li id="downAgencyExcel">办事处报表</li>
+                    }
+                    <li id="~/Saler/CheckAllOrders?bill_type=4"><span>@Html.Lang("check_add_apply")</span> </li>
+                </ul>
+            </li> 
+            }
+            @*@if ((Array.IndexOf(powers, Powers.new_PJ.ToString()) != -1) || (Array.IndexOf(powers, Powers.Chk_all_PJ.ToString()) != -1))
+            {
+            <li><span>@Html.Lang("pj_manage")</span>
+                <ul>
+                    @if (Array.IndexOf(powers, Powers.new_PJ.ToString()) != -1)
+                    {
+                    <li id="~/Project/NewProject"><span>@Html.Lang("add_pj")</span></li>
+                    }
+                    <li id="~/Project/CheckProjectBills"><span>@Html.Lang("check_pj")</span></li>
+                    <li id="~/Project/SearchOldProjectBills"><span>@Html.Lang("check_old_pj")</span></li>
+                </ul>
+            </li>
+            }*@
+            @if (Array.IndexOf(powers, Powers.new_BL.ToString()) != -1) {
+                <li>
+                    <span>备料单</span>
+                    <ul>
+                        <li id="~/Saler/CreateBLBill"><span>新建备料单</span></li>
+                        <li id="~/Saler/CheckAllOrders?bill_type=5"><span>@Html.Lang("check_add_apply")</span> </li>
+                    </ul>
+                </li>
+            }
+            @if ((Array.IndexOf(powers, Powers.new_TH.ToString()) != -1) || (Array.IndexOf(powers, Powers.chk_red.ToString()) != -1) || (Array.IndexOf(powers, Powers.new_HH.ToString()) != -1) || (Array.IndexOf(powers, Powers.TH_manage.ToString()) != -1))
+            {
+            <li><span>退换货管理</span>
+                <ul>
+                    @if (Array.IndexOf(powers, Powers.new_TH.ToString()) != -1)
+                    {
+                    <li id="~/BadProduct/SelectStockBill"><span>新增退换货申请</span></li>
+                    <li id="~/BadProduct/CheckAllReturnBill"><span>查看退换货申请</span></li>
+                    }
+                    @if (Array.IndexOf(powers, Powers.chk_red.ToString()) != -1)
+                    {
+                    <li id="~/BadProduct/RedBillsToK3"><span>退红字单据</span></li>
+                    }
+                    @if (Array.IndexOf(powers, Powers.new_HH.ToString()) != -1)
+                    {
+                    <li id="~/BadProduct/ResendBills"><span>需换货单据</span></li>
+                    <li id="~/BadProduct/CheckAllResendBill"><span>查看换货申请</span></li>
+                    }
+                    @if (Array.IndexOf(powers, Powers.new_CH.ToString()) != -1)
+                    {                        
+                    <li id="~/BadProduct/SelectForSendOut"><span>营业申请出货</span></li>
+                    <li id="~/BadProduct/CheckAllFetchBill"><span>查看营业出货申请</span></li>
+                    }
+                    @if (Array.IndexOf(powers, Powers.TH_manage.ToString()) != -1)
+                    {    
+                     <li id="~/Authority/CheckReturnBillsBackground"><span>退换货申请管理</span></li>
+                    }
+                    @if (Array.IndexOf(powers, Powers.depHasAudit_notInK3.ToString()) != -1)
+                    { 
+                    <li id="~/Authority/CheckDepHasAuditNotInK3"><span>已审核未导入K3</span></li>
+                    }
+                </ul>
+            </li>
+            }            
+            <li id="~/Audit/CheckAuditList"><span>@Html.Lang("audit_add_apply")</span> </li>
+            @if (Array.IndexOf(powers, Powers.ceo_batch_audit.ToString()) != -1) {
+                <li id="~/Authority/CeoBatchAudit"><span>总裁办批量审批</span></li>
+            }
+            @if (Array.IndexOf(powers, Powers.uploadQualityReport.ToString()) != -1)
+            { 
+                <li id="~/Authority/UploadQualityReport"><span>上传品质报告</span> </li>
+            }
+                @*<li><span>@Html.Lang("modify/cancel_order")</span>
+                    <ul>
+                        @if (Array.IndexOf(powers, Powers.edit_order.ToString()) != -1)
+                        {
+                            <li id="~/K3Saler/SearchK3SaleOrders"><span>@Html.Lang("sale_order")</span> </li>  
+                        }
+                        @if (Array.IndexOf(powers, Powers.edit_fix.ToString()) != -1)
+                        {
+                            <li id="~/K3Saler/SearchK3Contracts"><span>@Html.Lang("repair_order")</span> </li>  
+                        }
+                        @if (Array.IndexOf(powers, Powers.edit_model.ToString()) != -1)
+                        {
+                            <li id="~/K3Saler/SearchK3Models"><span>@Html.Lang("create_model_invoice")</span> </li>  
+                        }
+                        @if (Array.IndexOf(powers, Powers.edit_sample.ToString()) != -1)
+                        {
+                            <li id="~/K3Saler/SearchK3FreeSamples"><span>@Html.Lang("free_sample")</span> </li> 
+                            <li id="~/K3Saler/SearchK3ChargeSamples"><span>@Html.Lang("charge_sample")</span> </li> 
+                        }
+                        <li id="~/K3Saler/CheckUpdateOrders"><span>@Html.Lang("check_modify/cancel_application")</span> </li>
+                        <li id="~/K3Audit/CheckOwnUpdateApply"><span>@Html.Lang("audit_modify/cancel_application")</span> </li>
+                    </ul>
+                </li> *@
+            @*@if (Array.IndexOf(powers, Powers.cancel_order.ToString()) != -1 || Array.IndexOf(powers, Powers.cancel_fix.ToString()) != -1
+                    || Array.IndexOf(powers, Powers.cancel_model.ToString()) != -1 || Array.IndexOf(powers, Powers.cancel_sample.ToString()) != -1)
+            {
+                <li><span>@Html.Lang("Cancel_order")</span>
+                    <ul>
+                        @if (Array.IndexOf(powers, Powers.cancel_order.ToString()) != -1)
+                        {
+                            <li><span>@Html.Lang("sale_order")</span> </li>
+                        }
+                        @if (Array.IndexOf(powers, Powers.cancel_fix.ToString()) != -1)
+                        {
+                            <li><span>@Html.Lang("repair_order")</span> </li>
+                        }
+                        @if (Array.IndexOf(powers, Powers.cancel_model.ToString()) != -1)
+                        {
+                            <li><span>@Html.Lang("create_model_invoice")</span> </li>
+                        }
+                        @if (Array.IndexOf(powers, Powers.cancel_sample.ToString()) != -1)
+                        {
+                            <li><span>@Html.Lang("sample_invoice")</span> </li>
+                        }
+                    </ul>
+                </li>
+            }*@
+        </ul>
+    </li>
+    @if (Array.IndexOf(powers, Powers.dep_manage.ToString()) != -1 || Array.IndexOf(powers, Powers.user_manage.ToString()) != -1
+                    || Array.IndexOf(powers, Powers.group_manage.ToString()) != -1 || Array.IndexOf(powers, Powers.agency_rel_auditor.ToString()) != -1
+                    || Array.IndexOf(powers, Powers.edit_proc_auditor.ToString()) != -1)
+    {
+        <li><span>@Html.Lang("User_depart")</span>
+            <ul>
+                @if (Array.IndexOf(powers, Powers.dep_manage.ToString()) != -1)
+                {
+                    <li id="~/Authority/Departments"><span>@Html.Lang("dep_manage")</span> </li>
+                }
+                @if (Array.IndexOf(powers, Powers.user_manage.ToString()) != -1)
+                {
+                    <li id="~/Authority/Users"><span>@Html.Lang("user_manage")</span> </li>
+                }
+                @if (Array.IndexOf(powers, Powers.group_manage.ToString()) != -1)
+                {
+                    <li id="~/Authority/Groups"><span>@Html.Lang("group_manage")</span> </li>
+                }
+                @if (Array.IndexOf(powers, Powers.process_manage.ToString()) != -1)
+                {
+                    <li id="~/Authority/Processes"><span>@Html.Lang("process_manage")</span> </li>
+                }
+                @*@if (Array.IndexOf(powers, Powers.agency_rel_auditor.ToString()) != -1)
+                {
+                    <li id="~/Authority/AgencyAndMarketAuditor"><span>@Html.Lang("agency_rel_auditor")</span> </li>
+                }*@
+                @if (Array.IndexOf(powers, Powers.edit_proc_auditor.ToString()) != -1)
+                {
+                    <li id="~/Authority/ProcDepAuditor"><span>@Html.Lang("dep_auditor_manage")</span> </li>
+                }
+            </ul>
+        </li>
+    }
+    @if (Array.IndexOf(powers, Powers.cur_manage.ToString()) != -1 || Array.IndexOf(powers, Powers.bak_bill.ToString()) != -1
+        || Array.IndexOf(powers, Powers.reset_password.ToString()) != -1 || Array.IndexOf(powers, Powers.chk_process.ToString()) != -1
+        || Array.IndexOf(powers, Powers.modify_bill_no.ToString()) != -1)
+    {
+        <li><span>@Html.Lang("mat_manage")</span>
+            <ul>
+                 @if (Array.IndexOf(powers, Powers.cur_manage.ToString()) != -1)
+                 {
+                    <li id="~/Authority/Currency"><span>@Html.Lang("cur_manage")</span> </li>
+                 }
+                 @if (Array.IndexOf(powers, Powers.bak_bill.ToString()) != -1)
+                 {
+                    <li id="~/Authority/CheckBillsBackground"><span>@Html.Lang("bak_bill")</span> </li>
+                 }
+                 @*@if (Array.IndexOf(powers, Powers.reset_password.ToString()) != -1)
+                 {
+                    <li id="~/Authority/ResetPassword"><span>@Html.Lang("reset_password")</span> </li>
+                 }*@
+                 @if (Array.IndexOf(powers, Powers.chk_process.ToString()) != -1)
+                 {
+                    <li id="~/Authority/ProcExcuteTime"><span>@Html.Lang("proc_time")</span> </li>
+                 }
+                 @if (Array.IndexOf(powers, Powers.order_number_manage.ToString()) != -1)
+                 {
+                    <li id="~/Authority/OrderNumberManage"><span>@Html.Lang("order_number_manage")</span> </li>
+                 }
+                 @if (Array.IndexOf(powers, Powers.modify_bill_no.ToString()) != -1) {
+                    <li id="~/Authority/ModifyBillNo"><span>单号修改</span> </li>
+                 }
+            </ul>
+        </li>
+    }
+</ul>
+@Html.Partial("_DownloadCeoExcelPartial")
+@Html.Partial("_DownloadAgencyExcelPartial")
+<script type="text/javascript">
+    $(function () {
+        $('#menu_tree').tree({
+            onClick: function (node) {
+                if (node.id == "downCeoExcel") {
+                    $("#dlg_ceoExcel").dialog("open");
+                } else if (node.id == "downAgencyExcel") {
+                    $("#dlg_agencyExcel").dialog("open");
+                }
+                else if (node.id) {
+                    $("iframe").attr("src", node.id);
+                }
+            }
+        });
+
+        $('#menu_tree').css("visibility", "visible");
+    });
+    
+</script>

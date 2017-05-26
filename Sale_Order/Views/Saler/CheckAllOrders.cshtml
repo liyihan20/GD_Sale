@@ -1,0 +1,181 @@
+﻿<script type="text/javascript">   
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {        
+        $("#orderList").datagrid({
+            fit: true,
+//            url:"@Url.Content("~/Saler/GetDefaultOrders")",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            onRowContextMenu:function(e, rowIndex, rowData){
+                e.preventDefault();
+                $("#orderList").datagrid("selectRow",rowIndex);
+                $('#mm').menu('show', {
+                    left:e.pageX,
+                    top:e.pageY
+                }); 
+            },
+            columns: [[
+                        { field: 'bill_id', title: 'ID', width: 10, hidden: true },
+                        { field: 'apply_date', title: '@Html.Lang("apply_date")', width: 70 },
+                        { field: 'sys_no', title: '@Html.Lang("sys_num")', width: 100 },
+    					{ field: 'buy_unit', title: '@Html.Lang("customer_name")', width: 120 },
+    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 100 },
+                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 160 },
+    					{ field: 'qty', title: '@Html.Lang("qty")', width: 70, align: 'right' },
+                        { field: 'deal_price', title: '@Html.Lang("deal_price")', width: 70, align: 'right' },
+                        { field: 'apply_status', title: '@Html.Lang("apply_status")', width: 60, align: 'center',
+                        styler: function(value,row,index){
+				            if (value == '申请失败'){
+					            return 'color:red;';
+				            }else if(value == '成功申请'){
+					            return 'color:green;';
+				            }
+			            }}
+    				]],
+            toolbar: [{
+                text: "@Html.Lang("check_detail")",
+                iconCls: 'icon-search',
+                handler: CheckDetail
+            }, '-',
+            {
+                text: "@Html.Lang("edit_bill")",
+                iconCls: 'icon-edit',
+                handler: EditOrder
+            }, '-',
+            {
+                text: "@Html.Lang("newFromOld")",
+                iconCls: 'icon-add',
+                handler: AddNewFromOld
+            }, '-', {
+                text: "@Html.Lang("check_status")",
+                iconCls: 'icon-help',
+                handler: ApplierCheckStatus
+            }, '-',
+            {
+                text: "@Html.Lang("export_excel")",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "正在导出符合查询条件且已审核的数据，请稍等..."
+                    }); 
+                    $("#fm").form("submit", {
+                        url: "@Url.Content("~/Excels/exportExcel")",
+                        success: function (data) {
+                        }
+                    });
+                }
+            }],
+            onDblClickRow:CheckDetail
+        });
+
+        $("#checkBt").click(function () {
+            $.messager.progress(); 
+            $("#fm").form("submit", {
+                url: "../Saler/CheckOwnOrders",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#orderList").datagrid("loadData", result);
+                    $.messager.progress("close"); 
+                }
+            });
+
+        });
+    });
+
+    function ApplierCheckStatus(){
+        var row = $("#orderList").datagrid("getSelected");
+        if(row){
+            CheckStatus(row.sys_no);
+        }
+    }
+
+    function CheckDetail(){
+        var row=$("#orderList").datagrid("getSelected");
+        if(row){ 
+            var suff=row.sys_no.substring(0,2);
+            window.location.href="@Url.Content("~/Saler/CheckOrderDetail")"+"?id="+row.bill_id+"&billType="+suff;
+        }
+    }
+
+    function EditOrder(){        
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            //编辑之前检测是否已开始申请
+            $.post("@Url.Content("~/Saler/IsBeginApply")",{sys_no: row.sys_no},
+            function(data){
+                if(!data.success){
+                        window.location.href = "@Url.Content("~/Saler/EditOrderNew?id=")" + row.bill_id +"&sys_no="+row.sys_no;
+
+                }else{
+                        $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "@Html.Lang("order_cannot_edit")"
+                        });
+                }
+            },"json");
+        } 
+    }
+    
+    function AddNewFromOld() {
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {                        
+            window.location.href = "@Url.Content("~/Saler/NewOrderFromOld?id=")" + row.bill_id +"&sys_no="+row.sys_no;
+        }                    
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 40px;
+        background: #fafafa; padding: 1px;">
+        <form id="fm" method="post" style="padding: 2px 5px;">
+        @Html.Lang("sys_num")/@Html.Lang("pro_model"):
+        <input class="easyui-validatebox" id="sys_no" name="sys_no" style="width: 100px" value="@ViewData["sys_no"]"/>
+        @Html.Lang("order_date"):<input id="fromDate" class="easyui-datebox" name="fromDate" style="width: 90px" value="@ViewData["from_date"]"/>
+        @Html.Lang("to")
+        <input id="toDate" class="easyui-datebox" name="toDate" style="width: 90px" value="@ViewData["to_date"]"/>
+        @Html.Lang("audit_result"):
+        <input id="auditResult" name="auditResult" style="width: 60px" class="easyui-combobox" data-options="
+		valueField: 'value',
+		textField: 'label',
+        panelHeight: 100,
+        editable:false,
+        value:'@ViewData["audit_result"]',
+		data: [{
+			label: '@Html.Lang("all")',
+			value: '10'
+		},{
+			label: '@Html.Lang("not_finish")',
+			value: '0'
+		},{
+			label: '@Html.Lang("success")',
+			value: '1'
+		},{
+			label: '@Html.Lang("failure")',
+			value: '-1'
+		}]" />
+        <input type="hidden" name="billType" value="@ViewData["bill_type"]"/>     
+        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+            @Html.Lang("search")</a>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList">
+        </table>        
+    </div>
+</div>
+<div id="mm" class="easyui-menu" style="width: 120px;">
+    <div onclick="CheckDetail()" data-options="iconCls:'icon-search'">@Html.Lang("check_detail")</div>
+    <div onclick="EditOrder()" data-options="iconCls:'icon-edit'">@Html.Lang("edit_bill")</div>
+    <div onclick="AddNewFromOld()" data-options="iconCls:'icon-add'">@Html.Lang("newFromOld")</div>
+    <div onclick="ApplierCheckStatus()" data-options="iconCls:'icon-help'">@Html.Lang("check_status")</div>
+</div>
+
+@Html.Partial("_CheckAuditStatus")

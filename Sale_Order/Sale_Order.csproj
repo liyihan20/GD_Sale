@@ -1,0 +1,768 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'sale_debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\TestCRM.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;D:\Program Files\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;D:\Program Files\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{12E17032-F1BA-46B5-95F4-8953780A976E}</ProjectGuid>
+    <ProjectTypeGuids>{E3E379DF-F4C6-4180-9B81-6769533ABE47};{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Sale_Order</RootNamespace>
+    <AssemblyName>Sale_Order</AssemblyName>
+    <TargetFrameworkVersion>v4.0.1</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>false</UseIISExpress>
+    <TargetFrameworkProfile />
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CrystalDecisions.CrystalReports.Engine, Version=13.0.2000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="CrystalDecisions.ReportSource, Version=13.0.2000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="CrystalDecisions.Shared, Version=13.0.2000.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="org.in2bits.MyXls, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\org.in2bits.MyXls.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Linq">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.5.0.0-rc\lib\net40\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.1\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.4.0.20505.0\lib\net40\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Net.Http.2.0.20505.0\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20505.0\lib\net40\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Core.4.0.20505.0\lib\net40\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.4.0.20505.0\lib\net40\System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.4.0.20505.0\lib\net40\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>..\packages\Microsoft.AspNet.Web.Optimization.1.0.0-beta2\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Providers">
+      <HintPath>..\packages\Microsoft.AspNet.Providers.Core.1.0\lib\net40\System.Web.Providers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.20505.0\lib\net40\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20505.0\lib\net40\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20505.0\lib\net40\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20505.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WebGrease">
+      <Private>True</Private>
+      <HintPath>..\packages\WebGrease.1.0.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime">
+      <Private>True</Private>
+      <HintPath>..\packages\WebGrease.1.0.0\lib\Antlr3.Runtime.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_GlobalResources\CM_Segement.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CM_Segement.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_GlobalResources\MB_Segement.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MB_Segement.resx</DependentUpon>
+    </Compile>
+    <Compile Include="App_Start\BundleConfig.cs" />
+    <Compile Include="App_Start\FilterConfig.cs" />
+    <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AuditController.cs" />
+    <Compile Include="Controllers\AuthorityController.cs" />
+    <Compile Include="Controllers\BadProductController.cs" />
+    <Compile Include="Controllers\ExcelsController.cs" />
+    <Compile Include="Controllers\FilesController.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ItemsController.cs" />
+    <Compile Include="Controllers\K3AuditController.cs" />
+    <Compile Include="Controllers\K3SalerController.cs" />
+    <Compile Include="Controllers\LocalizationHelpers.cs" />
+    <Compile Include="Controllers\MyHelpers.cs" />
+    <Compile Include="Controllers\ProjectController.cs" />
+    <Compile Include="Controllers\SalerController.cs" />
+    <Compile Include="Filter\SessionFilter.cs" />
+    <Compile Include="Global.asax.cs">
+      <DependentUpon>Global.asax</DependentUpon>
+    </Compile>
+    <Compile Include="Models\AccountModels.cs" />
+    <Compile Include="Models\AuditModel.cs" />
+    <Compile Include="Models\BLDT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BLDT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CCDT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CCDT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CMDT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CMDT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\Enums.cs" />
+    <Compile Include="Models\ManagementModels.cs" />
+    <Compile Include="Models\OrderModels.cs" />
+    <Compile Include="Models\ProcModel.cs" />
+    <Compile Include="Models\SaleDB.designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SaleDB.dbml</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SBDT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SBDT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SODT.cs">
+      <DependentUpon>SODT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\SODT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SODT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\THDT.cs">
+      <DependentUpon>THDT.xsd</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Models\THDT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>THDT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="App_GlobalResources\SO_Segement.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SO_Segement.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\BL_A4_Report.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BL_A4_Report.rpt</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\CCYF_A4_Report.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CCYF_A4_Report.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\SBYF_A4_Report.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SBYF_A4_Report.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\SO_A5_Report.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SO_A5_Report.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\SO_free_A5_Report.cs">
+      <DependentUpon>SO_free_A5_Report.rpt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Reports\SO_mat_A5_Report.cs">
+      <DependentUpon>SO_mat_A5_Report.rpt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Reports\THQS_A4_Report.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>THQS_A4_Report.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\TH_A4_Report.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TH_A4_Report.rpt</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Reports\CMYF_A4_Report.cs">
+      <DependentUpon>CMYF_A4_Report.rpt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <SubType>Component</SubType>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Utils\MyEmail.cs" />
+    <Compile Include="Utils\Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\MyCSS.css" />
+    <Content Include="Content\themes\base\images\processbar.jpg" />
+    <Content Include="Content\themes\base\images\ui-bg_diagonals-thick_18_b81900_40x40.png" />
+    <Content Include="Content\themes\base\images\ui-bg_diagonals-thick_20_666666_40x40.png" />
+    <Content Include="Content\themes\base\images\ui-bg_flat_10_000000_40x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_100_f6f6f6_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_100_fdf5ce_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_glass_65_ffffff_1x400.png" />
+    <Content Include="Content\themes\base\images\ui-bg_gloss-wave_35_f6a828_500x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_highlight-soft_100_eeeeee_1x100.png" />
+    <Content Include="Content\themes\base\images\ui-bg_highlight-soft_75_ffe45c_1x100.png" />
+    <Content Include="Content\themes\base\images\ui-icons_222222_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_228ef1_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_ef8c08_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_ffd27a_256x240.png" />
+    <Content Include="Content\themes\base\images\ui-icons_ffffff_256x240.png" />
+    <Content Include="Content\themes\base\jquery-ui.css" />
+    <Content Include="Content\themes\base\jquery-ui.min.css" />
+    <Content Include="Content\themes\base\jquery-ui.theme.css" />
+    <Content Include="Content\themes\default\images\accordion_arrows.png" />
+    <Content Include="Content\themes\default\images\blank.gif" />
+    <Content Include="Content\themes\default\images\calendar_arrows.png" />
+    <Content Include="Content\themes\default\images\combo_arrow.png" />
+    <Content Include="Content\themes\default\images\datagrid_icons.png" />
+    <Content Include="Content\themes\default\images\datebox_arrow.png" />
+    <Content Include="Content\themes\default\images\layout_arrows.png" />
+    <Content Include="Content\themes\default\images\linkbutton_bg.png" />
+    <Content Include="Content\themes\default\images\loading.gif" />
+    <Content Include="Content\themes\default\images\menu_arrows.png" />
+    <Content Include="Content\themes\default\images\messager_icons.png" />
+    <Content Include="Content\themes\default\images\pagination_icons.png" />
+    <Content Include="Content\themes\default\images\panel_tools.png" />
+    <Content Include="Content\themes\default\images\searchbox_button.png" />
+    <Content Include="Content\themes\default\images\slider_handle.png" />
+    <Content Include="Content\themes\default\images\spinner_arrows.png" />
+    <Content Include="Content\themes\default\images\tabs_icons.png" />
+    <Content Include="Content\themes\default\images\tree_icons.png" />
+    <Content Include="Content\themes\default\images\truly_logo2.png" />
+    <Content Include="Content\themes\default\images\truly_logo.jpg" />
+    <Content Include="Content\themes\default\images\people_base.jpg" />
+    <Content Include="Images\tt.jpg" />
+    <Content Include="Content\themes\default\images\validatebox_arrows.png" />
+    <Content Include="Content\themes\default\images\validatebox_warning.png" />
+    <Content Include="Content\themes\icons\down.png" />
+    <Content Include="Content\themes\icons\xls.png" />
+    <Content Include="Images\proDiagram.jpg" />
+    <Content Include="Images\top.jpg" />
+    <Content Include="Content\themes\default\accordion.css" />
+    <Content Include="Content\themes\default\calendar.css" />
+    <Content Include="Content\themes\default\combo.css" />
+    <Content Include="Content\themes\default\combobox.css" />
+    <Content Include="Content\themes\default\datagrid.css" />
+    <Content Include="Content\themes\default\datebox.css" />
+    <Content Include="Content\themes\default\dialog.css" />
+    <Content Include="Content\themes\default\easyui.css" />
+    <Content Include="Content\themes\default\layout.css" />
+    <Content Include="Content\themes\default\linkbutton.css" />
+    <Content Include="Content\themes\default\menu.css" />
+    <Content Include="Content\themes\default\menubutton.css" />
+    <Content Include="Content\themes\default\messager.css" />
+    <Content Include="Content\themes\default\pagination.css" />
+    <Content Include="Content\themes\default\panel.css" />
+    <Content Include="Content\themes\default\progressbar.css" />
+    <Content Include="Content\themes\default\propertygrid.css" />
+    <Content Include="Content\themes\default\searchbox.css" />
+    <Content Include="Content\themes\default\slider.css" />
+    <Content Include="Content\themes\default\spinner.css" />
+    <Content Include="Content\themes\default\splitbutton.css" />
+    <Content Include="Content\themes\default\tabs.css" />
+    <Content Include="Content\themes\default\tree.css" />
+    <Content Include="Content\themes\default\validatebox.css" />
+    <Content Include="Content\themes\default\window.css" />
+    <Content Include="Content\themes\icon.css" />
+    <Content Include="Content\themes\icons\auth.png" />
+    <Content Include="Content\themes\icons\back.png" />
+    <Content Include="Content\themes\icons\blank.gif" />
+    <Content Include="Content\themes\icons\cancel.png" />
+    <Content Include="Content\themes\icons\comment.png" />
+    <Content Include="Content\themes\icons\cut.png" />
+    <Content Include="Content\themes\icons\document.png" />
+    <Content Include="Content\themes\icons\edit_add.png" />
+    <Content Include="Content\themes\icons\edit_remove.png" />
+    <Content Include="Content\themes\icons\email.png" />
+    <Content Include="Content\themes\icons\examiner.png" />
+    <Content Include="Content\themes\icons\filesave.png" />
+    <Content Include="Content\themes\icons\help.png" />
+    <Content Include="Content\themes\icons\home.png" />
+    <Content Include="Content\themes\icons\mini_add.png" />
+    <Content Include="Content\themes\icons\mini_edit.png" />
+    <Content Include="Content\themes\icons\mini_refresh.png" />
+    <Content Include="Content\themes\icons\no.png" />
+    <Content Include="Content\themes\icons\ok.png" />
+    <Content Include="Content\themes\icons\pencil.png" />
+    <Content Include="Content\themes\icons\pencil2.png" />
+    <Content Include="Content\themes\icons\print.png" />
+    <Content Include="Content\themes\icons\redo.png" />
+    <Content Include="Content\themes\icons\reload.png" />
+    <Content Include="Content\themes\icons\search.png" />
+    <Content Include="Content\themes\icons\star.png" />
+    <Content Include="Content\themes\icons\sum.png" />
+    <Content Include="Content\themes\icons\tip.png" />
+    <Content Include="Content\themes\icons\undo.png" />
+    <Content Include="Content\themes\icons\user.png" />
+    <Content Include="favicon.ico" />
+    <Content Include="Global.asax" />
+    <Content Include="Scripts\easyloader.js" />
+    <Content Include="Scripts\jquery-1.8.0-vsdoc.js" />
+    <Content Include="Scripts\jquery-1.8.0.min.js" />
+    <Content Include="Scripts\jquery-ui-1.8.11.js" />
+    <Content Include="Scripts\jquery-ui-1.8.11.min.js" />
+    <Content Include="Scripts\jquery-ui.js" />
+    <Content Include="Scripts\jquery-ui.min.js" />
+    <Content Include="Scripts\jquery.easyui.min.js" />
+    <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
+    <Content Include="Scripts\jquery.unobtrusive-ajax.min.js" />
+    <Content Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.validate.js" />
+    <Content Include="Scripts\jquery.validate.min.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\json2.js" />
+    <Content Include="Scripts\knockout-2.0.0.debug.js" />
+    <Content Include="Scripts\knockout-2.0.0.js" />
+    <Content Include="Scripts\locale\easyui-lang-en.js" />
+    <Content Include="Scripts\locale\easyui-lang-zh_CN.js" />
+    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
+    <Content Include="Scripts\plugins\jquery.parser.js" />
+    <Content Include="Scripts\uploadify\jquery.uploadify.min.js" />
+    <Content Include="Scripts\img\uploadify-cancel.png" />
+    <Content Include="Scripts\uploadify\uploadify.css" />
+    <Content Include="Scripts\uploadify\uploadify.swf" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Content\Site.css" />
+    <Content Include="Scripts\_references.js" />
+    <Content Include="Images\accent.png" />
+    <Content Include="Images\aspNetHome.png" />
+    <Content Include="Images\bullet.png" />
+    <Content Include="Images\facebook.png" />
+    <Content Include="Images\findHosting.png" />
+    <Content Include="Images\heroAccent.png" />
+    <Content Include="Images\NuGetGallery.png" />
+    <Content Include="Images\orderedList0.png" />
+    <Content Include="Images\orderedList1.png" />
+    <Content Include="Images\orderedList2.png" />
+    <Content Include="Images\orderedList3.png" />
+    <Content Include="Images\orderedList4.png" />
+    <Content Include="Images\orderedList5.png" />
+    <Content Include="Images\orderedList6.png" />
+    <Content Include="Images\orderedList7.png" />
+    <Content Include="Images\orderedList8.png" />
+    <Content Include="Images\orderedList9.png" />
+    <Content Include="Images\twitter.png" />
+    <Content Include="Images\windowsLive.png" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Account\ChangePassword.cshtml" />
+    <Content Include="Views\Account\ChangePasswordSuccess.cshtml" />
+    <Content Include="Views\Account\Login.bak.cshtml" />
+    <Content Include="Views\Account\Register.cshtml" />
+    <Content Include="Views\Home\About.cshtml" />
+    <Content Include="Views\Home\Contact.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+    <Content Include="Views\Shared\_LoginPartial.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Orders\Index.cshtml" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="Docs\CCM%28最新）光电产品开改模单.doc" />
+    <Content Include="Models\BLDT.xsc">
+      <DependentUpon>BLDT.xsd</DependentUpon>
+    </Content>
+    <None Include="Models\BLDT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>BLDT.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="Models\BLDT.xss">
+      <DependentUpon>BLDT.xsd</DependentUpon>
+    </Content>
+    <None Include="Models\CCDT.xsc">
+      <DependentUpon>CCDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\CCDT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>CCDT.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Models\CCDT.xss">
+      <DependentUpon>CCDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\CMDT.xsc">
+      <DependentUpon>CMDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\CMDT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>CMDT.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Models\CMDT.xss">
+      <DependentUpon>CMDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\SaleDB.dbml">
+      <Generator>MSLinqToSQLGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>SaleDB.designer.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\Orders\newReport.cshtml" />
+    <Content Include="Views\Authority\Departments.cshtml" />
+    <Content Include="Views\Authority\Users.cshtml" />
+    <Content Include="Views\Authority\Groups.cshtml" />
+    <Content Include="Views\Shared\_UserTreePartial.cshtml" />
+    <Content Include="Views\Saler\CreateSaleOrder.cshtml" />
+    <Content Include="Views\Shared\Main.cshtml" />
+    <Content Include="Views\Saler\CheckAllOrders.cshtml" />
+    <Content Include="Views\Saler\CheckSaleOrder.cshtml" />
+    <Content Include="Views\Audit\CheckAuditList.cshtml" />
+    <Content Include="Views\Audit\SaleOrdrEdit.cshtml" />
+    <Content Include="Views\Audit\MarketAudit.cshtml" />
+    <Content Include="Views\Shared\Tip.cshtml" />
+    <Content Include="Views\K3Saler\CheckK3SaleOrder.cshtml" />
+    <Content Include="Views\K3Saler\ModifyK3SaleOrder.cshtml" />
+    <Content Include="Views\K3Saler\CheckUpdateOrders.cshtml" />
+    <Content Include="Views\K3Saler\GetUpdateOrderDetails.cshtml" />
+    <Content Include="Views\K3Audit\CheckOwnUpdateApply.cshtml" />
+    <Content Include="Views\K3Audit\AgencyAuditUpdate.cshtml" />
+    <Content Include="Views\K3Audit\MarketEditUpdate.cshtml" />
+    <Content Include="Views\K3Saler\ModifyK3Contract.cshtml" />
+    <Content Include="Views\K3Saler\SearchK3Contracts.cshtml" />
+    <Content Include="Views\K3Saler\CheckK3Contract.cshtml" />
+    <Content Include="Views\K3Audit\MarketEditContract.cshtml" />
+    <Content Include="Views\K3Saler\CancelK3Bill.cshtml" />
+    <Content Include="Views\K3Audit\BeginAuditCancel.cshtml" />
+    <Content Include="Views\K3Saler\GetCancelOrderDetails.cshtml" />
+    <Content Include="Views\K3Saler\SearchK3Models.cshtml" />
+    <Content Include="Views\K3Saler\CheckK3Model.cshtml" />
+    <Content Include="Views\K3Saler\ModifyK3Model.cshtml" />
+    <Content Include="Views\K3Audit\MarketEditModel.cshtml" />
+    <Content Include="Views\Shared\_UploadFilePartial.cshtml" />
+    <Content Include="Views\Shared\_SalerPercentPartial.cshtml" />
+    <Content Include="Views\Items\downLoadFile.cshtml" />
+    <Content Include="Views\Shared\_ChangeTBPartial.cshtml" />
+    <Content Include="Views\K3Saler\SearchK3FreeSamples.cshtml" />
+    <Content Include="Views\K3Saler\ModifyK3FreeSample.cshtml" />
+    <Content Include="Views\K3Audit\MarketEditFreeSample.cshtml" />
+    <Content Include="Views\K3Saler\ModifyK3ChargeSample.cshtml" />
+    <Content Include="Views\K3Saler\CheckK3FreeSample.cshtml" />
+    <Content Include="Views\K3Saler\SearchK3ChargeSamples.cshtml" />
+    <Content Include="Views\K3Saler\CheckK3ChargeSample.cshtml" />
+    <Content Include="Views\K3Audit\MarketEditChargeSample.cshtml" />
+    <Content Include="Views\K3Saler\SearchK3SaleOrders.cshtml" />
+    <Content Include="Views\K3Audit\MarketAuditUpdate.cshtml" />
+    <Content Include="Views\Authority\Processes.cshtml" />
+    <Content Include="Views\Authority\Currency.cshtml" />
+    <Content Include="Views\Authority\CheckBillsBackground.cshtml" />
+    <Content Include="Views\Authority\AgencyAndMarketAuditor.cshtml" />
+    <Content Include="Views\Shared\_ChangePasswordPartial.cshtml" />
+    <Content Include="Views\Authority\ResetPassword.cshtml" />
+    <Content Include="Views\Shared\_DownloadCeoExcelPartial.cshtml" />
+    <Content Include="Views\Account\Maintain.cshtml" />
+    <Content Include="Views\Authority\ProcExcuteTime.cshtml" />
+    <Content Include="Views\Authority\ProcDepAuditor.cshtml" />
+    <None Include="Models\SBDT.xsc">
+      <DependentUpon>SBDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\SBDT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>SBDT.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Models\SBDT.xss">
+      <DependentUpon>SBDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\SODT.xsc">
+      <DependentUpon>SODT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\SODT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>SODT.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Models\SODT.xss">
+      <DependentUpon>SODT.xsd</DependentUpon>
+    </None>
+    <Content Include="Views\Authority\CheckProcBills.cshtml" />
+    <Content Include="Views\Shared\_DownloadAuditorExcelPartial.cshtml" />
+    <Content Include="Views\Authority\OrderNumberManage.cshtml" />
+    <Content Include="Views\BadProduct\CreateReturnBill.cshtml" />
+    <Content Include="Views\BadProduct\SelectStockBill.cshtml" />
+    <Content Include="Views\BadProduct\CheckAllReturnBill.cshtml" />
+    <Content Include="Views\BadProduct\CheckReturnBill.cshtml" />
+    <Content Include="Views\BadProduct\RedBillsToK3.cshtml" />
+    <Content Include="Views\BadProduct\ResendBills.cshtml" />
+    <Content Include="Views\BadProduct\CreateResendBill.cshtml" />
+    <Content Include="Views\BadProduct\CheckAllResendBill.cshtml" />
+    <Content Include="Views\BadProduct\CheckResendBill.cshtml" />
+    <Content Include="Views\BadProduct\SelectForSendOut.cshtml" />
+    <Content Include="Views\BadProduct\CreateSendOutBill.cshtml" />
+    <Content Include="Views\BadProduct\CheckAllFetchBill.cshtml" />
+    <Content Include="Views\BadProduct\CheckFetchBill.cshtml" />
+    <Content Include="Views\Audit\THAudit.cshtml" />
+    <None Include="Models\THDT.xsc">
+      <DependentUpon>THDT.xsd</DependentUpon>
+    </None>
+    <None Include="Models\THDT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>THDT.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Models\THDT.xss">
+      <DependentUpon>THDT.xsd</DependentUpon>
+    </None>
+    <Content Include="Views\Authority\副本 ProcDepAuditor.cshtml" />
+    <Content Include="Views\Authority\副本 Processes.cshtml" />
+    <Content Include="Views\Authority\CheckReturnBillsBackground.cshtml" />
+    <Content Include="Views\Audit\EditReturnBillQty.cshtml" />
+    <Content Include="Views\Authority\UploadQualityReport.cshtml" />
+    <Content Include="Views\Shared\Redirect.cshtml" />
+    <None Include="Properties\PublishProfiles\配置文件1.pubxml" />
+    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Authority\ModifyBillNo.cshtml" />
+    <Content Include="Views\Authority\CeoBatchAudit.cshtml" />
+    <None Include="Views\Project\NewProject.cshtml.bak" />
+    <Content Include="Views\Project\CheckProjectBills.cshtml" />
+    <Content Include="Views\Project\CheckSingleProjectBill.cshtml" />
+    <Content Include="Views\Audit\ProjectBillEdit.cshtml" />
+    <Content Include="Views\Authority\CheckDepHasAuditNotInK3.cshtml" />
+    <Content Include="Views\Project\SearchOldProjectBills.cshtml" />
+    <Content Include="Views\Shared\_CheckAuditStatus.cshtml" />
+    <Content Include="Views\Project\NewProject.cshtml" />
+    <Content Include="Views\Saler\CheckSampleBill.cshtml" />
+    <Content Include="Views\Saler\CreateSampleBill.cshtml" />
+    <Content Include="Views\Shared\_BlockInfoPartial.cshtml" />
+    <Content Include="Views\Saler\CreateCCMModelContract.cshtml" />
+    <Content Include="Views\Saler\CheckCCMModelContract.cshtml" />
+    <Content Include="Views\Shared\_DownloadAgencyExcelPartial.cshtml" />
+    <Content Include="Views\Saler\CheckModelContract.cshtml" />
+    <Content Include="Views\Saler\CreateModelContract.cshtml" />
+    <Content Include="Views\Saler\CreateBLBill.cshtml" />
+    <Content Include="Views\Saler\CheckBLBill.cshtml" />
+    <Content Include="Views\Shared\_DownloadAuditorBLExcelPartial.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Reports\SO_mat_A5_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>SO_mat_A5_Report.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\THQS_A4_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>THQS_A4_Report.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\TH_A4_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>TH_A4_Report.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\CCYF_A4_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>CCYF_A4_Report.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\BL_A4_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>BL_A4_Report.cs</LastGenOutput>
+    </Content>
+    <EmbeddedResource Include="Reports\SBYF_A4_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>SBYF_A4_Report.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Content Include="Reports\CMYF_A4_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>CMYF_A4_Report.cs</LastGenOutput>
+    </Content>
+    <None Include="Models\SaleDB.dbml.layout">
+      <DependentUpon>SaleDB.dbml</DependentUpon>
+    </None>
+    <Content Include="App_GlobalResources\MB_Segement.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>MB_Segement.Designer.cs</LastGenOutput>
+    </Content>
+    <Content Include="App_GlobalResources\CM_Segement.resx">
+      <Generator>GlobalResourceProxyGenerator</Generator>
+      <LastGenOutput>CM_Segement.Designer.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\SO_A5_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>SO_A5_Report.cs</LastGenOutput>
+    </Content>
+    <Content Include="Reports\SO_free_A5_Report.rpt">
+      <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
+      <LastGenOutput>SO_free_A5_Report.cs</LastGenOutput>
+    </Content>
+    <Content Include="Resources\en-us.resx" />
+    <EmbeddedResource Include="App_GlobalResources\SO_Segement.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SO_Segement.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Content Include="Resources\zh-cn.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="CRDESIGNERLib">
+      <Guid>{C0AA5023-C763-4A4B-AFED-ADCF78D6C08B}</Guid>
+      <VersionMajor>13</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
+    <Service Include="{C0C07587-41A7-46C8-8FBD-3F9C8EBE2DDC}" />
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>9149</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+</Project>

@@ -1,0 +1,191 @@
+﻿@using Sale_Order.Models;
+@{
+    List<VwResendBill> list = (List<VwResendBill>)ViewData["list"];
+    VwResendBill vw=list.First();
+    List<BlockOrder> blocks = (List<BlockOrder>)ViewData["blockInfo"];
+}
+<script type="text/javascript">
+    $(function () {
+    
+        $("#bill_detail").datagrid({
+            //height: "140",
+            width: "1200",
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[ 
+                        { field: 'FRenturnBillDetailID', title: 'FDetailID', hidden: true },
+                        { field: 'FStockNumber', title: '销售出库单号', width: 90 },
+    					{ field: 'FProductNumber', title: '产品编码', width: 90 },
+    					{ field: 'FProductName', title: '产品名称', width: 140 },
+                        { field: 'FProductModel', title: '规格型号', width: 130 },
+                        { field: 'FReturnQty', title: '退换货数量', width: 70, align: 'right' },
+    					{ field: 'FHasReturnQty', title: '已换数量', width: 70, align: 'right' },
+                        { field: 'FCanRentrunQty', title: '可换数量', width: 70, align: 'right' },
+                        { field: 'FApplyQty', title: '申请数量', width: 70, align: 'right' ,editor:{type:'numberbox',options:{precision:4}}},
+                        { field: 'FComment', title: '备注', width: 200,editor:'text' }
+    				]]
+        });
+
+        $("#order_div input[type='text'],textarea").attr("readonly", "readonly");
+        $("input[type='radio']").not("input:checked").attr("disabled", "true");
+
+    });
+    
+  
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    @*订单内容*@
+    <div data-options="region:'center'">
+<div id="order_div" class="easyui-panel" title="查看换货申请" style="width: 780px; padding: 10px;
+    background: #fafafa; +position: relative;">
+    <div>
+        @*表头*@
+        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+            <tr>
+                <td>
+                    换货日期:
+                </td>
+                <td>
+                    <input type="text" value="@(((DateTime)vw.fdate).ToShortDateString())" style="width:120px"/>
+                </td>
+                <td>
+                    换货编号:
+                </td>
+                <td>
+                    <span id="theSysNo">@vw.sys_no</span> 
+                </td>
+                <td>
+                    状态:
+                </td>
+                <td>
+                    <span style="color: red" id="status">
+                        @ViewData["status"]
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    换货事业部:
+                </td>
+                <td>
+                    <input type="text" name="dep_name" value="@vw.dep_name" style="width:120px"/>
+                </td>
+                <td>
+                    客户编码:
+                </td>
+                <td>
+                    @vw.customer_no
+                </td>
+                <td>
+                    客户名称:
+                </td>
+                <td>
+                    @vw.customer_name
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    处理类型:
+                </td>
+                @if (vw.is_red == true)
+                {    
+                    <td>
+                        <input type="radio" name="is_red" value="0" />换货
+                        <input type="radio" name="is_red" value="1" checked="checked" />退红字
+                    </td>
+                }
+                else
+                { 
+                    <td>
+                        <input type="radio" name="is_red" value="0" checked="checked" />换货
+                        <input type="radio" name="is_red" value="1" />退红字
+                    </td>
+                }
+                <td>
+                    业务员
+                </td>
+                <td>
+                    @vw.emp_name
+                </td>
+                <td>
+                    制单人:
+                </td>
+                <td>
+                    @vw.user_name
+                </td>
+            </tr>
+            <tr>
+                <td>说明:</td>
+                <td colspan="5"><textarea cols="83" rows="2" name="description" id="description" style="margin: 0;">@vw.description</textarea></td>
+            </tr>
+        </table>
+    </div>
+    <br />
+    <div>
+        @*表体*@
+        <div id="detail_div" class="easyui-panel" title="换货信息明细" style="+position: relative;
+            width: 740px; height: 185px">
+            <table id="bill_detail">
+                @foreach (var li in list)
+                { 
+                    <tr>
+                        <td>@li.return_bill_detail_id</td>
+                        <td>@li.stock_no</td>
+                        <td>@li.product_number</td>
+                        <td>@li.product_name</td>
+                        <td>@li.product_model</td>
+                        <td>@li.return_qty</td>
+                        <td>@(li.has_replace_qty + li.has_red_qty)</td>
+                        <td>@(li.return_qty-li.has_replace_qty-li.has_red_qty)</td>
+                        <td>@li.resend_num</td>
+                        <td>@li.comment</td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+    <br />        
+</div>
+</div>
+@*挂起信息*@
+    @if (blocks.Count()>0)
+    { 
+        <div data-options="region:'north',title:'订单挂起信息',split:true" style="background: #fafafa; height: 74px;
+            padding: 3px 10px;">
+            <table style="border: 0;  text-align: center" cellspacing="0">
+                <tr style="font-weight:bold;">
+                    <td style="width: 100px;border-bottom:1px solid;">
+                        审核步骤
+                    </td>
+                    <td style="width: 80px;border-bottom:1px solid;">
+                        操作人
+                    </td>
+                    <td style="width: 120px;border-bottom:1px solid;">
+                        挂起时间
+                    </td>
+                    <td style="width:450px;border-bottom:1px solid;">
+                        挂起原因
+                    </td>
+                </tr>
+                @foreach (var blo in blocks)
+                {
+                <tr>
+                    <td>
+                        @blo.step_name
+                    </td>
+                    <td>
+                        @blo.User.real_name
+                    </td>
+                    <td>
+                        @(((DateTime)(blo.block_time)).ToString("yyyy-MM-dd HH:mm"))
+                    </td>
+                    <td>
+                        @blo.reason
+                    </td>
+                </tr>
+                }
+            </table>
+        </div>
+    }
+</div>
