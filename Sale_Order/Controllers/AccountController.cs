@@ -47,6 +47,15 @@ namespace Sale_Order.Controllers
                     return Redirect("../" + utl.MyUrlDecoder(url));
                 }
             }
+            else if (("ele").Equals(accountset) && Request.Cookies["order_ele_cookie"] != null) {
+                utl.writeEventLog("登录系统", "从邮件直接跳转到：电子:" + url, "", Request);
+                if ((bool)isInnerFrame) {
+                    return Redirect("../../SaleOrder_ele/Home/Main?url=" + url);
+                }
+                else {
+                    return Redirect("../../SaleOrder_ele/" + utl.MyUrlDecoder(url));
+                }
+            }
 
             ViewData["myName"] = utl.EncodeToGBK("liyihan.ic@truly.com.cn");
             ViewData["mySub"] = utl.EncodeToGBK("申请重置密码");
@@ -96,12 +105,15 @@ namespace Sale_Order.Controllers
                 return Json(new { success = false, msg = ex.Message }, "text/html");
             }
 
-            HttpCookie cookie;
+            HttpCookie cookie=new HttpCookie("order");
             if ("op".Equals(cop)) {
                 cookie = new HttpCookie("order_cookie");
             }
-            else {
+            else if ("semi".Equals(cop)) {
                 cookie = new HttpCookie("order_semi_cookie");
+            }
+            else if("ele".Equals(cop)){
+                cookie = new HttpCookie("order_ele_cookie");
             }
             cookie.Expires = DateTime.Now.AddHours(8);
             cookie.Values.Add("userid", id.ToString());
@@ -149,6 +161,9 @@ namespace Sale_Order.Controllers
             }
             else if ("semi".Equals(cop)) {
                 userId = Int32.Parse(Request.Cookies["order_semi_cookie"]["userid"]);
+            }
+            else if ("ele".Equals(cop)) {
+                userId = Int32.Parse(Request.Cookies["order_ele_cookie"]["userid"]);
             }
             SomeUtils utl = new SomeUtils();
             //验证是否复杂密码

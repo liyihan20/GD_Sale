@@ -1646,6 +1646,44 @@
       <Association Name="User_ModelContract" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
+  <Table Name="dbo.Sale_BL_details" Member="Sale_BL_details">
+    <Type Name="Sale_BL_details">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="bl_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="levels" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="fnumber" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="fmodel" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="fname" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="unitname" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="fqty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="total_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="highest_price" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="source" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL" ThisKey="bl_id" OtherKey="id" Type="Sale_BL" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.vw_BL_plugin" Member="vw_BL_plugin">
+    <Type Name="vw_BL_plugin">
+      <Column Name="原销售订单" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="海外客户" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="购货单位" Type="System.String" DbType="VarChar(5) NOT NULL" CanBeNull="false" />
+      <Column Name="贸易类型" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="生产部门" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="对应项目组" Type="System.String" DbType="VarChar(255)" CanBeNull="true" />
+      <Column Name="产品用途" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="摘要" Type="System.String" DbType="VarChar(66)" CanBeNull="true" />
+      <Column Name="业务员" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="订单批号" Type="System.String" DbType="VarChar(54)" CanBeNull="true" />
+      <Column Name="产品代码" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="数量" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="单价" Type="System.Decimal" DbType="Decimal(12,2)" CanBeNull="true" />
+      <Column Name="交货日期" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="[税率(%)]" Member="税率___" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="备注" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
+      <Column Name="源单单号" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+    </Type>
+  </Table>
   <Table Name="dbo.Sale_BL" Member="Sale_BL">
     <Type Name="Sale_BL">
       <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -1681,25 +1719,10 @@
       <Column Name="agency_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
       <Column Name="clerk_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="clerk_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="bl_project_other" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="planner" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
       <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL_details" ThisKey="id" OtherKey="bl_id" Type="Sale_BL_details" />
       <Association Name="User_Sale_BL" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.Sale_BL_details" Member="Sale_BL_details">
-    <Type Name="Sale_BL_details">
-      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="bl_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="levels" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
-      <Column Name="fnumber" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="fmodel" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="fname" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="unitname" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="fqty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="total_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="highest_price" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
-      <Column Name="source" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL" ThisKey="bl_id" OtherKey="id" Type="Sale_BL" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.Sale_BL_stock" Member="Sale_BL_stock">
@@ -1715,28 +1738,22 @@
       <Column Name="bl_time" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
       <Column Name="remain_qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="bus_dep" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="sys_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="Sale_BL_stock_Sale_BL_stock_details" Member="Sale_BL_stock_details" ThisKey="id" OtherKey="stock_id" Type="Sale_BL_stock_details" />
       <Association Name="User_Sale_BL_stock" Member="User" ThisKey="clerk_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
-  <Table Name="dbo.vw_BL_plugin" Member="vw_BL_plugin">
-    <Type Name="vw_BL_plugin">
-      <Column Name="原销售订单" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="海外客户" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="购货单位" Type="System.String" DbType="VarChar(5) NOT NULL" CanBeNull="false" />
-      <Column Name="贸易类型" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="生产部门" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="对应项目组" Type="System.String" DbType="VarChar(255)" CanBeNull="true" />
-      <Column Name="产品用途" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
-      <Column Name="摘要" Type="System.String" DbType="VarChar(66)" CanBeNull="true" />
-      <Column Name="业务员" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
-      <Column Name="订单批号" Type="System.String" DbType="VarChar(54)" CanBeNull="true" />
-      <Column Name="产品代码" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="数量" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="单价" Type="System.Decimal" DbType="Decimal(12,2)" CanBeNull="true" />
-      <Column Name="交货日期" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="[税率(%)]" Member="税率___" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="备注" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
-      <Column Name="源单单号" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+  <Table Name="dbo.Sale_BL_stock_details" Member="Sale_BL_stock_details">
+    <Type Name="Sale_BL_stock_details">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="stock_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="item_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="item_name" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="item_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="bl_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="k3_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="remain_qty" Type="System.Decimal" DbType="Decimal(18,10)" CanBeNull="true" />
+      <Association Name="Sale_BL_stock_Sale_BL_stock_details" Member="Sale_BL_stock" ThisKey="stock_id" OtherKey="id" Type="Sale_BL_stock" IsForeignKey="true" />
     </Type>
   </Table>
   <Function Name="dbo.getGroupBelongToUnit" Method="getGroupBelongToUnit">

@@ -165,15 +165,18 @@ namespace Sale_Order.Models
     partial void InsertModelContract(ModelContract instance);
     partial void UpdateModelContract(ModelContract instance);
     partial void DeleteModelContract(ModelContract instance);
-    partial void InsertSale_BL(Sale_BL instance);
-    partial void UpdateSale_BL(Sale_BL instance);
-    partial void DeleteSale_BL(Sale_BL instance);
     partial void InsertSale_BL_details(Sale_BL_details instance);
     partial void UpdateSale_BL_details(Sale_BL_details instance);
     partial void DeleteSale_BL_details(Sale_BL_details instance);
+    partial void InsertSale_BL(Sale_BL instance);
+    partial void UpdateSale_BL(Sale_BL instance);
+    partial void DeleteSale_BL(Sale_BL instance);
     partial void InsertSale_BL_stock(Sale_BL_stock instance);
     partial void UpdateSale_BL_stock(Sale_BL_stock instance);
     partial void DeleteSale_BL_stock(Sale_BL_stock instance);
+    partial void InsertSale_BL_stock_details(Sale_BL_stock_details instance);
+    partial void UpdateSale_BL_stock_details(Sale_BL_stock_details instance);
+    partial void DeleteSale_BL_stock_details(Sale_BL_stock_details instance);
     #endregion
 		
 		public SaleDBDataContext() : 
@@ -758,19 +761,27 @@ namespace Sale_Order.Models
 			}
 		}
 		
-		public System.Data.Linq.Table<Sale_BL> Sale_BL
-		{
-			get
-			{
-				return this.GetTable<Sale_BL>();
-			}
-		}
-		
 		public System.Data.Linq.Table<Sale_BL_details> Sale_BL_details
 		{
 			get
 			{
 				return this.GetTable<Sale_BL_details>();
+			}
+		}
+		
+		public System.Data.Linq.Table<vw_BL_plugin> vw_BL_plugin
+		{
+			get
+			{
+				return this.GetTable<vw_BL_plugin>();
+			}
+		}
+		
+		public System.Data.Linq.Table<Sale_BL> Sale_BL
+		{
+			get
+			{
+				return this.GetTable<Sale_BL>();
 			}
 		}
 		
@@ -782,11 +793,11 @@ namespace Sale_Order.Models
 			}
 		}
 		
-		public System.Data.Linq.Table<vw_BL_plugin> vw_BL_plugin
+		public System.Data.Linq.Table<Sale_BL_stock_details> Sale_BL_stock_details
 		{
 			get
 			{
-				return this.GetTable<vw_BL_plugin>();
+				return this.GetTable<Sale_BL_stock_details>();
 			}
 		}
 		
@@ -32364,6 +32375,688 @@ namespace Sale_Order.Models
 		}
 	}
 	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.Sale_BL_details")]
+	public partial class Sale_BL_details : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _id;
+		
+		private System.Nullable<int> _bl_id;
+		
+		private string _levels;
+		
+		private string _fnumber;
+		
+		private string _fmodel;
+		
+		private string _fname;
+		
+		private string _unitname;
+		
+		private System.Nullable<decimal> _fqty;
+		
+		private System.Nullable<decimal> _total_qty;
+		
+		private System.Nullable<decimal> _highest_price;
+		
+		private string _comment;
+		
+		private string _source;
+		
+		private EntityRef<Sale_BL> _Sale_BL;
+		
+    #region 可扩展性方法定义
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(int value);
+    partial void OnidChanged();
+    partial void Onbl_idChanging(System.Nullable<int> value);
+    partial void Onbl_idChanged();
+    partial void OnlevelsChanging(string value);
+    partial void OnlevelsChanged();
+    partial void OnfnumberChanging(string value);
+    partial void OnfnumberChanged();
+    partial void OnfmodelChanging(string value);
+    partial void OnfmodelChanged();
+    partial void OnfnameChanging(string value);
+    partial void OnfnameChanged();
+    partial void OnunitnameChanging(string value);
+    partial void OnunitnameChanged();
+    partial void OnfqtyChanging(System.Nullable<decimal> value);
+    partial void OnfqtyChanged();
+    partial void Ontotal_qtyChanging(System.Nullable<decimal> value);
+    partial void Ontotal_qtyChanged();
+    partial void Onhighest_priceChanging(System.Nullable<decimal> value);
+    partial void Onhighest_priceChanged();
+    partial void OncommentChanging(string value);
+    partial void OncommentChanged();
+    partial void OnsourceChanging(string value);
+    partial void OnsourceChanged();
+    #endregion
+		
+		public Sale_BL_details()
+		{
+			this._Sale_BL = default(EntityRef<Sale_BL>);
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int id
+		{
+			get
+			{
+				return this._id;
+			}
+			set
+			{
+				if ((this._id != value))
+				{
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_bl_id", DbType="Int")]
+		public System.Nullable<int> bl_id
+		{
+			get
+			{
+				return this._bl_id;
+			}
+			set
+			{
+				if ((this._bl_id != value))
+				{
+					if (this._Sale_BL.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.Onbl_idChanging(value);
+					this.SendPropertyChanging();
+					this._bl_id = value;
+					this.SendPropertyChanged("bl_id");
+					this.Onbl_idChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_levels", DbType="VarChar(20)")]
+		public string levels
+		{
+			get
+			{
+				return this._levels;
+			}
+			set
+			{
+				if ((this._levels != value))
+				{
+					this.OnlevelsChanging(value);
+					this.SendPropertyChanging();
+					this._levels = value;
+					this.SendPropertyChanged("levels");
+					this.OnlevelsChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fnumber", DbType="VarChar(50)")]
+		public string fnumber
+		{
+			get
+			{
+				return this._fnumber;
+			}
+			set
+			{
+				if ((this._fnumber != value))
+				{
+					this.OnfnumberChanging(value);
+					this.SendPropertyChanging();
+					this._fnumber = value;
+					this.SendPropertyChanged("fnumber");
+					this.OnfnumberChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fmodel", DbType="VarChar(200)")]
+		public string fmodel
+		{
+			get
+			{
+				return this._fmodel;
+			}
+			set
+			{
+				if ((this._fmodel != value))
+				{
+					this.OnfmodelChanging(value);
+					this.SendPropertyChanging();
+					this._fmodel = value;
+					this.SendPropertyChanged("fmodel");
+					this.OnfmodelChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fname", DbType="VarChar(200)")]
+		public string fname
+		{
+			get
+			{
+				return this._fname;
+			}
+			set
+			{
+				if ((this._fname != value))
+				{
+					this.OnfnameChanging(value);
+					this.SendPropertyChanging();
+					this._fname = value;
+					this.SendPropertyChanged("fname");
+					this.OnfnameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_unitname", DbType="VarChar(50)")]
+		public string unitname
+		{
+			get
+			{
+				return this._unitname;
+			}
+			set
+			{
+				if ((this._unitname != value))
+				{
+					this.OnunitnameChanging(value);
+					this.SendPropertyChanging();
+					this._unitname = value;
+					this.SendPropertyChanged("unitname");
+					this.OnunitnameChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fqty", DbType="Decimal(28,10)")]
+		public System.Nullable<decimal> fqty
+		{
+			get
+			{
+				return this._fqty;
+			}
+			set
+			{
+				if ((this._fqty != value))
+				{
+					this.OnfqtyChanging(value);
+					this.SendPropertyChanging();
+					this._fqty = value;
+					this.SendPropertyChanged("fqty");
+					this.OnfqtyChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_total_qty", DbType="Decimal(28,10)")]
+		public System.Nullable<decimal> total_qty
+		{
+			get
+			{
+				return this._total_qty;
+			}
+			set
+			{
+				if ((this._total_qty != value))
+				{
+					this.Ontotal_qtyChanging(value);
+					this.SendPropertyChanging();
+					this._total_qty = value;
+					this.SendPropertyChanged("total_qty");
+					this.Ontotal_qtyChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_highest_price", DbType="Decimal(28,10)")]
+		public System.Nullable<decimal> highest_price
+		{
+			get
+			{
+				return this._highest_price;
+			}
+			set
+			{
+				if ((this._highest_price != value))
+				{
+					this.Onhighest_priceChanging(value);
+					this.SendPropertyChanging();
+					this._highest_price = value;
+					this.SendPropertyChanged("highest_price");
+					this.Onhighest_priceChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_comment", DbType="VarChar(500)")]
+		public string comment
+		{
+			get
+			{
+				return this._comment;
+			}
+			set
+			{
+				if ((this._comment != value))
+				{
+					this.OncommentChanging(value);
+					this.SendPropertyChanging();
+					this._comment = value;
+					this.SendPropertyChanged("comment");
+					this.OncommentChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_source", DbType="VarChar(50)")]
+		public string source
+		{
+			get
+			{
+				return this._source;
+			}
+			set
+			{
+				if ((this._source != value))
+				{
+					this.OnsourceChanging(value);
+					this.SendPropertyChanging();
+					this._source = value;
+					this.SendPropertyChanged("source");
+					this.OnsourceChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Sale_BL_Sale_BL_details", Storage="_Sale_BL", ThisKey="bl_id", OtherKey="id", IsForeignKey=true)]
+		public Sale_BL Sale_BL
+		{
+			get
+			{
+				return this._Sale_BL.Entity;
+			}
+			set
+			{
+				Sale_BL previousValue = this._Sale_BL.Entity;
+				if (((previousValue != value) 
+							|| (this._Sale_BL.HasLoadedOrAssignedValue == false)))
+				{
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._Sale_BL.Entity = null;
+						previousValue.Sale_BL_details.Remove(this);
+					}
+					this._Sale_BL.Entity = value;
+					if ((value != null))
+					{
+						value.Sale_BL_details.Add(this);
+						this._bl_id = value.id;
+					}
+					else
+					{
+						this._bl_id = default(Nullable<int>);
+					}
+					this.SendPropertyChanged("Sale_BL");
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.vw_BL_plugin")]
+	public partial class vw_BL_plugin
+	{
+		
+		private string _原销售订单;
+		
+		private string _海外客户;
+		
+		private string _购货单位;
+		
+		private string _贸易类型;
+		
+		private string _生产部门;
+		
+		private string _对应项目组;
+		
+		private string _产品用途;
+		
+		private string _摘要;
+		
+		private string _业务员;
+		
+		private string _订单批号;
+		
+		private string _产品代码;
+		
+		private System.Nullable<int> _数量;
+		
+		private System.Nullable<decimal> _单价;
+		
+		private string _交货日期;
+		
+		private int _税率___;
+		
+		private string _备注;
+		
+		private string _源单单号;
+		
+		public vw_BL_plugin()
+		{
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_原销售订单", DbType="VarChar(50)")]
+		public string 原销售订单
+		{
+			get
+			{
+				return this._原销售订单;
+			}
+			set
+			{
+				if ((this._原销售订单 != value))
+				{
+					this._原销售订单 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_海外客户", DbType="VarChar(50)")]
+		public string 海外客户
+		{
+			get
+			{
+				return this._海外客户;
+			}
+			set
+			{
+				if ((this._海外客户 != value))
+				{
+					this._海外客户 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_购货单位", DbType="VarChar(5) NOT NULL", CanBeNull=false)]
+		public string 购货单位
+		{
+			get
+			{
+				return this._购货单位;
+			}
+			set
+			{
+				if ((this._购货单位 != value))
+				{
+					this._购货单位 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_贸易类型", DbType="VarChar(50)")]
+		public string 贸易类型
+		{
+			get
+			{
+				return this._贸易类型;
+			}
+			set
+			{
+				if ((this._贸易类型 != value))
+				{
+					this._贸易类型 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_生产部门", DbType="VarChar(50)")]
+		public string 生产部门
+		{
+			get
+			{
+				return this._生产部门;
+			}
+			set
+			{
+				if ((this._生产部门 != value))
+				{
+					this._生产部门 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_对应项目组", DbType="VarChar(255)")]
+		public string 对应项目组
+		{
+			get
+			{
+				return this._对应项目组;
+			}
+			set
+			{
+				if ((this._对应项目组 != value))
+				{
+					this._对应项目组 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_产品用途", DbType="VarChar(500)")]
+		public string 产品用途
+		{
+			get
+			{
+				return this._产品用途;
+			}
+			set
+			{
+				if ((this._产品用途 != value))
+				{
+					this._产品用途 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_摘要", DbType="VarChar(66)")]
+		public string 摘要
+		{
+			get
+			{
+				return this._摘要;
+			}
+			set
+			{
+				if ((this._摘要 != value))
+				{
+					this._摘要 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_业务员", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
+		public string 业务员
+		{
+			get
+			{
+				return this._业务员;
+			}
+			set
+			{
+				if ((this._业务员 != value))
+				{
+					this._业务员 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_订单批号", DbType="VarChar(54)")]
+		public string 订单批号
+		{
+			get
+			{
+				return this._订单批号;
+			}
+			set
+			{
+				if ((this._订单批号 != value))
+				{
+					this._订单批号 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_产品代码", DbType="VarChar(50)")]
+		public string 产品代码
+		{
+			get
+			{
+				return this._产品代码;
+			}
+			set
+			{
+				if ((this._产品代码 != value))
+				{
+					this._产品代码 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_数量", DbType="Int")]
+		public System.Nullable<int> 数量
+		{
+			get
+			{
+				return this._数量;
+			}
+			set
+			{
+				if ((this._数量 != value))
+				{
+					this._数量 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_单价", DbType="Decimal(12,2)")]
+		public System.Nullable<decimal> 单价
+		{
+			get
+			{
+				return this._单价;
+			}
+			set
+			{
+				if ((this._单价 != value))
+				{
+					this._单价 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_交货日期", DbType="VarChar(50)")]
+		public string 交货日期
+		{
+			get
+			{
+				return this._交货日期;
+			}
+			set
+			{
+				if ((this._交货日期 != value))
+				{
+					this._交货日期 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="[税率(%)]", Storage="_税率___", DbType="Int NOT NULL")]
+		public int 税率___
+		{
+			get
+			{
+				return this._税率___;
+			}
+			set
+			{
+				if ((this._税率___ != value))
+				{
+					this._税率___ = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_备注", DbType="VarChar(1000)")]
+		public string 备注
+		{
+			get
+			{
+				return this._备注;
+			}
+			set
+			{
+				if ((this._备注 != value))
+				{
+					this._备注 = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_源单单号", DbType="VarChar(50)")]
+		public string 源单单号
+		{
+			get
+			{
+				return this._源单单号;
+			}
+			set
+			{
+				if ((this._源单单号 != value))
+				{
+					this._源单单号 = value;
+				}
+			}
+		}
+	}
+	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.Sale_BL")]
 	public partial class Sale_BL : INotifyPropertyChanging, INotifyPropertyChanged
 	{
@@ -32435,6 +33128,10 @@ namespace Sale_Order.Models
 		private string _clerk_name;
 		
 		private string _clerk_no;
+		
+		private string _bl_project_other;
+		
+		private string _planner;
 		
 		private EntitySet<Sale_BL_details> _Sale_BL_details;
 		
@@ -32510,6 +33207,10 @@ namespace Sale_Order.Models
     partial void Onclerk_nameChanged();
     partial void Onclerk_noChanging(string value);
     partial void Onclerk_noChanged();
+    partial void Onbl_project_otherChanging(string value);
+    partial void Onbl_project_otherChanged();
+    partial void OnplannerChanging(string value);
+    partial void OnplannerChanged();
     #endregion
 		
 		public Sale_BL()
@@ -33183,6 +33884,46 @@ namespace Sale_Order.Models
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_bl_project_other", DbType="VarChar(100)")]
+		public string bl_project_other
+		{
+			get
+			{
+				return this._bl_project_other;
+			}
+			set
+			{
+				if ((this._bl_project_other != value))
+				{
+					this.Onbl_project_otherChanging(value);
+					this.SendPropertyChanging();
+					this._bl_project_other = value;
+					this.SendPropertyChanged("bl_project_other");
+					this.Onbl_project_otherChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_planner", DbType="VarChar(100)")]
+		public string planner
+		{
+			get
+			{
+				return this._planner;
+			}
+			set
+			{
+				if ((this._planner != value))
+				{
+					this.OnplannerChanging(value);
+					this.SendPropertyChanging();
+					this._planner = value;
+					this.SendPropertyChanged("planner");
+					this.OnplannerChanged();
+				}
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Sale_BL_Sale_BL_details", Storage="_Sale_BL_details", ThisKey="id", OtherKey="bl_id")]
 		public EntitySet<Sale_BL_details> Sale_BL_details
 		{
@@ -33263,373 +34004,6 @@ namespace Sale_Order.Models
 		}
 	}
 	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.Sale_BL_details")]
-	public partial class Sale_BL_details : INotifyPropertyChanging, INotifyPropertyChanged
-	{
-		
-		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
-		
-		private int _id;
-		
-		private System.Nullable<int> _bl_id;
-		
-		private string _levels;
-		
-		private string _fnumber;
-		
-		private string _fmodel;
-		
-		private string _fname;
-		
-		private string _unitname;
-		
-		private System.Nullable<decimal> _fqty;
-		
-		private System.Nullable<decimal> _total_qty;
-		
-		private System.Nullable<decimal> _highest_price;
-		
-		private string _comment;
-		
-		private string _source;
-		
-		private EntityRef<Sale_BL> _Sale_BL;
-		
-    #region 可扩展性方法定义
-    partial void OnLoaded();
-    partial void OnValidate(System.Data.Linq.ChangeAction action);
-    partial void OnCreated();
-    partial void OnidChanging(int value);
-    partial void OnidChanged();
-    partial void Onbl_idChanging(System.Nullable<int> value);
-    partial void Onbl_idChanged();
-    partial void OnlevelsChanging(string value);
-    partial void OnlevelsChanged();
-    partial void OnfnumberChanging(string value);
-    partial void OnfnumberChanged();
-    partial void OnfmodelChanging(string value);
-    partial void OnfmodelChanged();
-    partial void OnfnameChanging(string value);
-    partial void OnfnameChanged();
-    partial void OnunitnameChanging(string value);
-    partial void OnunitnameChanged();
-    partial void OnfqtyChanging(System.Nullable<decimal> value);
-    partial void OnfqtyChanged();
-    partial void Ontotal_qtyChanging(System.Nullable<decimal> value);
-    partial void Ontotal_qtyChanged();
-    partial void Onhighest_priceChanging(System.Nullable<decimal> value);
-    partial void Onhighest_priceChanged();
-    partial void OncommentChanging(string value);
-    partial void OncommentChanged();
-    partial void OnsourceChanging(string value);
-    partial void OnsourceChanged();
-    #endregion
-		
-		public Sale_BL_details()
-		{
-			this._Sale_BL = default(EntityRef<Sale_BL>);
-			OnCreated();
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
-		public int id
-		{
-			get
-			{
-				return this._id;
-			}
-			set
-			{
-				if ((this._id != value))
-				{
-					this.OnidChanging(value);
-					this.SendPropertyChanging();
-					this._id = value;
-					this.SendPropertyChanged("id");
-					this.OnidChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_bl_id", DbType="Int")]
-		public System.Nullable<int> bl_id
-		{
-			get
-			{
-				return this._bl_id;
-			}
-			set
-			{
-				if ((this._bl_id != value))
-				{
-					if (this._Sale_BL.HasLoadedOrAssignedValue)
-					{
-						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
-					}
-					this.Onbl_idChanging(value);
-					this.SendPropertyChanging();
-					this._bl_id = value;
-					this.SendPropertyChanged("bl_id");
-					this.Onbl_idChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_levels", DbType="VarChar(20)")]
-		public string levels
-		{
-			get
-			{
-				return this._levels;
-			}
-			set
-			{
-				if ((this._levels != value))
-				{
-					this.OnlevelsChanging(value);
-					this.SendPropertyChanging();
-					this._levels = value;
-					this.SendPropertyChanged("levels");
-					this.OnlevelsChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fnumber", DbType="VarChar(50)")]
-		public string fnumber
-		{
-			get
-			{
-				return this._fnumber;
-			}
-			set
-			{
-				if ((this._fnumber != value))
-				{
-					this.OnfnumberChanging(value);
-					this.SendPropertyChanging();
-					this._fnumber = value;
-					this.SendPropertyChanged("fnumber");
-					this.OnfnumberChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fmodel", DbType="VarChar(200)")]
-		public string fmodel
-		{
-			get
-			{
-				return this._fmodel;
-			}
-			set
-			{
-				if ((this._fmodel != value))
-				{
-					this.OnfmodelChanging(value);
-					this.SendPropertyChanging();
-					this._fmodel = value;
-					this.SendPropertyChanged("fmodel");
-					this.OnfmodelChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fname", DbType="VarChar(200)")]
-		public string fname
-		{
-			get
-			{
-				return this._fname;
-			}
-			set
-			{
-				if ((this._fname != value))
-				{
-					this.OnfnameChanging(value);
-					this.SendPropertyChanging();
-					this._fname = value;
-					this.SendPropertyChanged("fname");
-					this.OnfnameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_unitname", DbType="VarChar(50)")]
-		public string unitname
-		{
-			get
-			{
-				return this._unitname;
-			}
-			set
-			{
-				if ((this._unitname != value))
-				{
-					this.OnunitnameChanging(value);
-					this.SendPropertyChanging();
-					this._unitname = value;
-					this.SendPropertyChanged("unitname");
-					this.OnunitnameChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_fqty", DbType="Decimal(28,10)")]
-		public System.Nullable<decimal> fqty
-		{
-			get
-			{
-				return this._fqty;
-			}
-			set
-			{
-				if ((this._fqty != value))
-				{
-					this.OnfqtyChanging(value);
-					this.SendPropertyChanging();
-					this._fqty = value;
-					this.SendPropertyChanged("fqty");
-					this.OnfqtyChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_total_qty", DbType="Decimal(28,10)")]
-		public System.Nullable<decimal> total_qty
-		{
-			get
-			{
-				return this._total_qty;
-			}
-			set
-			{
-				if ((this._total_qty != value))
-				{
-					this.Ontotal_qtyChanging(value);
-					this.SendPropertyChanging();
-					this._total_qty = value;
-					this.SendPropertyChanged("total_qty");
-					this.Ontotal_qtyChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_highest_price", DbType="Decimal(28,10)")]
-		public System.Nullable<decimal> highest_price
-		{
-			get
-			{
-				return this._highest_price;
-			}
-			set
-			{
-				if ((this._highest_price != value))
-				{
-					this.Onhighest_priceChanging(value);
-					this.SendPropertyChanging();
-					this._highest_price = value;
-					this.SendPropertyChanged("highest_price");
-					this.Onhighest_priceChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_comment", DbType="VarChar(500)")]
-		public string comment
-		{
-			get
-			{
-				return this._comment;
-			}
-			set
-			{
-				if ((this._comment != value))
-				{
-					this.OncommentChanging(value);
-					this.SendPropertyChanging();
-					this._comment = value;
-					this.SendPropertyChanged("comment");
-					this.OncommentChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_source", DbType="VarChar(50)")]
-		public string source
-		{
-			get
-			{
-				return this._source;
-			}
-			set
-			{
-				if ((this._source != value))
-				{
-					this.OnsourceChanging(value);
-					this.SendPropertyChanging();
-					this._source = value;
-					this.SendPropertyChanged("source");
-					this.OnsourceChanged();
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Sale_BL_Sale_BL_details", Storage="_Sale_BL", ThisKey="bl_id", OtherKey="id", IsForeignKey=true)]
-		public Sale_BL Sale_BL
-		{
-			get
-			{
-				return this._Sale_BL.Entity;
-			}
-			set
-			{
-				Sale_BL previousValue = this._Sale_BL.Entity;
-				if (((previousValue != value) 
-							|| (this._Sale_BL.HasLoadedOrAssignedValue == false)))
-				{
-					this.SendPropertyChanging();
-					if ((previousValue != null))
-					{
-						this._Sale_BL.Entity = null;
-						previousValue.Sale_BL_details.Remove(this);
-					}
-					this._Sale_BL.Entity = value;
-					if ((value != null))
-					{
-						value.Sale_BL_details.Add(this);
-						this._bl_id = value.id;
-					}
-					else
-					{
-						this._bl_id = default(Nullable<int>);
-					}
-					this.SendPropertyChanged("Sale_BL");
-				}
-			}
-		}
-		
-		public event PropertyChangingEventHandler PropertyChanging;
-		
-		public event PropertyChangedEventHandler PropertyChanged;
-		
-		protected virtual void SendPropertyChanging()
-		{
-			if ((this.PropertyChanging != null))
-			{
-				this.PropertyChanging(this, emptyChangingEventArgs);
-			}
-		}
-		
-		protected virtual void SendPropertyChanged(String propertyName)
-		{
-			if ((this.PropertyChanged != null))
-			{
-				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-			}
-		}
-	}
-	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.Sale_BL_stock")]
 	public partial class Sale_BL_stock : INotifyPropertyChanging, INotifyPropertyChanged
 	{
@@ -33657,6 +34031,10 @@ namespace Sale_Order.Models
 		private System.Nullable<int> _remain_qty;
 		
 		private string _bus_dep;
+		
+		private string _sys_no;
+		
+		private EntitySet<Sale_BL_stock_details> _Sale_BL_stock_details;
 		
 		private EntityRef<User> _User;
 		
@@ -33686,10 +34064,13 @@ namespace Sale_Order.Models
     partial void Onremain_qtyChanged();
     partial void Onbus_depChanging(string value);
     partial void Onbus_depChanged();
+    partial void Onsys_noChanging(string value);
+    partial void Onsys_noChanged();
     #endregion
 		
 		public Sale_BL_stock()
 		{
+			this._Sale_BL_stock_details = new EntitySet<Sale_BL_stock_details>(new Action<Sale_BL_stock_details>(this.attach_Sale_BL_stock_details), new Action<Sale_BL_stock_details>(this.detach_Sale_BL_stock_details));
 			this._User = default(EntityRef<User>);
 			OnCreated();
 		}
@@ -33918,6 +34299,39 @@ namespace Sale_Order.Models
 			}
 		}
 		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_sys_no", DbType="VarChar(50)")]
+		public string sys_no
+		{
+			get
+			{
+				return this._sys_no;
+			}
+			set
+			{
+				if ((this._sys_no != value))
+				{
+					this.Onsys_noChanging(value);
+					this.SendPropertyChanging();
+					this._sys_no = value;
+					this.SendPropertyChanged("sys_no");
+					this.Onsys_noChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Sale_BL_stock_Sale_BL_stock_details", Storage="_Sale_BL_stock_details", ThisKey="id", OtherKey="stock_id")]
+		public EntitySet<Sale_BL_stock_details> Sale_BL_stock_details
+		{
+			get
+			{
+				return this._Sale_BL_stock_details;
+			}
+			set
+			{
+				this._Sale_BL_stock_details.Assign(value);
+			}
+		}
+		
 		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="User_Sale_BL_stock", Storage="_User", ThisKey="clerk_id", OtherKey="id", IsForeignKey=true)]
 		public User User
 		{
@@ -33971,319 +34385,287 @@ namespace Sale_Order.Models
 				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
 		}
+		
+		private void attach_Sale_BL_stock_details(Sale_BL_stock_details entity)
+		{
+			this.SendPropertyChanging();
+			entity.Sale_BL_stock = this;
+		}
+		
+		private void detach_Sale_BL_stock_details(Sale_BL_stock_details entity)
+		{
+			this.SendPropertyChanging();
+			entity.Sale_BL_stock = null;
+		}
 	}
 	
-	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.vw_BL_plugin")]
-	public partial class vw_BL_plugin
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.Sale_BL_stock_details")]
+	public partial class Sale_BL_stock_details : INotifyPropertyChanging, INotifyPropertyChanged
 	{
 		
-		private string _原销售订单;
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
 		
-		private string _海外客户;
+		private int _id;
 		
-		private string _购货单位;
+		private System.Nullable<int> _stock_id;
 		
-		private string _贸易类型;
+		private string _item_no;
 		
-		private string _生产部门;
+		private string _item_name;
 		
-		private string _对应项目组;
+		private string _item_model;
 		
-		private string _产品用途;
+		private System.Nullable<decimal> _bl_qty;
 		
-		private string _摘要;
+		private System.Nullable<decimal> _k3_qty;
 		
-		private string _业务员;
+		private System.Nullable<decimal> _remain_qty;
 		
-		private string _订单批号;
+		private EntityRef<Sale_BL_stock> _Sale_BL_stock;
 		
-		private string _产品代码;
+    #region 可扩展性方法定义
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnidChanging(int value);
+    partial void OnidChanged();
+    partial void Onstock_idChanging(System.Nullable<int> value);
+    partial void Onstock_idChanged();
+    partial void Onitem_noChanging(string value);
+    partial void Onitem_noChanged();
+    partial void Onitem_nameChanging(string value);
+    partial void Onitem_nameChanged();
+    partial void Onitem_modelChanging(string value);
+    partial void Onitem_modelChanged();
+    partial void Onbl_qtyChanging(System.Nullable<decimal> value);
+    partial void Onbl_qtyChanged();
+    partial void Onk3_qtyChanging(System.Nullable<decimal> value);
+    partial void Onk3_qtyChanged();
+    partial void Onremain_qtyChanging(System.Nullable<decimal> value);
+    partial void Onremain_qtyChanged();
+    #endregion
 		
-		private System.Nullable<int> _数量;
-		
-		private System.Nullable<decimal> _单价;
-		
-		private string _交货日期;
-		
-		private int _税率___;
-		
-		private string _备注;
-		
-		private string _源单单号;
-		
-		public vw_BL_plugin()
+		public Sale_BL_stock_details()
 		{
+			this._Sale_BL_stock = default(EntityRef<Sale_BL_stock>);
+			OnCreated();
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_原销售订单", DbType="VarChar(50)")]
-		public string 原销售订单
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int id
 		{
 			get
 			{
-				return this._原销售订单;
+				return this._id;
 			}
 			set
 			{
-				if ((this._原销售订单 != value))
+				if ((this._id != value))
 				{
-					this._原销售订单 = value;
+					this.OnidChanging(value);
+					this.SendPropertyChanging();
+					this._id = value;
+					this.SendPropertyChanged("id");
+					this.OnidChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_海外客户", DbType="VarChar(50)")]
-		public string 海外客户
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_stock_id", DbType="Int")]
+		public System.Nullable<int> stock_id
 		{
 			get
 			{
-				return this._海外客户;
+				return this._stock_id;
 			}
 			set
 			{
-				if ((this._海外客户 != value))
+				if ((this._stock_id != value))
 				{
-					this._海外客户 = value;
+					if (this._Sale_BL_stock.HasLoadedOrAssignedValue)
+					{
+						throw new System.Data.Linq.ForeignKeyReferenceAlreadyHasValueException();
+					}
+					this.Onstock_idChanging(value);
+					this.SendPropertyChanging();
+					this._stock_id = value;
+					this.SendPropertyChanged("stock_id");
+					this.Onstock_idChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_购货单位", DbType="VarChar(5) NOT NULL", CanBeNull=false)]
-		public string 购货单位
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_item_no", DbType="VarChar(50)")]
+		public string item_no
 		{
 			get
 			{
-				return this._购货单位;
+				return this._item_no;
 			}
 			set
 			{
-				if ((this._购货单位 != value))
+				if ((this._item_no != value))
 				{
-					this._购货单位 = value;
+					this.Onitem_noChanging(value);
+					this.SendPropertyChanging();
+					this._item_no = value;
+					this.SendPropertyChanged("item_no");
+					this.Onitem_noChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_贸易类型", DbType="VarChar(50)")]
-		public string 贸易类型
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_item_name", DbType="VarChar(200)")]
+		public string item_name
 		{
 			get
 			{
-				return this._贸易类型;
+				return this._item_name;
 			}
 			set
 			{
-				if ((this._贸易类型 != value))
+				if ((this._item_name != value))
 				{
-					this._贸易类型 = value;
+					this.Onitem_nameChanging(value);
+					this.SendPropertyChanging();
+					this._item_name = value;
+					this.SendPropertyChanged("item_name");
+					this.Onitem_nameChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_生产部门", DbType="VarChar(50)")]
-		public string 生产部门
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_item_model", DbType="VarChar(200)")]
+		public string item_model
 		{
 			get
 			{
-				return this._生产部门;
+				return this._item_model;
 			}
 			set
 			{
-				if ((this._生产部门 != value))
+				if ((this._item_model != value))
 				{
-					this._生产部门 = value;
+					this.Onitem_modelChanging(value);
+					this.SendPropertyChanging();
+					this._item_model = value;
+					this.SendPropertyChanged("item_model");
+					this.Onitem_modelChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_对应项目组", DbType="VarChar(255)")]
-		public string 对应项目组
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_bl_qty", DbType="Decimal(28,10)")]
+		public System.Nullable<decimal> bl_qty
 		{
 			get
 			{
-				return this._对应项目组;
+				return this._bl_qty;
 			}
 			set
 			{
-				if ((this._对应项目组 != value))
+				if ((this._bl_qty != value))
 				{
-					this._对应项目组 = value;
+					this.Onbl_qtyChanging(value);
+					this.SendPropertyChanging();
+					this._bl_qty = value;
+					this.SendPropertyChanged("bl_qty");
+					this.Onbl_qtyChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_产品用途", DbType="VarChar(500)")]
-		public string 产品用途
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_k3_qty", DbType="Decimal(28,10)")]
+		public System.Nullable<decimal> k3_qty
 		{
 			get
 			{
-				return this._产品用途;
+				return this._k3_qty;
 			}
 			set
 			{
-				if ((this._产品用途 != value))
+				if ((this._k3_qty != value))
 				{
-					this._产品用途 = value;
+					this.Onk3_qtyChanging(value);
+					this.SendPropertyChanging();
+					this._k3_qty = value;
+					this.SendPropertyChanged("k3_qty");
+					this.Onk3_qtyChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_摘要", DbType="VarChar(66)")]
-		public string 摘要
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_remain_qty", DbType="Decimal(18,10)")]
+		public System.Nullable<decimal> remain_qty
 		{
 			get
 			{
-				return this._摘要;
+				return this._remain_qty;
 			}
 			set
 			{
-				if ((this._摘要 != value))
+				if ((this._remain_qty != value))
 				{
-					this._摘要 = value;
+					this.Onremain_qtyChanging(value);
+					this.SendPropertyChanging();
+					this._remain_qty = value;
+					this.SendPropertyChanged("remain_qty");
+					this.Onremain_qtyChanged();
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_业务员", DbType="VarChar(50) NOT NULL", CanBeNull=false)]
-		public string 业务员
+		[global::System.Data.Linq.Mapping.AssociationAttribute(Name="Sale_BL_stock_Sale_BL_stock_details", Storage="_Sale_BL_stock", ThisKey="stock_id", OtherKey="id", IsForeignKey=true)]
+		public Sale_BL_stock Sale_BL_stock
 		{
 			get
 			{
-				return this._业务员;
+				return this._Sale_BL_stock.Entity;
 			}
 			set
 			{
-				if ((this._业务员 != value))
+				Sale_BL_stock previousValue = this._Sale_BL_stock.Entity;
+				if (((previousValue != value) 
+							|| (this._Sale_BL_stock.HasLoadedOrAssignedValue == false)))
 				{
-					this._业务员 = value;
+					this.SendPropertyChanging();
+					if ((previousValue != null))
+					{
+						this._Sale_BL_stock.Entity = null;
+						previousValue.Sale_BL_stock_details.Remove(this);
+					}
+					this._Sale_BL_stock.Entity = value;
+					if ((value != null))
+					{
+						value.Sale_BL_stock_details.Add(this);
+						this._stock_id = value.id;
+					}
+					else
+					{
+						this._stock_id = default(Nullable<int>);
+					}
+					this.SendPropertyChanged("Sale_BL_stock");
 				}
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_订单批号", DbType="VarChar(54)")]
-		public string 订单批号
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
 		{
-			get
+			if ((this.PropertyChanging != null))
 			{
-				return this._订单批号;
-			}
-			set
-			{
-				if ((this._订单批号 != value))
-				{
-					this._订单批号 = value;
-				}
+				this.PropertyChanging(this, emptyChangingEventArgs);
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_产品代码", DbType="VarChar(50)")]
-		public string 产品代码
+		protected virtual void SendPropertyChanged(String propertyName)
 		{
-			get
+			if ((this.PropertyChanged != null))
 			{
-				return this._产品代码;
-			}
-			set
-			{
-				if ((this._产品代码 != value))
-				{
-					this._产品代码 = value;
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_数量", DbType="Int")]
-		public System.Nullable<int> 数量
-		{
-			get
-			{
-				return this._数量;
-			}
-			set
-			{
-				if ((this._数量 != value))
-				{
-					this._数量 = value;
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_单价", DbType="Decimal(12,2)")]
-		public System.Nullable<decimal> 单价
-		{
-			get
-			{
-				return this._单价;
-			}
-			set
-			{
-				if ((this._单价 != value))
-				{
-					this._单价 = value;
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_交货日期", DbType="VarChar(50)")]
-		public string 交货日期
-		{
-			get
-			{
-				return this._交货日期;
-			}
-			set
-			{
-				if ((this._交货日期 != value))
-				{
-					this._交货日期 = value;
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Name="[税率(%)]", Storage="_税率___", DbType="Int NOT NULL")]
-		public int 税率___
-		{
-			get
-			{
-				return this._税率___;
-			}
-			set
-			{
-				if ((this._税率___ != value))
-				{
-					this._税率___ = value;
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_备注", DbType="VarChar(1000)")]
-		public string 备注
-		{
-			get
-			{
-				return this._备注;
-			}
-			set
-			{
-				if ((this._备注 != value))
-				{
-					this._备注 = value;
-				}
-			}
-		}
-		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_源单单号", DbType="VarChar(50)")]
-		public string 源单单号
-		{
-			get
-			{
-				return this._源单单号;
-			}
-			set
-			{
-				if ((this._源单单号 != value))
-				{
-					this._源单单号 = value;
-				}
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
 			}
 		}
 	}

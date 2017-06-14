@@ -188,7 +188,7 @@
                             product_model: detail.product_model,
                             qty: (detail.qty).toFixed(detail.qty_decimal),
                             quote_no: detail.quote_no,
-                            cost: (detail.cost).toFixed(detail.price_decimal),
+                            cost: (detail.cost).toFixed(3),
                             deal_price: (detail.deal_price).toFixed(detail.price_decimal),
                             unit_price: (detail.unit_price).toFixed(detail.price_decimal),
                             tax_rate:(detail.taxRate).toFixed(2),
@@ -344,7 +344,7 @@
                 $("#product_model").val(rowData.model);
                 //qty,cost,deal_price,Aux_tax_price
                 $("#qty").numberbox({ precision: rowData.qtyPrecision,value: ''});
-                $("#cost").numberbox({ precision: rowData.pricePrecision,value: ''});
+                $("#cost").numberbox({ precision: 3,value: ''});
                 $("#deal_price").numberbox({ precision: rowData.pricePrecision,value: ''});
                 $("#unit_price").numberbox({ precision: rowData.pricePrecision,value: ''});
                 $("#Aux_tax_price").numberbox({ precision: rowData.pricePrecision,value: ''});
@@ -639,7 +639,7 @@
         if (row) {
             detailIndex = $('#order_detail').datagrid('getRowIndex', row);
             $("#qty").numberbox({ precision: row.qtyPoint });
-            $("#cost").numberbox({ precision: row.pricePoint });
+            $("#cost").numberbox({ precision: 3 });
             $("#deal_price").numberbox({ precision: row.pricePoint });
             $("#unit_price").numberbox({ precision: row.pricePoint });
             $("#Aux_tax_price").numberbox({ precision: row.pricePoint }); 

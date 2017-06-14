@@ -342,7 +342,7 @@
                                 @detail.unit_price
                             </td>
                             <td>
-                                @(Math.Round((decimal)detail.cost, (int)(detail.price_decimal)))
+                                @(Math.Round((decimal)detail.cost, 3))
                             </td>
                             <td>
                                 @(Math.Round((decimal)detail.deal_price, (int)(detail.price_decimal)))

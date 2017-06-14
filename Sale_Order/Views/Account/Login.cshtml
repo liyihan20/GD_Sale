@@ -106,6 +106,12 @@
                                     } else {
                                         cop_url = '../../SaleOrder_semi/';
                                     }
+                                } else if (result.cop == "ele") {
+                                    if ('@ViewData["isInnerFrame"]"' == 'true' || '@ViewData["isInnerFrame"]' == 'True') {
+                                        cop_url = '../../SaleOrder_ele/Home/Main';
+                                    } else {
+                                        cop_url = '../../SaleOrder_ele/';
+                                    }
                                 }
                                 if ('@ViewData["url"]' != '') {
                                     if ('@ViewData["isInnerFrame"]"' == 'true' || '@ViewData["isInnerFrame"]' == 'True') {
@@ -195,7 +201,7 @@
                                             <input class="easyui-combobox" style="width: 140px;" name="cop" id="cop"
                                                    data-options="textField:'label',valueField:'value',panelHeight:'auto',required:true,editable:false,height:26,
                                                    data:[
-                                                   {label:' ',value:''},{label:'信利光电股份有限公司',value:'op'},{label:'信利半导体有限公司',value:'semi'}
+                                                   {label:' ',value:''},{label:'信利光电股份有限公司',value:'op'},{label:'信利半导体有限公司',value:'semi'},{label:'信利电子有限公司',value:'ele'}
                                                    ]" value="@ViewData["accountset"]" />
                                         </td>
                                     </tr>
