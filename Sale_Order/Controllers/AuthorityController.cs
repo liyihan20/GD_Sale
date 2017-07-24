@@ -1519,12 +1519,20 @@ namespace Sale_Order.Controllers
             string procDep = fcl.Get("proc_dep");
             fromDate = string.IsNullOrWhiteSpace(fromDate) ? "1901-1-1" : fromDate;
             toDate = string.IsNullOrWhiteSpace(toDate) ? "2099-9-9" : toDate;
+            string[] depArr;
             if ("all".Equals(procDep))
             {
-                procDep = db.User.Single(u => u.id == userId).can_check_deps;
+                string userCanCheckDeps = db.User.Single(u => u.id == userId).can_check_deps;
+                if (userCanCheckDeps.Equals("*")) {
+                    depArr = db.Department.Where(d => d.dep_type == "退货事业部").Select(d => d.name).ToArray();
+                }
+                else {
+                    depArr = userCanCheckDeps.Split(new Char[] { ',', '，' });
+                }
             }
-
-            var depArr = procDep.Split(new Char[] { ',', '，' });
+            else {
+                depArr = procDep.Split(new Char[] { ',', '，' });
+            }    
 
             var result = (from re in db.ReturnBill
                           join red in db.ReturnBillDetail on re.id equals red.bill_id

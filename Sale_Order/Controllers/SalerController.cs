@@ -1052,7 +1052,7 @@ namespace Sale_Order.Controllers
             {
                 if (!testFlag)
                 {
-                    ads = utl.getApplySequence(apply, processType, userId, db.User.Single(u => u.id == userId).department, ord.proc_dep_id);
+                    ads = utl.getApplySequence(apply, processType, userId, db.User.Single(u => u.id == userId).Department1.dep_no, ord.proc_dep_id);
                 }
                 else
                 {
