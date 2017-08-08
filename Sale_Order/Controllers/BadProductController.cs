@@ -651,7 +651,7 @@ namespace Sale_Order.Controllers
                 }
                 else
                 {
-                    ads = utl.getApplySequence(apply, processType, userId, db.User.Single(u => u.id == userId).department, produceDepId);
+                    ads = utl.getApplySequence(apply, processType, userId, db.User.Single(u => u.id == userId).Department1.dep_no, produceDepId);
                 }
             }
             catch (Exception ex)
