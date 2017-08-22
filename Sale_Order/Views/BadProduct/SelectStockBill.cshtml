@@ -168,11 +168,32 @@
                         break;
                     }
                 }       
-                if(flag==0){
-                    //将行加入到新的grid
-                    $("#selectList").datagrid("appendRow",rows[i]);
-                    //默认选择新加入的行
-                    $("#selectList").datagrid("checkRow",s_rows.length-1);
+                if (flag == 0) {
+                    //2017-8-22 新增判断：钩稽状态是Y的，如果这张订单这个型号存在钩稽状态N的出库记录，即不能添加，提示优先选择未钩稽的出库单做红字退货
+                    if (rows[i].FHookStatus == 2) {
+                        var currentRow = rows[i];//必须先缓存，因为post异步执行后，会进入下一个for循环，导致i加了1，post执行结果会取加了1的i，导致错误出现
+                        $.post("@Url.Content("~/BadProduct/CheckStockBillsHasNoHook")", {
+                            FOrderBillNo: currentRow.FOrderBillNo,
+                            FProductNumber: currentRow.FProductNumber
+                        }, function (data) {
+                            if (data.suc) {
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: data.msg
+                                });
+                            } else {
+                                //将行加入到新的grid                                
+                                $("#selectList").datagrid("appendRow", currentRow);
+                                //默认选择新加入的行
+                                $("#selectList").datagrid("checkRow", s_rows.length - 1);
+                            }
+                        });
+                    } else {
+                        //将行加入到新的grid
+                        $("#selectList").datagrid("appendRow", rows[i]);
+                        //默认选择新加入的行
+                        $("#selectList").datagrid("checkRow", s_rows.length - 1);
+                    }
                 }
             }
         }

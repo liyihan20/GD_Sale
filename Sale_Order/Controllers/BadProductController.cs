@@ -520,6 +520,7 @@ namespace Sale_Order.Controllers
             //3. 检查每一条单据分录，如果存在未完成的出库分录，则不能提交,作废
             //3.1. 检查每一条单据分录，如果在申请中的退货数量总量 + 7天内申请完成但未导入K3的数量 > K3中的可提交数量
             //4. 检查每一条出库单据分录，如果销售订单的关联数量小于退货数量，则不能提交
+            //5. 检查每一条出库单据分录，如果这条分录是已钩稽，查看是否有未钩稽的数量，如果有，即提示优先选择未钩稽的数量
             int? FInterID, FEntryID, LineNo;
             foreach (var det in db.ReturnBill.Where(r => r.sys_no == sys_no).First().ReturnBillDetail)
             {
@@ -829,6 +830,17 @@ namespace Sale_Order.Controllers
                           }).Take(300).ToList();
             utl.writeEventLog(MODELNAME, "查询到的红字单条数：" + result.Count(), "", Request);
             return Json(result, "text/html");
+        }
+
+        //检查某订单某型号是否存在有未钩稽的出库记录
+        public JsonResult CheckStockBillsHasNoHook(string FOrderBillNo, string FProductNumber)
+        {
+            var bills = db.VWBlueStockBill.Where(v => v.FOrderBillNo == FOrderBillNo && v.FProductNumber == FProductNumber && v.FcanApplyQty > 0 && v.FHookStatus == 0).ToList();
+            if (bills.Count() > 0) {
+                return Json(new { suc = true, msg = "此订单此型号存在未钩稽的出货单，请优先选择未钩稽的出库单做红字退货。出库单号：【"+bills.First().FBillNo+"】" });
+            }
+            return Json(new { suc = false });
+
         }
 
         //搜索需要换货的退货申请单
