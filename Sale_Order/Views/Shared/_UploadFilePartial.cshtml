@@ -13,7 +13,7 @@
             'swf': '@Url.Content("~/Scripts/uploadify/uploadify.swf")',
             'uploader': '@Url.Content("~/Saler/UploadFile")',
             'multi': false,
-            'fileTypeExts': '*.rar',
+            //'fileTypeExts': '*.rar',
             'fileSizeLimit': '10MB',
             'onUploadStart': function (file) {
                 $.messager.progress();
@@ -23,6 +23,10 @@
                 $.messager.progress("close");
                 if (data == "NOFILE") {
                     alert("上传失败，流水编号为空！");
+                    return;
+                }
+                if (data == "FILETYPE") {
+                    alert("上传失败：请选择.rar后缀的文件！");                    
                     return;
                 }
                 var d = new Date();

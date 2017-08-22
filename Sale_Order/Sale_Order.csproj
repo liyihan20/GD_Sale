@@ -248,6 +248,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>BL_A4_Report.rpt</DependentUpon>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Reports\CCYF_A4_Report.cs">
       <AutoGen>True</AutoGen>
@@ -432,6 +433,10 @@
     <Content Include="Scripts\img\uploadify-cancel.png" />
     <Content Include="Scripts\uploadify\uploadify.css" />
     <Content Include="Scripts\uploadify\uploadify.swf" />
+    <Content Include="Scripts\webuploader\Uploader.swf" />
+    <Content Include="Scripts\webuploader\webuploader.css" />
+    <Content Include="Scripts\webuploader\webuploader.withoutimage.js" />
+    <Content Include="Scripts\webuploader\webuploader.withoutimage.min.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -659,6 +664,7 @@
     <Content Include="Views\Saler\CreateBLBill.cshtml" />
     <Content Include="Views\Saler\CheckBLBill.cshtml" />
     <Content Include="Views\Shared\_DownloadAuditorBLExcelPartial.cshtml" />
+    <Content Include="Views\Shared\_UploadFilePartial_wu.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">

@@ -22,10 +22,11 @@ namespace Sale_Order.Controllers
         const string SAMPLEBILL = "样品单";
         const string BLBILL = "备料单";
 
-        //上传附件
+        //uploadify 上传附件
         [AcceptVerbs(HttpVerbs.Post)]
-        public ContentResult UploadFile(HttpPostedFileBase FileData, string num)
+        public ContentResult UploadFile( HttpPostedFileBase FileData, string num)
         {
+            
             string filename = "";
             string finalname = "NOFILE";
 
@@ -35,11 +36,37 @@ namespace Sale_Order.Controllers
                 {
                     filename = Path.GetFileName(FileData.FileName);//获得文件名
                     string ext = Path.GetExtension(filename);//获取拓展名
+                    if (!".rar".Equals(ext)) {
+                        return Content("FILETYPE");
+                    }
                     finalname = num + ext;
                     saveFile(FileData, finalname);
                 }
                 catch (Exception ex)
                 {
+                    filename = ex.ToString();
+                }
+            }
+
+            return Content(finalname);
+        }
+
+        //WebUploader 上传附件
+        [AcceptVerbs(HttpVerbs.Post)]
+        public ContentResult UploadFileWu(HttpPostedFileBase file, string num)
+        {
+
+            string filename = "";
+            string finalname = "NOFILE";
+
+            if (null != file && !String.IsNullOrEmpty(num)) {
+                try {
+                    filename = Path.GetFileName(file.FileName);//获得文件名
+                    string ext = Path.GetExtension(filename);//获取拓展名
+                    finalname = num + ext;
+                    saveFile(file, finalname);
+                }
+                catch (Exception ex) {
                     filename = ex.ToString();
                 }
             }
