@@ -453,18 +453,18 @@ namespace Sale_Order.Controllers
             if (ap.order_type.Equals("BL")) {
                 Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == ap.sys_no);
 
-                //运作中心审批后，根据事业部插入接单员审批、成控审批、计划经理审批
-                if (thisDetail.step_name.Contains("运作中心") && isOK) {
+                //计划经理审批后
+                if (thisDetail.step_name.Contains("计划经理") && isOK) {
                     string busDep = bl.bus_dep;
-                    utl.AppendStepAtLast(ap.id, "事业部接单员审批", db.vw_auditor_relations.Where(v => v.department_name == busDep && v.step_name == "BL_事业部接单员").Select(v => v.auditor_id).ToArray());
-                    utl.AppendStepAtLast(ap.id, "事业部成控审批", db.vw_auditor_relations.Where(v => v.department_name == busDep && v.step_name == "BL_事业部成控").Select(v => v.auditor_id).ToArray(),false,false,true);
-                    utl.AppendStepAtLast(ap.id, "计划经理审批", db.vw_auditor_relations.Where(v => v.department_name == busDep && v.step_name == "BL_计划部经理").Select(v => v.auditor_id).ToArray(), true);
+                    utl.AppendStepAtLast(ap.id, "计划审批", new int?[] { bl.planner_id }, step, true);
                 }
                 //计划经理审批后，如果有修改，则在最后插入营业审批
-                if (thisDetail.step_name.Contains("计划经理") && isOK) {
-                    if (bl.update_user_id == userId) {
-                        utl.InsertStepAfterStep(ap.id, step, "营业员确认", new int?[] { bl.original_user_id });
-                    }
+                if (thisDetail.step_name.Contains("计划审批") && isOK) {
+                    int?[] orderIds = bl.order_ids.Split(new char[] { ',' }).Select(i => { int? id = Int32.Parse(i); return id; }).ToArray();
+                    utl.AppendStepAtLast(ap.id, "订料会签", orderIds, step, true, false, true);
+                    utl.AppendStepAtLast(ap.id, "营业员确认", new int?[] { bl.original_user_id }, step);
+                    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
+                    utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
                 }
             }
 
@@ -1486,40 +1486,44 @@ namespace Sale_Order.Controllers
             string stepName = db.Apply.Single(a => a.sys_no == sysNo).ApplyDetails.Where(ad => ad.step == step).First().step_name;
             Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == sysNo);
 
-            if (stepName.Contains("运作中心")) {
-                //运作中心只能修改部门
-                string busDep = fc.Get("bus_dep");
-                if (!bl.bus_dep.Equals(busDep)) {
-                    //先备份数据
-                    BackupData bd = new BackupData();
-                    bd.sys_no = sysNo;
-                    bd.user_id = bl.update_user_id;
-                    bd.op_date = DateTime.Now;
-                    bd.main_data = "bus_dep:" + bl.bus_dep;
-                    db.BackupData.InsertOnSubmit(bd);
-
-                    bl.bus_dep = busDep;
-                    bl.update_user_id = userId;
-                    bl.step_version = step;
+            if (stepName.Contains("计划")) {
+                //计划员指定订料员
+                string orderIds = fc.Get("order_ids");
+                string orderNames = fc.Get("order_names");
+                if (string.IsNullOrEmpty(orderIds)) {
+                    return Json(new { suc = false, msg = "必须至少选择一个订料员" }, "text/html");
                 }
+
+                bl.order_ids = orderIds;
+                bl.order_names = orderNames;
+                bl.update_user_id = userId;
+                bl.step_version = step;
             }
-            else if (stepName.Contains("计划经理")) {
-                //计划经理只能修改数量和备料项目
-                int qty = Int32.Parse(fc.Get("qty"));
+            else if (stepName.Contains("订料")) {
+                //订料员只能修改备料明细
                 string blDetails = fc.Get("Sale_BL_details");
                 var details = JsonConvert.DeserializeObject<List<Sale_BL_details>>(blDetails);
+                if (details.Count() == 0) {
+                    return Json(new { suc = true }, "text/html");
+                    //return Json(new { suc = false, msg = "必须录入备料清单明细" }, "text/html");
+                }
+                if (!utl.ModelsToString<Sale_BL_details>(bl.Sale_BL_details.ToList()).Equals(utl.ModelsToString<Sale_BL_details>(details))) {
+                    int entryNo = 1;
+                    foreach (var detail in details) {
+                        if (detail.order_qty == null || detail.order_qty == 0) {
+                            return Json(new { suc = false, msg = "第" + entryNo + "行的订料数量必须填写且不能为0" }, "text/html");
+                        }
+                        detail.entry_no = entryNo++;
+                    }
 
-                if (bl.qty != qty || !utl.ModelsToString<Sale_BL_details>(bl.Sale_BL_details.ToList()).Equals(utl.ModelsToString<Sale_BL_details>(details))) {
                     //先备份数据
                     BackupData bd = new BackupData();
                     bd.sys_no = sysNo;
                     bd.user_id = bl.update_user_id;
                     bd.op_date = DateTime.Now;
-                    bd.main_data = "qty:" + bl.qty;
                     bd.secondary_data = utl.ModelsToString<Sale_BL_details>(bl.Sale_BL_details.ToList());
                     db.BackupData.InsertOnSubmit(bd);
 
-                    bl.qty = qty;
                     bl.Sale_BL_details.Clear();
                     bl.Sale_BL_details.AddRange(details);
                     bl.update_user_id = userId;
@@ -1528,6 +1532,7 @@ namespace Sale_Order.Controllers
             }
 
             try {
+                db.Sale_BL_details.DeleteAllOnSubmit(db.Sale_BL_details.Where(d => d.bl_id == null));
                 db.SubmitChanges();
             }
             catch (Exception ex) {

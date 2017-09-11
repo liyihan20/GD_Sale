@@ -3,6 +3,7 @@
     Sale_BL bl = (Sale_BL)ViewData["BL"];
     var d = bl.Sale_BL_details;
     ViewData["sys_no"] = bl.sys_no;
+    string stepName = (string)ViewData["stepName"] ?? "";
 }
 <script type="text/javascript" src="@Url.Content("~/Scripts/json2.js")"></script>
 <script type="text/javascript">
@@ -39,66 +40,6 @@
                 $("#product_name").val(rowData.name);
                 $("#product_model").val(rowData.model);
                 $("#product_no").combogrid('hidePanel');
-            }
-        });
-
-        $("#TFT_model").combogrid({
-            valueField: "model",
-            textField: "model",
-            panelWidth: 420,
-            //required: true,
-            columns: [[
-                    { field: 'number', title: '@Html.Lang("pro_num")', width: 120 },
-                    { field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
-                    { field: 'model', title: '@Html.Lang("pro_model")', width: 160 }
-            ]],
-            keyHandler: {
-                query: function () { },
-                enter: function () {
-                    var q = $("#TFT_model").combogrid('getText');
-                    if (q != "") {
-                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
-                            function (data) {
-                                $("#TFT_model").combogrid('grid').datagrid('loadData', data);
-                                $("#TFT_model").combogrid('setText', q);
-                            },
-                            "json"
-                            );
-                    }
-                }
-            },
-            onClickRow: function (rowIndex, rowData) {
-                $("#TFT_model").combogrid("setValue", rowData.model);
-            }
-        });
-
-        $("#TP_model").combogrid({
-            valueField: "model",
-            textField: "model",
-            panelWidth: 420,
-            //required: true,
-            columns: [[
-                    { field: 'number', title: '@Html.Lang("pro_num")', width: 120 },
-                    { field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
-                    { field: 'model', title: '@Html.Lang("pro_model")', width: 160 }
-            ]],
-            keyHandler: {
-                query: function () { },
-                enter: function () {
-                    var q = $("#TP_model").combogrid('getText');
-                    if (q != "") {
-                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
-                            function (data) {
-                                $("#TP_model").combogrid('grid').datagrid('loadData', data);
-                                $("#TP_model").combogrid('setText', q);
-                            },
-                            "json"
-                            );
-                    }
-                }
-            },
-            onClickRow: function (rowIndex, rowData) {
-                $("#TP_model").combogrid("setValue", rowData.model);
             }
         });
 
@@ -160,7 +101,8 @@
         });
 
         $("#dg_detail").datagrid({
-            width: 1000,
+            width: 1200,
+            height:250,
             loadMsg: "加载中...",
             rownumbers: true,
             singleSelect: true,
@@ -172,10 +114,13 @@
                 { field: 'fname', title: '物料名称', width: 100, align: 'center' },
                 { field: 'unitname', title: '单位', width: 60, align: 'center' },
                 { field: 'fqty', title: '单位用量', width: 100, align: 'center' },
-                { field: 'total_qty', title: '数量', width: 60, align: 'center', editor: { type: 'numberbox', options: { precision: 4 } } },
-                { field: 'highest_price', title: '最高采购价', width: 80, align: 'center', editor: { type: 'numberbox', options: { precision: 4 } } },
+                { field: 'total_qty', title: '标准数量', width: 60, align: 'center' },
+                { field: 'order_qty', title: '订料数量', width: 80, align: 'center', editor: { type: 'numberbox', options: { precision: 4 } } },
+                { field: 'highest_price', title: '最高采购价', width: 60, align: 'center', editor: { type: 'numberbox', options: { precision: 4 } } },
                 { field: 'comment', title: '备注', width: 200, editor: { type: 'validatebox', options: { validType: ['length[0,200]'] } } },
-                { field: 'source', title: '来源', width: 80, align: 'center' }
+                { field: 'source', title: '来源', width: 80, align: 'center' },
+                { field: 'order_name', title: '订料员', width: 80, align: 'center' },
+                { field: 'order_id', title: '订料员ID', hidden: 'true' }
             ]],
             toolbar: [{
                 text: "从BOM获取",
@@ -194,6 +139,13 @@
                 handler: function () {
                     var row = $('#dg_detail').datagrid('getSelected');
                     if (row) {
+                        if(row.order_id!="@ViewData["order_id"]"){
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: "订料员只能删除自己新增的物料"
+                            });
+                            return;
+                        }
                         $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
                             if (r) {
                                 var index = $('#dg_detail').datagrid('getRowIndex', row);
@@ -244,6 +196,7 @@
         $("#dg_bom").datagrid({
             title: "BOM清单",
             width: 1000,
+            height:395,
             loadMsg: "加载中...",
             rownumbers: true,
             singleSelect: false,
@@ -251,9 +204,9 @@
             columns: [[
                 { checkbox: true },
                 { field: 'levels', title: '层级', width: 60, align: 'center' },
-                { field: 'fnumber', title: '物料编码', width: 150, align: 'center' },
                 { field: 'fmodel', title: '物料型号', width: 350, align: 'center' },
                 { field: 'fname', title: '物料名称', width: 150, align: 'center' },
+                { field: 'fnumber', title: '物料编码', width: 150, align: 'center' },
                 { field: 'unitname', title: '单位', width: 60, align: 'center' },
                 { field: 'fqty', title: '单位用量', width: 100, align: 'center' },
                 { field: 'code_s', title: '主替料', width: 60, align: 'center' },
@@ -279,14 +232,28 @@
             }
         });
 
+        $("#bus_dep").combobox({
+            onChange: function (newValue, oldValue) {
+                if (newValue != oldValue) {
+                    $.post("@Url.Content("~/Items/GetAuditorsWithStep")", { stepName: 'BL_事业部计划员', depName: newValue },
+                        function (data) {
+                            $('#planner_id').combobox("setValue", "");
+                            $('#planner_id').combobox("setText", "");
+                            $('#planner_id').combobox("loadData",data);
+                        }, "json"
+                    );
+                }
+            }
+        });
+
         $("#customer_no").combogrid("setValue", "@bl.customer_no");
         $("#product_no").combogrid("setValue", "@bl.product_no");
-        $("#TFT_model").combogrid("setValue", "@bl.TFT_model");
-        $("#TP_model").combogrid("setValue", "@bl.TP_model");
         $("#clerk_no").combobox("setValue", "@bl.clerk_no");
         $("#clerk_no").combobox("setText", "@bl.clerk_name");
-        $("#agency_div").css("visibility", "visible");
-        $("#agency_div").click(function () { endEditing(); });
+        $("#planner_id").combobox("setText", "@bl.planner_name");
+        $.map("@bl.bl_project".split(","), function (item) { $("input[name='bl_project'][value='" + item + "']").attr("checked", true); });
+        $("#agency_div").css("visibility", "visible").click(function () { endEditing(); });
+        $(".ck_label").css("cursor", "pointer").click(function () { $("input[name='bl_project'][value='" + $.trim($(this).html()) + "']").trigger("click"); });
     });
 
     function getBom() {
@@ -344,13 +311,17 @@
 
         for (var i in dataS) {
             dataS[i].total_qty = qty * dataS[i].fqty;
+            dataS[i].order_qty = qty * dataS[i].fqty;
+            dataS[i].order_id = "@ViewData["order_id"]";
+            dataS[i].order_name = "@ViewData["order_name"]";
+            dataS[i].highest_price = $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
+            $("#dg_detail").datagrid("appendRow", dataS[i]);
         }
-        $("#dg_detail").datagrid("loadData", dataS);
         $("#win_bom").window('close');
     }
 
     function saveBomDetails() {
-        if (!$('#fm_detail').form('validate')) {
+        if ($("#mat_model").val() == "") {
             $.messager.show({
                 title: '@Html.Lang("tip")',
                 msg: "请先输入物料编码"
@@ -365,9 +336,12 @@
             unitname: $("#mat_unit_name").val(),
             fqty: $("#mat_qty").numberbox("getValue"),
             total_qty: $("#mat_qty").numberbox("getValue") * $("#qty").numberbox("getValue"),
+            order_qty: $("#mat_qty").numberbox("getValue") * $("#qty").numberbox("getValue"),
             highest_price: $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
             comment: $("#mat_comment").val(),
-            source: "手工"
+            source: "手工",
+            order_id: "@ViewData["order_id"]",
+            order_name: "@ViewData["order_name"]"
         });
         $("#dlg_details").dialog("close");
     }
@@ -383,17 +357,55 @@
             return false;
         }
     }
+    //点击行，如果是订料员自己的行，即可以编辑，否则不能编辑
     function onClickRow(index) {
         if (editIndex != index) {
             if (endEditing()) {
-                $('#dg_detail').datagrid('selectRow', index)
-                        .datagrid('beginEdit', index);
-                editIndex = index;
+                $('#dg_detail').datagrid('selectRow', index);
+                var row = $('#dg_detail').datagrid('getSelected');
+                if (row) {
+                    if (row.order_id == "@ViewData["order_id"]") {
+                        $('#dg_detail').datagrid('beginEdit', index);
+                        editIndex = index;
+
+                        var ed = $('#dg_detail').datagrid('getEditors', index);
+                        var rowCount = $('#dg_detail').datagrid('getRows').length;
+                        for (var i = 0; i < ed.length; i++) {
+                            var e = ed[i];
+                            if (e.field == "order_qty") {
+                                $(e.target).focus();
+                            }
+                            $(e.target).bind("keyup", function () {
+                                //下箭头，往下一行
+                                if (window.event.keyCode == 40) {
+                                    if (index + 1 < rowCount);
+                                    onClickRow(index + 1);
+                                }
+                                //上箭头，往上一行
+                                if (window.event.keyCode == 38) {
+                                    if (index > 0);
+                                    onClickRow(index - 1);
+                                }
+                            });
+                        }
+                    }
+                }
             } else {
                 $('#dg_detail').datagrid('selectRow', editIndex);
             }
         }
     }
+    //function onClickRow(index) {
+    //    if (editIndex != index) {
+    //        if (endEditing()) {
+    //            $('#dg_detail').datagrid('selectRow', index)
+    //                    .datagrid('beginEdit', index);
+    //            editIndex = index;
+    //        } else {
+    //            $('#dg_detail').datagrid('selectRow', editIndex);
+    //        }
+    //    }
+    //}
 </script>
 
 @if (bl.step_version == 0) {
@@ -408,7 +420,8 @@
                         if (!$('#order_form').form('validate')) {
                             return false;
                         }
-                        param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
+                        //param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
+                        param.planner_name = $("#planner_id").combobox("getText");
                         return true;
                     },
                     success: function (data) {
@@ -457,93 +470,136 @@
 }
 else {
     <script type="text/javascript">
-        function okClick(){
-            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
-                if (r){
-                    $.messager.progress();
-                    $('#order_form').form('submit',{
-                        url: '@Url.Content("~/Audit/AuditorSaveBLBill")',
-                        onSubmit: function(param){
-                            param.step = "@bl.step_version";
+    $(function () {
+        $.post("@Url.Content("~/Items/GetAuditorsWithStep")", { stepName: 'BL_事业部订料员', depName: "@bl.bus_dep" },
+                function (data) {
+                    $('#order_ids').combobox("loadData", data);
+                    if ("@bl.order_ids" != "") {
+                        $("#order_ids").combobox("setValues", "@bl.order_ids".split(","));
+                        $("#order_ids").combobox("setText", "@bl.order_names");
+                    }
+                }, "json"
+            );
+        if ("@stepName" == "计划审批" || "@stepName" == "订料会签") {
+            $("#order_form input").each(function () {
+                var thisClass = $(this).attr("class");
+                if (thisClass) {
+                    if (thisClass.indexOf("combobox") >= 0) {
+                        $(this).combobox("readonly");
+                    }
+                    if (thisClass.indexOf("combogrid") >= 0) {
+                        $(this).combogrid("readonly");
+                    }
+                    if (thisClass.indexOf("easyui-datebox") >= 0) {
+                        $(this).datebox("readonly");
+                    }
+                    if (thisClass.indexOf("easyui-numberbox") >= 0) {
+                        $(this).attr("readonly", "readonly");
+                    }
+                    if (thisClass.indexOf("easyui-validatebox") >= 0) {
+                        $(this).attr("readonly", "readonly");
+                    }
+                }
+            });
+            $("#order_form input[type='checkbox']").not(":checked").attr("disabled", "disabled");
+            $("#order_form input[type='checkbox']:checked").click(function () { event.preventDefault(); });
+            $("#order_form textarea").attr("readonly", "readonly");
+            $("#order_form input[type='radio']").attr("disabled", "disabled");
+            if ("@stepName" == "计划审批") {
+                $("#order_ids").combobox("readonly", false);
+            }
+        }
+        });
+        function okClick() {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
+            if (r) {
+                $.messager.progress();
+                $('#order_form').form('submit', {
+                    url: '@Url.Content("~/Audit/AuditorSaveBLBill")',
+                    onSubmit: function (param) {
+                        param.step = "@bl.step_version";
+                        param.order_names = $("#order_ids").combobox("getText");
+                        if ("@stepName".indexOf("订料") >= 0) {
                             param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
-                        },
-                        success: function (data) {
-                            var result = eval('('+ data +')');
-                            if(result.suc){
-                                $('#okFlag').val('true');
-                                beginAudit();
-                            }else{
-                                $.messager.progress("close");
-                                $.messager.show({
-                                    title: '@Html.Lang("tip")',
-                                    msg: "@Html.Lang("failure_save"):"+result.msg
-                                });
+                        }
+                    },
+                    success: function (data) {
+                        var result = eval('(' + data + ')');
+                        if (result.suc) {
+                            $('#okFlag').val('true');
+                            beginAudit();
+                        } else {
+                            $.messager.progress("close");
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: "@Html.Lang("failure_save"):" + result.msg
+                            });
                         }
                     }
-                    });
+                });
             }
-            });
-        }
-        function noClick(){
-            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
-                if (r){
-                    $('#okFlag').val('false');
-                    beginAudit();
-                }
-            });
-        }
-
-        function beginAudit(){
-            $("#audit_fm").form("submit",{
-                url:"@Url.Content("~/Audit/HandleAgencyAudit")",
-                success:function(data){
-                    $.messager.progress('close');
-                    var result=eval("("+data+")");
-                    $.messager.show({
-                        title: '@Html.Lang("tip")',
-                        msg: result.msg + ",正在跳转..."
-                    });
-                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-                    //getAuditResult();
-                }
         });
-        }
+    }
+    function noClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function (r) {
+            if (r) {
+                $('#okFlag').val('false');
+                beginAudit();
+            }
+        });
+    }
 
-        function block(){
-            var reason=$("#agency_comment").val();
-            if($.trim(reason)==""){
+    function beginAudit() {
+        $("#audit_fm").form("submit", {
+            url: "@Url.Content("~/Audit/HandleAgencyAudit")",
+            success: function (data) {
+                $.messager.progress('close');
+                var result = eval("(" + data + ")");
                 $.messager.show({
                     title: '@Html.Lang("tip")',
-                    msg: "挂起操作必须写明原因，提交失败"
+                    msg: result.msg + ",正在跳转..."
                 });
-            }else{
-                $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
-                    if (r){
-                        $.messager.progress();
-                        $("#audit_fm").form("submit",{
-                            url:"@Url.Content("~/Audit/BlockOrder")",
-                            success:function(data){
-                                $.messager.progress('close');
-                                var result=eval("("+data+")");
-                                if(result.success){
-                                    $.messager.show({
-                                        title: '@Html.Lang("tip")',
-                                        msg: result.msg + ",正在跳转..."
-                                    });
-                                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-                                }else{
-                                    $.messager.show({
-                                        title: '@Html.Lang("tip")',
-                                        msg: result.msg
-                                    });
-                                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
-                                }
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 1500);
+                //getAuditResult();
+            }
+        });
+    }
+
+    function block() {
+        var reason = $("#agency_comment").val();
+        if ($.trim(reason) == "") {
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "挂起操作必须写明原因，提交失败"
+            });
+        } else {
+            $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function (r) {
+                if (r) {
+                    $.messager.progress();
+                    $("#audit_fm").form("submit", {
+                        url: "@Url.Content("~/Audit/BlockOrder")",
+                        success: function (data) {
+                            $.messager.progress('close');
+                            var result = eval("(" + data + ")");
+                            if (result.success) {
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: result.msg + ",正在跳转..."
+                                });
+                                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 1500);
+                            } else {
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: result.msg
+                                });
+                                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 3000);
                             }
+                        }
                     });
                 }
-                });
+            });
         }
-        }
+    }
     </script>
 }
 
@@ -575,7 +631,7 @@ else {
                                 备料日期:
                             </td>
                             <td>
-                                <input class="easyui-datebox" name="bl_date" style="width: 140px" required="true" editable="false" value="@(((DateTime)bl.bl_date).ToString("yyyy-MM-dd"))" />
+                                <input class="easyui-datebox" name="bl_date" id="bl_date" style="width: 140px" required="true" editable="false" value="@(((DateTime)bl.bl_date).ToString("yyyy-MM-dd"))" />
                             </td>
                             <td>
                                 系统流水号:
@@ -592,32 +648,10 @@ else {
                         </tr>
                         <tr>
                             <td>
-                                备料性质:
+                                办事处:
                             </td>
                             <td>
-                                @if (bl.bl_property == null || bl.bl_property == "") {
-                                    <span>
-                                        <input type="radio" name="bl_property" value="非全套" /> 非全套 &nbsp;&nbsp;
-                                        <input type="radio" name="bl_property" value="全套" /> 全套
-                                    </span>
-                                }
-                                else if (bl.bl_property == "单料") {
-                                    <span>
-                                        <input type="radio" name="bl_property" value="非全套" checked /> 非全套 &nbsp;&nbsp;
-                                        <input type="radio" name="bl_property" value="全套" /> 全套
-                                    </span>
-                                }
-                                else {
-                                    <span>
-                                        <input type="radio" name="bl_property" value="非全套" /> 非全套 &nbsp;&nbsp;
-                                        <input type="radio" name="bl_property" value="全套" checked /> 全套
-                                    </span>
-                                }
-                                @*<input class="easyui-combobox" style="width: 140px" name="bl_property" id="bl_property"
-                                    data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
-                                        data:[
-                                        {value:'单料'},{value:'全套'}
-                                        ]" value="@bl.bl_property" />*@
+                                <input class="easyui-combobox" id="agency_name" name="agency_name" style="width: 140px" panelwidth="140" valuefield="name" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" value="@bl.agency_name" />
                             </td>
                             <td>
                                 备料类型:
@@ -641,17 +675,12 @@ else {
                                         <input type="radio" name="bl_type" value="有合同协议" /> 有合同协议 &nbsp;
                                     </span>
                                 }
-                                @*<input class="easyui-combobox" style="width: 140px" name="bl_type" id="bl_type"
-                                    data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
-                                        data:[
-                                        {value:'有合同协议'},{value:'市场预测'}
-                                        ]" value="@bl.bl_type" />*@
                             </td>
                             <td>
                                 协议号:
                             </td>
                             <td>
-                                <input type="text" name="bl_contract_no" id="bl_contract_no" style="width:135px" value="@bl.bl_contract_no" />
+                                <input class="easyui-validatebox" name="bl_contract_no" id="bl_contract_no" style="width:135px" value="@bl.bl_contract_no" />
                             </td>
                         </tr>
                         <tr>
@@ -762,16 +791,16 @@ else {
                         </tr>
                         <tr>
                             <td>
-                                TFT型号:
+                                营业员:
                             </td>
                             <td>
-                                <input name="TFT_model" id="TFT_model" style="width:140px" />
+                                <input id="clerk_no" class="remotebox" name="clerk_no" style="width: 140px" required="true" />
                             </td>
                             <td>
-                                TP型号:
+                                计划员:
                             </td>
                             <td>
-                                <input name="TP_model" id="TP_model" style="width:140px" />
+                                <input class="easyui-combobox" id="planner_id" name="planner_id" style="width: 140px" panelwidth="140" valuefield="auditorId" textfield="auditorName" editable="false" required="true" value="@bl.planner_id" />
                             </td>
                             <td>
                                 制单人:
@@ -780,36 +809,50 @@ else {
                                 <input class="easyui-validatebox" name="create_user" id="create_user" readonly="readonly" style="width:135px" value="@bl.User.real_name" />
                             </td>
                         </tr>
+                        @if (bl.step_version > 0) { 
                         <tr>
-                            <td>
-                                办事处:
+                            <td>订料员:</td>
+                            <td colspan="5">
+                                <input class="easyui-combobox" id="order_ids" name="order_ids" style="width:380px" data-options="textField:'auditorName',valueField:'auditorId',panelHeight:'auto', required:true,editable:false,multiple:true" />
                             </td>
-                            <td>
-                                <input class="easyui-combobox" id="agency_name" name="agency_name" style="width: 140px" panelwidth="140" valuefield="name" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" value="@bl.agency_name" />
-                            </td>
-                            <td>
-                                营业员:
-                            </td>
-                            <td>
-                                <input id="clerk_no" class="remotebox" name="clerk_no" style="width: 140px" required="true" />
-                            </td>
-                            <td></td>
-                            <td></td>
                         </tr>
-                        @*<tr>
-                                <td>
-                                    备料项目:
-                                </td>
-                                <td colspan="5">
-                                    <a id="getBomBt" href="#" class="easyui-linkbutton" iconcls="icon-pencil2">从BOM获取</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td colspan="5">
-                                    <textarea cols="90" rows="8" spellcheck="false" name="bl_project" id="bl_project" style="margin: 0;">@bl.bl_project</textarea>
-                                </td>
-                            </tr>*@
+                        }
+                        <tr>
+                            @*<td>
+                                备料项目:
+                            </td>*@
+                            <td colspan="6">
+                                <fieldset>
+                                    <legend>备料项目</legend>
+                                    <div>
+                                        <input type="checkbox" name="bl_project" value="全套物料" /><span class="ck_label"> 全套物料</span> &nbsp;
+                                        <input type="checkbox" name="bl_project" value="成品" /><span class="ck_label"> 成品</span> &nbsp;
+                                    </div>
+                                    <div>
+                                        @{string[] p1 = new string[] { "IC", "背光", "玻璃", "TP", "Lens", "电容", "电阻", "二极管", "马达", "镜头", "FPC", "偏光片" };}
+                                        @foreach (var p in p1) {
+                                            <input type="checkbox" name="bl_project" value="@p" /><span class="ck_label">@p</span><span>&nbsp;</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        @{string[] p2 = new string[] { "连接器", "菲林", "大片玻璃基材", "基板", "芯片", "防反射膜", "前盖", "光学膜已切","ACF" };}
+                                        @foreach (var p in p2) {
+                                            <input type="checkbox" name="bl_project" value="@p" /><span class="ck_label">@p</span><span>&nbsp;</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        @{string[] p3 = new string[] { "PCB", "LC", "TJ", "JJ", "元件", "电感", "磁珠", "晶振三极管" };}
+                                        @foreach (var p in p3) {
+                                            <input type="checkbox" name="bl_project" value="@p" /><span class="ck_label">@p</span><span>&nbsp;</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <input type="checkbox" name="bl_project" value="其它" /><span class="ck_label"> 其它</span> &nbsp;
+                                        <input class="easyui-validatebox" style="width:200px" name="bl_project_other" value="@bl.bl_project_other" />
+                                    </div>
+                                </fieldset>
+                            </td>
+                        </tr>
                         <tr>
                             <td>摘要:</td>
                             <td colspan="5">
@@ -817,25 +860,30 @@ else {
                             </td>
                         </tr>
                     </table>
-                    <br />
-                    <div id="detail_div" class="easyui-panel" title="备料清单明细" style="+position: relative; width: 815px; height: 300px">
-                        <table id="dg_detail">
-                            @foreach (var det in bl.Sale_BL_details) {
-                                <tr>
-                                    <td>@det.levels</td>
-                                    <td>@det.fnumber</td>
-                                    <td>@det.fmodel</td>
-                                    <td>@det.fname</td>
-                                    <td>@det.unitname</td>
-                                    <td>@(det.fqty == null ? 0 : Math.Round((decimal)det.fqty, 4))</td>
-                                    <td>@(det.total_qty == null ? 0 : Math.Round((decimal)det.total_qty, 4))</td>
-                                    <td>@(det.highest_price == null ? 0 : Math.Round((decimal)det.highest_price, 4))</td>
-                                    <td>@det.comment</td>
-                                    <td>@det.source</td>
-                                </tr>
-                            }
-                        </table>
-                    </div>
+                    @if (stepName.Contains("订料")) {
+                        <br />
+                        <div id="detail_div" class="easyui-panel" title="备料清单明细" style="+position: relative; width: 815px; height: 300px">
+                            <table id="dg_detail">
+                                @foreach (var det in bl.Sale_BL_details) {
+                                    <tr>
+                                        <td>@det.levels</td>
+                                        <td>@det.fnumber</td>
+                                        <td>@det.fmodel</td>
+                                        <td>@det.fname</td>
+                                        <td>@det.unitname</td>
+                                        <td>@(det.fqty == null ? 0 : Math.Round((decimal)det.fqty, 4))</td>
+                                        <td>@(det.total_qty == null ? 0 : Math.Round((decimal)det.total_qty, 4))</td>
+                                        <td>@(det.order_qty == null ? 0 : Math.Round((decimal)det.order_qty, 4))</td>
+                                        <td>@(det.highest_price == null ? 0 : Math.Round((decimal)det.highest_price, 4))</td>
+                                        <td>@det.comment</td>
+                                        <td>@det.source</td>
+                                        <td>@det.order_name</td>
+                                        <td>@det.order_id</td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    }
                     <br />
                     @if (0 == bl.step_version) {
                         <br />
@@ -861,11 +909,11 @@ else {
                     <div style="color:red">操作说明：</div>
                     <div>
                         <1>
-                            . 运作中心审核人只可修改保存【事业部】这个字段，此事业部决定后续接单、成控和计划经理由谁审批。<br />
+                            . 计划员能且仅能选择【订料员】，订料员可以选择多个，选择的订料员作为下一审批步骤进行会签。<br />
                             <2>
-                                . 计划经理只可修改保存【订单数量】和【备料清单明细】，如果有修改，审批OK后会流转给下单营业员确认。<br />
+                                . 订料员必须录入【备料清单明细】，如果有多个订料员会签，每个订料员只能录入自己的备料明细，不能修改或删除其它订料员录入的备料明细。<br />
                                 <3>
-                                    .【备料清单】可取自BOM，也可以自己手动录入。<br />
+                                    . 营业员没有权限查看备料明细的【物料代码】和【物料型号】，会以*号代替。<br />
                                     <4>
                                         .【备料编号】是根据市场部提供的规则，并根据营业所选择的【市场部】字段在流程正常结束后系统生成的。<br />
                     </div>
@@ -904,6 +952,9 @@ else {
                 <td>
                     <input type="text" name="mat_model" id="mat_model" class="my_readonly" style="width:135px;" readonly="readonly" />
                 </td>
+            </tr>
+            <tr>
+                <td colspan="4"><span style="font-size:10px;color:red">请在物料编码框输入物料编码、物料型号或物料名称的一部分或全部，然后按回车键搜索，最后在列表中选择一项。</span></td>
             </tr>
             <tr>
                 <td>

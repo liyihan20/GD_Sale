@@ -1,5 +1,5 @@
 ﻿<script type="text/javascript">
-    
+
     var tax_rate=17;
     function convertDate(inDate){
         if(inDate==null || inDate==""){
@@ -42,7 +42,7 @@
                         { field: 'project_number', title: '@Html.Lang("project_number")', width: 100,hidden: true },
                         { field: 'project_name', title: '@Html.Lang("project_name")', width: 120 },
                         { field: 'comment', title: '@Html.Lang("pro_size")', width: 200 }
-    				]],
+            ]],
             toolbar: [{
                 text: "@Html.Lang("add_item")",
                 iconCls: 'icon-add',
@@ -86,7 +86,7 @@
                     $("#buy_unit").combogrid("setValue","560");
                     $("#buy_unit").combogrid("setText","香港信利光电有限公司");
                     tax_rate=0;
-                } 
+                }
             }
         });
         $("#currency").combobox("setValue",1);
@@ -104,16 +104,16 @@
             }
         });
 
-         //如果存在订单编号，表示是要修改订单，那就异步去获取需要修改的信息
+        //如果存在订单编号，表示是要修改订单，那就异步去获取需要修改的信息
         var id="@ViewData["orderId"]";
         if(id!==""){
-           $.messager.progress(); 
-           $.post("@Url.Content("~/Saler/GetSaleOrder")",{id:id},function(data){                
+            $.messager.progress();
+            $.post("@Url.Content("~/Saler/GetSaleOrder")",{id:id},function(data){
                 if(data.success){
-                    $("#order_div").panel("setTitle","@Html.Lang("edit_saleOrder")");                    
+                    $("#order_div").panel("setTitle","@Html.Lang("edit_saleOrder")");
                     //表头
                     var order=(data.list)[0];
-                    $("#order_date").datebox("setValue",convertDate(order.order_date));                    
+                    $("#order_date").datebox("setValue",convertDate(order.order_date));
                     $("#agency").combobox("setText",order.department_name);
                     $("#agency").combobox("setValue",order.department_id);
                     $("#trade_type").combobox("setText",order.trade_type_name);
@@ -125,24 +125,24 @@
                     $("#project_group").combobox("setText",order.project_group_name);
                     $("#project_group").combobox("setValue",order.project_group);
                     $("#product_type").combobox("setText",order.product_type_name);
-                    $("#product_type").combobox("setValue",order.product_type); 
-                    $("#product_use").val(order.product_use);  
+                    $("#product_type").combobox("setValue",order.product_type);
+                    $("#product_use").val(order.product_use);
                     $("#currency").combobox("setText",order.currency_name);
                     $("#currency").combobox("setValue",order.currency);
                     $("#exchange").numberbox("setValue",order.exchange_rate);
                     $("#clearing_way").combobox("setText",order.clearing_way_name);
-                    $("#clearing_way").combobox("setValue",order.clearing_way); 
+                    $("#clearing_way").combobox("setValue",order.clearing_way);
                     $("#contract_no").val(order.contract_no);
                     $("#buy_unit").combogrid("setValue",order.buy_unit);
                     $("#buy_unit").combogrid("setText",order.buy_unit_name);
                     $("#final_client").combogrid("setValue",order.final_client);
                     $("#final_client").combogrid("setText",order.final_client_name);
                     $("#plan_firm").combogrid("setValue",order.plan_firm);
-                    $("#plan_firm").combogrid("setText",order.plan_firm_name);  
+                    $("#plan_firm").combogrid("setText",order.plan_firm_name);
                     $("#oversea_client").combogrid("setValue",order.oversea_client);
-                    $("#oversea_client").combogrid("setText",order.oversea_client_name);  
+                    $("#oversea_client").combogrid("setText",order.oversea_client_name);
                     $("#trade_rule").combobox("setValue",order.trade_rule);
-                    $("#trade_rule").combobox("setText",order.trade_rule_name);                      
+                    $("#trade_rule").combobox("setText",order.trade_rule_name);
                     $("#proc_dep").combobox("setValue",order.proc_dep_id);
                     $("#proc_dep").combobox("setText",order.proc_dep_name);
 
@@ -153,23 +153,23 @@
                     $("#clerk2").combobox("setText",order.clerk2_name);
                     $("#clerk3").combobox("setValue",order.clerk3);
                     $("#clerk3").combobox("setText",order.clerk3_name);
-//                    $("#group1").val(order.group1);
-//                    $("#group2").val(order.group2);
+                    //                    $("#group1").val(order.group1);
+                    //                    $("#group2").val(order.group2);
                     $("#percent1").numberbox("setValue",order.percent1);
                     $("#percent2").numberbox("setValue",order.percent2);
                     $("#create_user").val(order.user_name);
-                    $("#charger").combobox("setValue",order.charger);   
+                    $("#charger").combobox("setValue",order.charger);
                     $("#charger").combobox("setText",order.charger_name);
                     $("#delivery_place").combobox("setText",order.delivery_place_name);
-                    $("#delivery_place").combobox("setValue",order.delivery_place);   
+                    $("#delivery_place").combobox("setValue",order.delivery_place);
                     $("#backpaper_confirm").combobox("setText",order.backpaper_confirm_name);
-                    $("#backpaper_confirm").combobox("setValue",order.backpaper_confirm);   
+                    $("#backpaper_confirm").combobox("setValue",order.backpaper_confirm);
                     $("#produce_way").combobox("setText",order.produce_way_name);
-                    $("#produce_way").combobox("setValue",order.produce_way);   
+                    $("#produce_way").combobox("setValue",order.produce_way);
                     $("#print_truly").combobox("setText",order.print_truly_name);
-                    $("#print_truly").combobox("setValue",order.print_truly);   
+                    $("#print_truly").combobox("setValue",order.print_truly);
                     $("#client_logo").combobox("setText",order.client_logo_name);
-                    $("#client_logo").combobox("setValue",order.client_logo);   
+                    $("#client_logo").combobox("setValue",order.client_logo);
                     $("#oversea_percentage").numberbox("setValue",order.oversea_percentage);
                     $("#description").html(order.description);
                     $("#further_info").html(order.further_info);
@@ -203,15 +203,15 @@
                             project_number:detail.project_number,
                             project_name:detail.project_name,
                             comment: detail.comment
-                        }; 
-                        $('#order_detail').datagrid('appendRow', theRow); 
+                        };
+                        $('#order_detail').datagrid('appendRow', theRow);
                     }
                     //营业员比例
-//                    $.post("@Url.Content("~/Audit/GetSalerPercentage")",{id:id},function(data){
-//                        if(data.success){
-//                            $("#saler_percent").val(data.ps);
-//                        }
-//                    });
+                    //                    $.post("@Url.Content("~/Audit/GetSalerPercentage")",{id:id},function(data){
+                    //                        if(data.success){
+                    //                            $("#saler_percent").val(data.ps);
+                    //                        }
+                    //                    });
                     //附件信息
                     $.post("@Url.Content("~/Saler/GetFileInfo")",{sys_no:"@ViewData["sys_no"]"},function(data){
                         if(data.success){
@@ -222,7 +222,7 @@
                     });
                     $.messager.progress("close");
                 }
-           });
+            });
         }else{
             $("#agency").combobox({
                 onLoadSuccess:function(){
@@ -256,7 +256,7 @@
                                 break;
                             case "saler":
                                 url = "@Url.Content("~/Items/getSalers")";
-                                break;                            
+                                break;
                             default:
                                 url = "@Url.Content("~/Items/getCostomers")";
                                 break;
@@ -286,14 +286,14 @@
                 columns: [[
                         { field: 'number', title: '@Html.Lang("customer_num")', width: 150 },
 					    { field: 'name', title: '@Html.Lang("customer_name")', width: 220 }
-				    ]],
+                ]],
                 keyHandler: {
                     query: function () { },
                     enter: function () {
                         var box_id = $(this).attr("id");
                         var _this = "#" + box_id;
                         var q = $(_this).combogrid('getText');
-                        if (q != "") {                            
+                        if (q != "") {
                             $.post("@Url.Content("~/Items/getCostomers")", { q: q },
                                 function (data) {
                                     $(_this).combogrid('grid').datagrid('loadData', data);
@@ -316,7 +316,7 @@
                     { field: 'number', title: '@Html.Lang("pro_num")', width: 120 },
 					{ field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
 					{ field: 'model', title: '@Html.Lang("pro_model")', width: 150 }
-				]],
+            ]],
             keyHandler: {
                 query: function () { },
                 enter: function () {
@@ -356,39 +356,39 @@
 
         //项目编码下拉表格
         $("#project_number").combogrid({
-            loadMsg:"Please wait...",            
+            loadMsg:"Please wait...",
             idField: "id",
             textField: "name",
             panelWidth: 400,
-//            required:'true',
+            //            required:'true',
             columns: [[
                     { field: 'id', title: '@Html.Lang("project_number")', width: 70 },
 					{ field: 'name', title: '@Html.Lang("project_name")', width: 120 },
 					{ field: 'client_name', title: '@Html.Lang("client_name")', width: 180 }
-				]],
+            ]],
             onShowPanel:function(){
                 var buy_unit=$("#buy_unit").combogrid("getValue");
                 var oversea_client=$("#oversea_client").combogrid("getValue");
                 $.post("@Url.Content("~/Items/getProjectNumbers")", { buy_unit: buy_unit,oversea_client:oversea_client },
                 function(data){
                     $("#project_number").combogrid('grid').datagrid('loadData', data);
-                },"json");                
+                },"json");
             }
         });
 
         //保存订单
-        $('#saveAllBut').bind('click', function () { 
+        $('#saveAllBut').bind('click', function () {
             if(!$('#order_form').form('validate')){
                 return;
             }
-            $.messager.progress(); 
+            $.messager.progress();
             $('#saveAllBut').linkbutton('disable');
             $('#submitApply').linkbutton('disable');
             if(beforeSaveOrder()){
                 //表体字段：
                 var pro_type_name=$("#product_type").combobox("getText");
                 var details=$("#order_detail").datagrid("getRows");
-                var p_id=new Array();        
+                var p_id=new Array();
                 var p_qty=new Array();
                 var p_quote=new Array();
                 var p_cost=new Array();
@@ -400,8 +400,8 @@
                 var p_tar_date=new Array();
                 var p_comment=new Array();
                 var p_discount_rate=new Array();
-                var p_unit_price=new Array();       
-                var p_project_number=new Array();         
+                var p_unit_price=new Array();
+                var p_project_number=new Array();
                 for(var i=0;i<details.length;i++){
                     p_id[i]=details[i].product_id;
                     p_qty[i]=details[i].qty;
@@ -421,7 +421,7 @@
                 }
                 $('#order_form').form('submit',{
                     url: '@Url.Content("~/Saler/saveSaleOrder")',
-                    onSubmit: function(param){  
+                    onSubmit: function(param){
                         param.pro_type_name=pro_type_name;
                         param.p_id=p_id;
                         param.p_qty=p_qty;
@@ -438,10 +438,10 @@
                         param.p_comment=p_comment;
                         param.p_project_number=p_project_number;
                     },
-                    success: function (data) { 
-                        var result = eval('('+ data +')');                        
-                        if(result.success){                            
-//                            thenSaveDetails(result.orderId);
+                    success: function (data) {
+                        var result = eval('('+ data +')');
+                        if(result.success){
+                            //                            thenSaveDetails(result.orderId);
                             $.messager.show({
                                 title: '@Html.Lang("tip")',
                                 msg: "@Html.Lang("suc_save")"
@@ -457,11 +457,11 @@
                     }
                 });
             }
-            $.messager.progress("close"); 
+            $.messager.progress("close");
             $('#saveAllBut').linkbutton('enable');
             $('#submitApply').linkbutton('enable');
         });
-        
+
         //提交申请按钮
         $("#submitApply").click(function(){
             //首先检测订单是否已保存以及办事处对应的市场部一审有没有设置好
@@ -469,7 +469,7 @@
             $('#saveAllBut').linkbutton('disable');
             $.post("@Url.Content("~/Saler/CheckIsBillExist")",{sysNum:$("#sys_no").val()},
             function(data){
-                if(data.success){  
+                if(data.success){
                     $.messager.show({
                         title: '@Html.Lang("tip")',
                         msg: "正在提交，请等待跳转。。。"
@@ -481,7 +481,7 @@
                     $.messager.show({
                         title: '@Html.Lang("tip")',
                         msg: data.msg
-                     });
+                    });
                 }
             },"json");
         });
@@ -490,28 +490,28 @@
         var stop=0;
         $("#dlg_details").dialog({
             onOpen:function(){
-                 $("#unit_price").numberbox({
+                $("#unit_price").numberbox({
                     onChange:function(newValue, oldValue){
                         if(newValue!="" && stop==0){
                             stop=1;
-                            $("#Aux_tax_price").numberbox("setValue",newValue * (1+tax_rate/100));                            
+                            $("#Aux_tax_price").numberbox("setValue",newValue * (1+tax_rate/100));
                         }else{
                             stop=0;
                         }
                     }
-                }); 
+                });
                 $("#Aux_tax_price").numberbox({
                     onChange:function(newValue, oldValue){
                         if(newValue!="" && stop==0){
                             stop=1;
-                            $("#unit_price").numberbox("setValue",newValue/(1+tax_rate/100));                            
+                            $("#unit_price").numberbox("setValue",newValue/(1+tax_rate/100));
                         }else{
                             stop=0;
                         }
                     }
                 });
             }
-        });  
+        });
         //alert($("#clearing_way").combobox().innerHtml());
         //$("#clearing_way").combobox().find("input.combo-text").tooltip({content:"hello,world"});
     });
@@ -520,7 +520,7 @@
     //保存订单时各种验证
     function beforeSaveOrder(){
         if($("#saler_percent").val()==""){
-            alert("营业员比例不能为空");            
+            alert("营业员比例不能为空");
             return false;
         }
         if($("#order_detail").datagrid("getRows").length==0){
@@ -533,101 +533,101 @@
             return false;
         }
         var isok=true;
-            $("#order_div .combo-value").each(function (index) {
-                var id = $(this).attr("name");
-                value = $(this).val();
-                if (id != "order_date") {
-                    //如果是以下4个combobox，则从服务器端验证，否则在本地验证
-                    //以下4个要拿combobox的text属性，因为value属性不会随着自己输入的text而改变，只有选择的时候才会改变.如果验证成功，要将从后台取得的value设置进去
-                    if (id == "clerk" || id == "charger" || id == "clerk2" || id=="clerk3") {
-                        var text = $("#" + id).combobox("getText");
-                        var url = ""; 
-                        //继续下一循环
-                        if (text == "") {
-                            $("#" + id).combobox("setValue", "");
-                            return true;
-                        }
-                        url = "@Url.Content("~/Items/verifyClerk")";
-                        $.ajax({
-                            type: "POST",
-                            url: url,
-                            data: "q=" + text.replace(/\&/g,"%26"),
-                            async: false,
-                            success: function (data) {
-                                if (data.success) {                                    
-                                    $("#" + id).combobox("setValue", data.itemId);
-                                    $("#" + id).combobox("setText", text);
-                                } else {
-                                    isok=false;
-                                    var invalid = "[" + $.trim($("#" + id).parents("td").prev("td").html()) + "] @Html.Lang("invalid_combobox") ！";
-                                    alert(invalid);
-                                    return false; //跳出循环
-                                }
-                            }
-                        });
-                    } else if(id == "buy_unit" || id == "final_client" || id == "plan_firm" || id == "oversea_client"){
-                        var currency=$("#currency").combobox("getValue");
-                        var text = $("#" + id).combogrid("getText");
-                        var customer_id=$("#" + id).combogrid("getValue");
-                        var url = ""; //继续下一循环
-                        if (text == "") {
-                            $("#" + id).combogrid("setValue", "");
-                            return true;
-                        }                     
-                        $.ajax({
-                            type: "POST",
-                            url: "@Url.Content("~/Items/verifyCostomer2")",
-                            data: "q=" + text.replace(/\&/g,"%26") + "&currency="+currency + "&customer_id="+customer_id,
-                            async: false,
-                            success: function (data) {
-                                if (data.success) {                                    
-                                    $("#" + id).combogrid("setValue", data.itemId);
-                                    $("#" + id).combogrid("setText", text);
-                                } else {
-                                    isok=false;
-                                    var invalid = "[" + $.trim($("#" + id).parents("td").prev("td").html()) + "] @Html.Lang("invalid_combobox") ！";
-                                    alert(invalid);
-                                    return false; //跳出循环
-                                }
-                            }
-                        });
+        $("#order_div .combo-value").each(function (index) {
+            var id = $(this).attr("name");
+            value = $(this).val();
+            if (id != "order_date") {
+                //如果是以下4个combobox，则从服务器端验证，否则在本地验证
+                //以下4个要拿combobox的text属性，因为value属性不会随着自己输入的text而改变，只有选择的时候才会改变.如果验证成功，要将从后台取得的value设置进去
+                if (id == "clerk" || id == "charger" || id == "clerk2" || id=="clerk3") {
+                    var text = $("#" + id).combobox("getText");
+                    var url = "";
+                    //继续下一循环
+                    if (text == "") {
+                        $("#" + id).combobox("setValue", "");
+                        return true;
                     }
-                     else {
-                        if (value == "") {
-                            return true; //继续下一循环
-                        }
-                        var flag = 0;
-                        var data = $("#" + id).combobox("getData");
-                        for (var i = 0; i < data.length; i++) {
-                            if(id=="delivery_place"){
-                                if (data[i].name == value) {
-                                    flag = 1;
-                                    break;
-                                }
-                            }else{
-                                if (data[i].id == value) {
-                                    flag = 1;
-                                    break;
-                                }
+                    url = "@Url.Content("~/Items/verifyClerk")";
+                    $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: "q=" + text.replace(/\&/g,"%26"),
+                        async: false,
+                        success: function (data) {
+                            if (data.success) {
+                                $("#" + id).combobox("setValue", data.itemId);
+                                $("#" + id).combobox("setText", text);
+                            } else {
+                                isok=false;
+                                var invalid = "[" + $.trim($("#" + id).parents("td").prev("td").html()) + "] @Html.Lang("invalid_combobox") ！";
+                                alert(invalid);
+                                return false; //跳出循环
                             }
                         }
-                        //flag为0表示这层循环验证失败，显示错误信息并退出验证
-                        if (flag == 0) {
-                            isok=false;
-                            var invalid = "[" + $.trim($(this).parents("td").prev("td").html()) + "] @Html.Lang("invalid_listbox") ！";
-                            alert(invalid);                            
-                            return false; //跳出循环
+                    });
+                } else if(id == "buy_unit" || id == "final_client" || id == "plan_firm" || id == "oversea_client"){
+                    var currency=$("#currency").combobox("getValue");
+                    var text = $("#" + id).combogrid("getText");
+                    var customer_id=$("#" + id).combogrid("getValue");
+                    var url = ""; //继续下一循环
+                    if (text == "") {
+                        $("#" + id).combogrid("setValue", "");
+                        return true;
+                    }
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Content("~/Items/verifyCostomer2")",
+                        data: "q=" + text.replace(/\&/g,"%26") + "&currency="+currency + "&customer_id="+customer_id,
+                        async: false,
+                        success: function (data) {
+                            if (data.success) {
+                                $("#" + id).combogrid("setValue", data.itemId);
+                                $("#" + id).combogrid("setText", text);
+                            } else {
+                                isok=false;
+                                var invalid = "[" + $.trim($("#" + id).parents("td").prev("td").html()) + "] @Html.Lang("invalid_combobox") ！";
+                                alert(invalid);
+                                return false; //跳出循环
+                            }
                         }
+                    });
+                }
+                else {
+                    if (value == "") {
+                        return true; //继续下一循环
+                    }
+                    var flag = 0;
+                    var data = $("#" + id).combobox("getData");
+                    for (var i = 0; i < data.length; i++) {
+                        if(id=="delivery_place"){
+                            if (data[i].name == value) {
+                                flag = 1;
+                                break;
+                            }
+                        }else{
+                            if (data[i].id == value) {
+                                flag = 1;
+                                break;
+                            }
+                        }
+                    }
+                    //flag为0表示这层循环验证失败，显示错误信息并退出验证
+                    if (flag == 0) {
+                        isok=false;
+                        var invalid = "[" + $.trim($(this).parents("td").prev("td").html()) + "] @Html.Lang("invalid_listbox") ！";
+                        alert(invalid);
+                        return false; //跳出循环
                     }
                 }
-            });
-            return isok;
+            }
+        });
+        return isok;
     }
 
     //以下是订单明细的增删改
     var detailIndex=-1;
     function AddDetail(){
-        detailIndex=-1;      
+        detailIndex=-1;
         $("#fm").form("clear");
         $("#dlg_details").dialog("open").dialog("setTitle","@Html.Lang("add_item")");
         $("#fm").form("clear");
@@ -642,9 +642,9 @@
             $("#cost").numberbox({ precision: 3 });
             $("#deal_price").numberbox({ precision: row.pricePoint });
             $("#unit_price").numberbox({ precision: row.pricePoint });
-            $("#Aux_tax_price").numberbox({ precision: row.pricePoint }); 
+            $("#Aux_tax_price").numberbox({ precision: row.pricePoint });
             $("#fm").form("load",row);
-            $("#dlg_details").dialog("open").dialog("setTitle","@Html.Lang("edit_item")");            
+            $("#dlg_details").dialog("open").dialog("setTitle","@Html.Lang("edit_item")");
             $('#product_number').combogrid('setValue',row.product_id);
             $('#product_number').combogrid('setText',row.product_number);
             $("#project_number").combogrid("setValue",row.project_number);
@@ -673,7 +673,7 @@
             alert("完成交货期不能小于开始交货期");
             return;
         }
-         //计算MU、佣金、佣金率        
+        //计算MU、佣金、佣金率
         var v_cost=$('#cost').numberbox('getValue');
         var v_deal_price=$('#deal_price').numberbox('getValue');
         var v_tax_rate=$('#tax_rate').numberbox('getValue');
@@ -691,15 +691,15 @@
         }else{
             //同步获取佣金率
             $.ajax({
-                        type: "POST",
-                        dataType: "json",
-                        url: "@Url.Content("~/Audit/GetCommissionRate")",
-                        data: "proType=" + v_pro_type +"&MU=" + v_mu,
-                        async: false,
-                        success: function (data) {
-                            v_com_rate = data;
-                        }
-                    });
+                type: "POST",
+                dataType: "json",
+                url: "@Url.Content("~/Audit/GetCommissionRate")",
+                data: "proType=" + v_pro_type +"&MU=" + v_mu,
+                async: false,
+                success: function (data) {
+                    v_com_rate = data;
+                }
+            });
         }
         //佣金
         if(v_pro_type == "CCM" && v_mu<-6){
@@ -716,7 +716,7 @@
             product_name: $('#product_name').val(),
             product_model: $('#product_model').val(),
             qty: $('#qty').numberbox('getValue'),
-            quote_no: $('#quote_no').val(),            
+            quote_no: $('#quote_no').val(),
             MU: v_mu.toFixed(2),
             tax_rate: v_tax_rate,
             commission: v_com,
@@ -733,6 +733,26 @@
             project_name:$("#project_number").combogrid("getText"),
             comment: $('#comment').val()
         };
+
+        //2017-9-8 从pis带产品用途过来，提示是否覆盖掉已填产品用途
+        if ($("#order_type").combobox("getText") == "生产单") {
+            $.post("@Url.Content("~/Items/GetPisProductUsage")", { model: $('#product_model').val() }, function (data) {
+                if (data.suc) {
+                    var usage = data.usage;
+                    var currentUsage = $("#product_use").val();
+                    if ($.trim(currentUsage) == "") {
+                        $("#product_use").val(usage);
+                    } else if (usage != $("#product_use").val()) {
+                        $.messager.confirm('@Html.Lang("confirm")', '检测到你填写的产品用途与PIS系统关联此型号的产品用途不一致，请确认是否要将【' + usage + "】覆盖【" + currentUsage + "】?", function (r) {
+                            if (r) {
+                                $("#product_use").val(usage);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
         if(detailIndex==-1){
             $('#order_detail').datagrid('appendRow', theRow);
         }else{
@@ -741,7 +761,7 @@
             });
         }
         $('#dlg_details').dialog('close');
-    }    
+    }
 
 </script>
 <form id="order_form" method="post">

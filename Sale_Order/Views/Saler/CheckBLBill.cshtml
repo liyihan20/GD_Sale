@@ -8,24 +8,47 @@
     $(function () {
         $("#order_div input[type='text']").attr("readonly", "readonly");
         $("#order_div textarea").attr("readonly", "readonly");
-
+        $.map("@bl.bl_project".split(","), function (item) { $("input[name='bl_project'][value='" + item + "']").attr("checked", true); });
+        $("#order_div input[type='checkbox']").not(":checked").attr("disabled", "disabled");
+        $("#order_div input[type='checkbox']:checked").click(function () { event.preventDefault(); });
         $("#dg_detail").datagrid({
-            width: 1000,
+            width: 1400,
             loadMsg: "加载中...",
             rownumbers: true,
             singleSelect: true,
             fitColumns: true,
             columns: [[
                 { field: 'levels', title: '层级', width: 60, align: 'center', hidden: true },
-                { field: 'fnumber', title: '物料编码', width: 150, align: 'center', hidden: true },
-                { field: 'fmodel', title: '物料型号', width: 300 },
+                {
+                    field: 'fnumber', title: '物料编码', width: 150, align: 'center', formatter: function (value, row, index) {
+                        //营业员不能查看物料编码
+                        if ("@ViewData["hiddenModel"]" == "true") {
+                            return "****************";
+                        } else {
+                            return value;
+                        }
+                    }
+                },
+                {
+                    field: 'fmodel', title: '物料型号', width: 260, formatter: function (value, row, index) {
+                        //营业员不能查看物料型号
+                        if ("@ViewData["hiddenModel"]" == "true") {
+                            return "****************";
+                        } else {
+                            return value;
+                        }
+                    }
+                },
                 { field: 'fname', title: '物料名称', width: 100, align: 'center' },
                 { field: 'unitname', title: '单位', width: 60, align: 'center' },
-                { field: 'fqty', title: '单位用量', width: 100, align: 'center' },
-                { field: 'total_qty', title: '数量', width: 60, align: 'center' },
+                { field: 'fqty', title: '单位用量', width: 80, align: 'center' },
+                { field: 'total_qty', title: '标准数量', width: 80, align: 'center' },
+                { field: 'order_qty', title: '订料数量', width: 80, align: 'center' },
+                { field: 'k3_qty', title: '关联K3数量', width: 80, align: 'center' },
                 { field: 'highest_price', title: '最高采购价', width: 80, align: 'center' },
                 { field: 'comment', title: '备注', width: 200 },
-                { field: 'source', title: '来源', width: 80, align: 'center' }
+                { field: 'source', title: '来源', width: 80, align: 'center' },
+                { field: 'order_name', title: '订料员', width: 80, align: 'center' },
             ]]
         });
     });
@@ -60,27 +83,10 @@
                     </tr>
                     <tr>
                         <td>
-                            备料性质:
+                            办事处:
                         </td>
                         <td>
-                            @if (bl.bl_property == null || bl.bl_property == "") {
-                                <span>
-                                    <input type="radio" name="bl_property" value="非全套" disabled /> 非全套 &nbsp;&nbsp;
-                                    <input type="radio" name="bl_property" value="全套" disabled /> 全套
-                                </span>
-                            }
-                            else if (bl.bl_property == "单料") {
-                                <span>
-                                    <input type="radio" name="bl_property" value="非全套" checked disabled /> 非全套 &nbsp;&nbsp;
-                                    <input type="radio" name="bl_property" value="全套" disabled /> 全套
-                                </span>
-                            }
-                            else {
-                                <span>
-                                    <input type="radio" name="bl_property" value="非全套" disabled /> 非全套 &nbsp;&nbsp;
-                                    <input type="radio" name="bl_property" value="全套" checked disabled /> 全套
-                                </span>
-                            }
+                            <input type="text" style="width: 140px" value="@bl.agency_name" />
                         </td>
                         <td>
                             备料类型:
@@ -95,12 +101,12 @@
                             else if (bl.bl_type == "有合同协议") {
                                 <span>
                                     <input type="radio" name="bl_type" value="市场预测" disabled /> 市场预测
-                                    <input type="radio" name="bl_type" value="有合同协议" checked disabled /> 有合同协议 &nbsp;
+                                    <input type="radio" name="bl_type" value="有合同协议" checked /> 有合同协议 &nbsp;
                                 </span>
                             }
                             else {
                                 <span>
-                                    <input type="radio" name="bl_type" value="市场预测" checked disabled /> 市场预测
+                                    <input type="radio" name="bl_type" value="市场预测" checked /> 市场预测
                                     <input type="radio" name="bl_type" value="有合同协议" disabled /> 有合同协议 &nbsp;
                                 </span>
                             }
@@ -214,16 +220,16 @@
                     </tr>
                     <tr>
                         <td>
-                            TFT型号:
+                            营业员:
                         </td>
                         <td>
-                            <input type="text" style="width:140px" value="@bl.TFT_model" />
+                            <input type="text" style="width: 140px" value="@bl.clerk_name" />
                         </td>
                         <td>
-                            TP型号:
+                            计划员:
                         </td>
                         <td>
-                            <input type="text" style="width:140px" value="@bl.TP_model" />
+                            <input type="text" style="width: 140px" value="@bl.planner_name" />
                         </td>
                         <td>
                             制单人:
@@ -233,29 +239,49 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>
-                            办事处:
+                        <td>订料员:</td>
+                        <td colspan="5">
+                            <input type="text" style="width:381px" value="@bl.order_names" />
                         </td>
-                        <td>
-                            <input type="text" style="width: 140px" value="@bl.agency_name" />
-                        </td>
-                        <td>
-                            营业员:
-                        </td>
-                        <td>
-                            <input type="text" style="width: 140px" value="@bl.clerk_name" />
-                        </td>
-                        <td></td>
-                        <td></td>
                     </tr>
-                    @*<tr>
-                            <td>
+                    <tr>
+                        @*<td>
                                 备料项目:
-                            </td>
-                            <td colspan="5">
-                                <textarea cols="92" rows="8" spellcheck="false" style="margin: 0;">@bl.bl_project</textarea>
-                            </td>
-                        </tr>*@
+                            </td>*@
+                        <td colspan="6">
+                            <fieldset>
+                                <legend>备料项目</legend>
+                                <div>
+                                    <input type="checkbox" name="bl_project" value="全套物料" /><span class="ck_label"> 全套物料</span> &nbsp;
+                                    <input type="checkbox" name="bl_project" value="成品" /><span class="ck_label"> 成品</span> &nbsp;
+                                </div>
+                                <div>
+                                    @{string[] p1 = new string[] { "IC", "背光", "玻璃", "TP", "Lens", "电容", "电阻", "二极管", "马达", "镜头", "FPC", "偏光片" };}
+                                    @foreach (var p in p1) {
+                                        <input type="checkbox" name="bl_project" value="@p" /><span class="ck_label">@p</span><span>&nbsp;</span>
+                                    }
+                                </div>
+                                <div>
+                                    @{string[] p2 = new string[] { "连接器", "菲林", "大片玻璃基材", "基板", "POL", "芯片", "防反射膜", "前盖", "光学膜已切", "ACF" };}
+                                    @foreach (var p in p2) {
+                                        <input type="checkbox" name="bl_project" value="@p" /><span class="ck_label">@p</span><span>&nbsp;</span>
+                                    }
+                                </div>
+                                <div>
+                                    @{string[] p3 = new string[] { "PCB", "LC", "TJ", "JJ", "元件", "电感", "磁珠", "晶振三极管" };}
+                                    @foreach (var p in p3) {
+                                        <input type="checkbox" name="bl_project" value="@p" /><span class="ck_label">@p</span><span>&nbsp;</span>
+                                    }
+                                </div>
+
+                                <div>
+                                    <input type="checkbox" name="bl_project" value="其它" /><span class="ck_label"> 其它</span> &nbsp;
+                                    <input type="text" style="width:200px" name="bl_project_other" value="@bl.bl_project_other" />
+                                </div>
+                            </fieldset>
+                        </td>
+                    </tr>
+
                     <tr>
                         <td>摘要:</td>
                         <td colspan="5">
@@ -263,25 +289,30 @@
                         </td>
                     </tr>
                 </table>
-                <br />
-                <div id="detail_div" class="easyui-panel" title="备料清单明细" style="+position: relative; width: 815px; height: 240px">
-                    <table id="dg_detail">
-                        @foreach (var det in bl.Sale_BL_details) {
-                            <tr>
-                                <td>@det.levels</td>
-                                <td>@det.fnumber</td>
-                                <td>@det.fmodel</td>
-                                <td>@det.fname</td>
-                                <td>@det.unitname</td>
-                                <td>@(det.fqty == null ? 0 : Math.Round((decimal)det.fqty, 4))</td>
-                                <td>@(det.total_qty == null ? 0 : Math.Round((decimal)det.total_qty, 4))</td>
-                                <td>@(det.highest_price == null ? 0 : Math.Round((decimal)det.highest_price, 4))</td>
-                                <td>@det.comment</td>
-                                <td>@det.source</td>
-                            </tr>
-                        }
-                    </table>
-                </div>
+                @if (bl.Sale_BL_details.Count() > 0) {
+                    <br />
+                    <div id="detail_div" class="easyui-panel" title="备料清单明细" style="+position: relative; width: 815px; height: 240px">
+                        <table id="dg_detail">
+                            @foreach (var det in bl.Sale_BL_details) {
+                                <tr>
+                                    <td>@det.levels</td>
+                                    <td>@det.fnumber</td>
+                                    <td>@det.fmodel</td>
+                                    <td>@det.fname</td>
+                                    <td>@det.unitname</td>
+                                    <td>@(det.fqty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.fqty, 4)))</td>
+                                    <td>@(det.total_qty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.total_qty, 4)))</td>
+                                    <td>@(det.order_qty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.order_qty, 4)))</td>
+                                    <td>@(det.k3_qty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.k3_qty, 4)))</td>
+                                    <td>@(det.highest_price == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.highest_price, 4)))</td>
+                                    <td>@det.comment</td>
+                                    <td>@det.source</td>
+                                    <td>@det.order_name</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                }
             </div>
             <br />
             <div id="downloadPanel">
@@ -292,11 +323,11 @@
                 <div style="color:red">操作说明：</div>
                 <div>
                     <1>
-                        . 运作中心审核人只可修改保存【事业部】这个字段，此事业部决定后续接单、成控和计划经理由谁审批。<br />
+                        . 计划员能且仅能选择【订料员】，订料员可以选择多个，选择的订料员作为下一审批步骤进行会签。<br />
                         <2>
-                            . 计划经理只可修改保存【订单数量】和【备料清单明细】，如果有修改，审批OK后会流转给下单营业员确认。<br />
+                            . 订料员必须录入【备料清单明细】，如果有多个订料员会签，每个订料员只能录入自己的备料明细，不能修改或删除其它订料员录入的备料明细。<br />
                             <3>
-                                .【备料清单】可取自BOM，也可以自己手动录入。<br />
+                                .营业员没有权限查看备料明细的【物料代码】和【物料型号】，会以*号代替。<br />
                                 <4>
                                     .【备料编号】是根据市场部提供的规则，并根据营业所选择的【市场部】字段在流程正常结束后系统生成的。<br />
                 </div>

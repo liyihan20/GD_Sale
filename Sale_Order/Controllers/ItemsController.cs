@@ -672,5 +672,31 @@ namespace Sale_Order.Controllers
             var result = db.ExecuteQuery<BomProductModel>("exec [dbo].[getBomInfo] @bus_dep = {0},@mat_number = {1},@is_main = {2}", busDep, productNumber, 1).ToList();
             return Json(result);
         }
+
+        //获取备料单的计划和订料
+        public JsonResult GetAuditorsWithStep(string stepName, string depName)
+        {
+            var result = (from v in db.vw_auditor_relations
+                          where v.step_name == stepName
+                          && v.department_name.Contains(depName)
+                          select new
+                          {
+                              auditorId = v.auditor_id,
+                              auditorName = v.auditor_name
+                          }).ToList();
+            return Json(result);
+        }
+
+        //获取PIS系统的产品用途
+        public JsonResult GetPisProductUsage(string model)
+        {
+            var result = db.vw_modelUsage.Where(m => m.model == model).ToList();
+            if (result.Count() > 0) {
+                return Json(new { suc = true, usage = result.First().usage });
+            }
+            else {
+                return Json(new { suc = false });
+            }
+        }
     }
 }

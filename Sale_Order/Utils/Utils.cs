@@ -1203,11 +1203,9 @@ namespace Sale_Order.Utils
             {
                 throw new Exception("流程不存在或过期，请联系管理员");
             }
-            var pro = pros.First();
-            int minusStep = 0;
+            var pro = pros.First();     
             foreach (var det in pro.ProcessDetail.OrderBy(p => p.step))
             {
-
                 var auditorRel = db.AuditorsRelation.Where(a => a.step_value == det.step_type);
                 string relateType = auditorRel.First().relate_type;
                 string stepName = auditorRel.First().step_name;
@@ -1246,13 +1244,8 @@ namespace Sale_Order.Utils
                     {
                         throw new Exception("步骤【" + det.step_name + "】审核人员不存在");
                     }
-                    else if (det.countersign == null || det.countersign == false)
-                    {
-                        //该步骤的审核人为空且被允许，所以不是会签的要将后续步骤-1                        
-                        minusStep++;
-                    }
                     continue;
-                }
+                }                
 
                 foreach (int auditor in auditors)
                 {
@@ -1260,11 +1253,27 @@ namespace Sale_Order.Utils
                     {
                         Apply = ap,
                         can_modify = det.can_modify,
-                        step = det.step - minusStep,
+                        step = det.step,
                         step_name = det.countersign == true ? det.step_name + "(" + stepName.Substring(stepName.IndexOf("_") + 1).Split(new string[] { "审", "负" }, StringSplitOptions.None)[0] + ")" : det.step_name,
                         user_id = auditor,
                         countersign = det.countersign
                     });
+                }
+            }
+
+            //2017-9-9 对缺失的step重新排序，比如现在是124457，确认缺失step3和6，将3以后的step-1，再将6以后的step也减1
+            int maxStep = (int)ads.Max(a => a.step);
+            List<int> lostSteps = new List<int>();
+            for (int st = 1; st < maxStep; st++) {
+                if (ads.Where(a => a.step == st).Count() == 0) {
+                    lostSteps.Add(st);
+                }
+            }
+            if (lostSteps.Count() > 0) {
+                foreach (int s in lostSteps) {
+                    foreach (var ad in ads.Where(a => a.step > s)) {
+                        ad.step = ad.step - 1;
+                    }
                 }
             }
 
@@ -1336,7 +1345,7 @@ namespace Sale_Order.Utils
         }
 
         //在流程最后添加步骤
-        public bool AppendStepAtLast(int applyId, string stepName, int?[] stepAuditor, bool canModify = false, bool canSelectNext = false, bool countersign = false)
+        public bool AppendStepAtLast(int applyId, string stepName, int?[] stepAuditor, int parentStep = 0, bool canModify = false, bool canSelectNext = false, bool countersign = false)
         {
             int maxStep = (int)db.ApplyDetails.Where(a => a.apply_id == applyId).Max(a => a.step);
             //没有人即退出
@@ -1353,11 +1362,10 @@ namespace Sale_Order.Utils
                     newAd.user_id = auditId;
                     newAd.can_modify = canModify;
                     newAd.can_select_next = canSelectNext;
-                    newAd.parent_step = maxStep;//增加母步骤，表明是这个母步骤生成的。2015-3-6
+                    newAd.parent_step = parentStep;
                     newAd.countersign = countersign;
 
                     db.ApplyDetails.InsertOnSubmit(newAd);
-                    maxStep++;
                 }
             }
 
@@ -2223,7 +2231,19 @@ namespace Sale_Order.Utils
             Sale_BL bl = new Sale_BL();
             bl.step_version = stepVersion;
             SetFieldValueToModel(col, bl);//将表单值设置到对象
-            bl.Sale_BL_details.AddRange(JsonConvert.DeserializeObject<List<Sale_BL_details>>(col.Get("Sale_BL_details"))); //将表体反序列化
+
+            string details = col.Get("Sale_BL_details");
+            if (!string.IsNullOrEmpty(details)) {
+                List<Sale_BL_details> detailList = JsonConvert.DeserializeObject<List<Sale_BL_details>>(details); //将表体反序列化
+                int entryNo = 1;
+                foreach (var detail in detailList) {
+                    if (detail.order_qty == null || detail.order_qty == 0) {
+                        return "第" + entryNo + "行的订料数量必须填写且不能为0";
+                    }
+                    detail.entry_no = entryNo++;
+                }
+                bl.Sale_BL_details.AddRange(detailList);
+            }
 
             int? salerId; //营业ID，即下单者ID
             if (stepVersion == 0) {
@@ -2233,20 +2253,21 @@ namespace Sale_Order.Utils
                 salerId = db.Apply.Where(a => a.sys_no == bl.sys_no).First().user_id;
             }
 
-            //验证字段合法性
-            if ("IMDS".Equals(bl.bus_dep)) {
-                if (string.IsNullOrEmpty(bl.TFT_model)) {
-                    return "IMDS事业部的TFT型号不能为空";
-                }
-                if (string.IsNullOrEmpty(bl.TP_model)) {
-                    return "IMDS事业部的TP型号不能为空";
-                }
-            }
+            //验证字段合法性            
             if (string.IsNullOrEmpty(bl.product_model)) {
                 return "产品型号不能为空";
             }
             if ("有合同协议".Equals(bl.bl_type) && string.IsNullOrWhiteSpace(bl.bl_contract_no)) {
                 return "有合同协议的协议号不能为空";
+            }
+            if (string.IsNullOrEmpty(bl.bl_project)) {
+                return "备料项目至少应选择一项";
+            }
+            if (bl.bl_project.Contains("其它") && string.IsNullOrEmpty(bl.bl_project_other)) {
+                return "备料项目选择了其它，请在相邻文本框中说明其它的内容";
+            }
+            if (string.IsNullOrEmpty(bl.clerk_no)) {
+                return "营业员必须在列表中输入姓名或厂牌之后按回车键选择";
             }
 
             try {

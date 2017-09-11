@@ -1841,9 +1841,16 @@ namespace Sale_Order.Controllers
         {
             var bl = db.Sale_BL.Single(s => s.sys_no == sys_no);
             bl.step_version = step;
+            string stepName = db.ApplyDetails.Where(ad => ad.apply_id == apply_id && ad.step == step).First().step_name;
             ViewData["BL"] = bl;
             ViewData["applyId"] = apply_id;
+            ViewData["stepName"] = stepName;
             ViewData["blockInfo"] = db.BlockOrder.Where(b => b.sys_no == sys_no).OrderBy(b => b.step).ToList();
+            if (stepName.Contains("订料")) {
+                int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+                ViewData["order_id"] = userId;
+                ViewData["order_name"] = db.User.Single(u => u.id == userId).real_name;
+            }
             return View("CreateBLBill");
         }
 
@@ -1853,11 +1860,7 @@ namespace Sale_Order.Controllers
             string pre = sys_no.Substring(0, 2);
             int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == sys_no);
-            string processType = pre;
-
-            if (!new string[] {"CCM","TPD","FPI","AITD","STC" }.Contains(bl.bus_dep)) {
-                processType = "BL_yz"; //有运作中心审批的流程
-            }
+            string processType = pre;                       
 
             Apply apply = new Apply();
             apply.user_id = userId;
@@ -1971,11 +1974,13 @@ namespace Sale_Order.Controllers
                     return View("CheckSampleBill");
                 case "BL":
                 case "5":
-                    Sale_BL bl = db.Sale_BL.Single(m => m.id == id);
-                    ViewData["bl"] = bl;
-                    blockInfo = db.BlockOrder.Where(b => b.sys_no == bl.sys_no).OrderBy(b => b.step).ToList();
-                    ViewData["blockInfo"] = blockInfo;
+                    Sale_BL bl = db.Sale_BL.Single(m => m.id == id);                    
+                    blockInfo = db.BlockOrder.Where(b => b.sys_no == bl.sys_no).OrderBy(b => b.step).ToList();                    
                     utl.writeEventLog(BLBILL, "查看备料", bl.sys_no, Request);
+                    string userDep = db.User.Single(u => u.id == userId).Department1.name;
+                    ViewData["hiddenModel"] = new string[] { "上海", "北京", "深圳", "汕尾", "新加坡", "中国市场部", "香港", "光能", "杭州" }.Where(s => userDep.Contains(s)).Count() > 0 ? "true" : "false";
+                    ViewData["bl"] = bl;
+                    ViewData["blockInfo"] = blockInfo;
                     return View("CheckBLBill");
                 case "6":
                 case "TH":

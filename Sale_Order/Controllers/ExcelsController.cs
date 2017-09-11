@@ -1426,49 +1426,132 @@ namespace Sale_Order.Controllers
         }
 
         //审核员导出备料单报表，要求按照计划经理审批OK和规格型号筛选
-        public ActionResult exportAuditorBLExcel(string beginDate, string toDate, string proModel)
+        //public ActionResult exportAuditorBLExcel(string beginDate, string toDate, string proModel)
+        //{
+        //    DateTime bDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"));
+        //    DateTime tDate = bDate;
+        //    if (!string.IsNullOrEmpty(beginDate)) {
+        //        bDate = DateTime.Parse(beginDate);
+        //    }
+        //    if (!string.IsNullOrEmpty(toDate)) {
+        //        tDate = DateTime.Parse(toDate);
+        //    }
+        //    if (bDate > tDate) {
+        //        utl.writeEventLog("导出审核员备料单Excel", "日期期间不正确", "", Request, 10);
+        //        ViewBag.tip = "日期期间不正确";
+        //        return View("tip");
+        //    }
+        //    utl.writeEventLog("导出审核员备料单Excel", bDate.ToShortDateString() + "~" + tDate.ToShortDateString() + ";model:" + proModel, "", Request);
+        //    BeginExportAuditorBLExcel(bDate, tDate.AddDays(1), proModel);
+        //    return null;
+        //}
+        //public void BeginExportAuditorBLExcel(DateTime bDate, DateTime tDate, string proModel)
+        //{
+        //    var myData = (from b in db.Sale_BL
+        //                  from bd in b.Sale_BL_details
+        //                  from a in db.ApplyDetails
+        //                  where a.Apply.sys_no == b.sys_no
+        //                  && a.Apply.success == true
+        //                  && a.step_name.Contains("计划经理")
+        //                  && a.finish_date >= bDate
+        //                  && a.finish_date <= tDate
+        //                  && b.product_model.Contains(proModel)
+        //                  select new
+        //                  {
+        //                      bl = b,
+        //                      bd = bd
+        //                  }).Distinct().ToList();
+
+        //    //列宽：
+        //    ushort[] colWidth = new ushort[] { 12, 16, 32, 12, 24, 18, 16, 32, 32,
+        //        18,16,24,24,16,64,32,24,12,16,16,16,24,12 };
+
+        //    //列名：
+        //    string[] colName = new string[] { "备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员","TFT型号","TP型号",
+        //    "成交价（不含税）","事业部","产品用途","对应项目组","办事处","摘要","物料型号","物料名称","单位","单位用量","数量","最高采购价","备注","来源"};
+
+        //    //設置excel文件名和sheet名
+        //    XlsDocument xls = new XlsDocument();
+        //    xls.FileName = string.Format("备料单_{0}.xls", DateTime.Now.ToShortDateString());
+        //    Worksheet sheet = xls.Workbook.Worksheets.Add("单据信息列表");
+
+        //    //设置各种样式
+
+        //    //标题样式
+        //    XF boldXF = xls.NewXF();
+        //    boldXF.HorizontalAlignment = HorizontalAlignments.Centered;
+        //    boldXF.Font.Height = 12 * 20;
+        //    boldXF.Font.FontName = "宋体";
+        //    boldXF.Font.Bold = true;
+
+        //    //设置列宽
+        //    ColumnInfo col;
+        //    for (ushort i = 0; i < colWidth.Length; i++) {
+        //        col = new ColumnInfo(xls, sheet);
+        //        col.ColumnIndexStart = i;
+        //        col.ColumnIndexEnd = i;
+        //        col.Width = (ushort)(colWidth[i] * 256);
+        //        sheet.AddColumnInfo(col);
+        //    }
+
+        //    Cells cells = sheet.Cells;
+        //    int rowIndex = 1;
+        //    int colIndex = 1;
+
+        //    //设置标题
+        //    foreach (var name in colName) {
+        //        cells.Add(rowIndex, colIndex++, name, boldXF);
+        //    }
+
+        //    foreach (var d in myData) {
+        //        colIndex = 1;
+
+        //        cells.Add(++rowIndex, colIndex, ((DateTime)d.bl.bl_date).ToString("yyyy-MM-dd"));
+        //        cells.Add(rowIndex, ++colIndex, d.bl.bill_no);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.product_model);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.qty);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.customer_name);
+        //        cells.Add(rowIndex, ++colIndex, ((DateTime)d.bl.plan_order_date).ToString("yyyy-MM-dd"));
+        //        cells.Add(rowIndex, ++colIndex, d.bl.User.real_name);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.TFT_model);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.TP_model);
+
+        //        cells.Add(rowIndex, ++colIndex, d.bl.deal_price);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.bus_dep);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.product_use);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.project_group);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.User.Department1.name);
+        //        //cells.Add(rowIndex, ++colIndex, d.bl_project);
+        //        cells.Add(rowIndex, ++colIndex, d.bl.comment);
+
+        //        cells.Add(rowIndex, ++colIndex, d.bd.fmodel);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.fname);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.unitname);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.fqty);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.total_qty);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.highest_price);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.comment);
+        //        cells.Add(rowIndex, ++colIndex, d.bd.source);
+        //    }
+
+        //    xls.Send();
+        //}
+
+        //导出事业部已审核但是还未导入K3的客退数据
+
+        public void exportAuditorBLExcel(string ids)
         {
-            DateTime bDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"));
-            DateTime tDate = bDate;
-            if (!string.IsNullOrEmpty(beginDate)) {
-                bDate = DateTime.Parse(beginDate);
-            }
-            if (!string.IsNullOrEmpty(toDate)) {
-                tDate = DateTime.Parse(toDate);
-            }
-            if (bDate > tDate) {
-                utl.writeEventLog("导出审核员备料单Excel", "日期期间不正确", "", Request, 10);
-                ViewBag.tip = "日期期间不正确";
-                return View("tip");
-            }
-            utl.writeEventLog("导出审核员备料单Excel", bDate.ToShortDateString() + "~" + tDate.ToShortDateString() + ";model:" + proModel, "", Request);
-            BeginExportAuditorBLExcel(bDate, tDate.AddDays(1), proModel);
-            return null;
-        }
-        public void BeginExportAuditorBLExcel(DateTime bDate, DateTime tDate, string proModel)
-        {
-            var myData = (from b in db.Sale_BL
-                          from bd in b.Sale_BL_details
-                          from a in db.ApplyDetails
-                          where a.Apply.sys_no == b.sys_no
-                          && a.Apply.success == true
-                          && a.step_name.Contains("计划经理")
-                          && a.finish_date >= bDate
-                          && a.finish_date <= tDate
-                          && b.product_model.Contains(proModel)
-                          select new
-                          {
-                              bl = b,
-                              bd = bd
-                          }).Distinct().ToList();
+            var myData = db.getAuditorBLExcels(ids);
 
             //列宽：
-            ushort[] colWidth = new ushort[] { 12, 16, 32, 12, 24, 18, 16, 32, 32,
-                18,16,24,24,16,64,32,24,12,16,16,16,24,12 };
+            ushort[] colWidth = new ushort[] { 16, 12, 16, 32, 12, 24, 18, 16,
+                    16, 18,18,18,32,32,28,16,18,18,
+                    18,18,16,18};
 
             //列名：
-            string[] colName = new string[] { "备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员","TFT型号","TP型号",
-            "成交价（不含税）","事业部","产品用途","对应项目组","办事处","摘要","物料型号","物料名称","单位","单位用量","数量","最高采购价","备注","来源"};
+            string[] colName = new string[] { "流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员",
+                "成交价（不含税）","事业部","产品用途","办事处","摘要","物料型号","物料名称","单位","单位用量","标准数量",
+                "订料数量","K3数量","来源","订料员"};
 
             //設置excel文件名和sheet名
             XlsDocument xls = new XlsDocument();
@@ -1505,39 +1588,38 @@ namespace Sale_Order.Controllers
 
             foreach (var d in myData) {
                 colIndex = 1;
+                //"流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员",
+                //"成交价（不含税）","事业部","产品用途","办事处","摘要","物料型号","物料名称","单位","单位用量","标准数量",
+                //"订料数量","K3数量","来源","订料员"
+                cells.Add(++rowIndex, colIndex, d.sys_no);
+                cells.Add(rowIndex, ++colIndex, d.bl_date);
+                cells.Add(rowIndex, ++colIndex, d.bill_no);
+                cells.Add(rowIndex, ++colIndex, d.product_model);
+                cells.Add(rowIndex, ++colIndex, d.qty);
+                cells.Add(rowIndex, ++colIndex, d.customer_name);
+                cells.Add(rowIndex, ++colIndex, d.plan_order_date);
+                cells.Add(rowIndex, ++colIndex, d.real_name);
 
-                cells.Add(++rowIndex, colIndex, ((DateTime)d.bl.bl_date).ToString("yyyy-MM-dd"));
-                cells.Add(rowIndex, ++colIndex, d.bl.bill_no);
-                cells.Add(rowIndex, ++colIndex, d.bl.product_model);
-                cells.Add(rowIndex, ++colIndex, d.bl.qty);
-                cells.Add(rowIndex, ++colIndex, d.bl.customer_name);
-                cells.Add(rowIndex, ++colIndex, ((DateTime)d.bl.plan_order_date).ToString("yyyy-MM-dd"));
-                cells.Add(rowIndex, ++colIndex, d.bl.User.real_name);
-                cells.Add(rowIndex, ++colIndex, d.bl.TFT_model);
-                cells.Add(rowIndex, ++colIndex, d.bl.TP_model);
+                cells.Add(rowIndex, ++colIndex, d.deal_price);
+                cells.Add(rowIndex, ++colIndex, d.bus_dep);
+                cells.Add(rowIndex, ++colIndex, d.product_use);
+                cells.Add(rowIndex, ++colIndex, d.agency_name);
+                cells.Add(rowIndex, ++colIndex, d.comment);
+                cells.Add(rowIndex, ++colIndex, d.fmodel);
+                cells.Add(rowIndex, ++colIndex, d.fname);
+                cells.Add(rowIndex, ++colIndex, d.unitname);
+                cells.Add(rowIndex, ++colIndex, d.fqty);
+                cells.Add(rowIndex, ++colIndex, d.total_qty);
 
-                cells.Add(rowIndex, ++colIndex, d.bl.deal_price);
-                cells.Add(rowIndex, ++colIndex, d.bl.bus_dep);
-                cells.Add(rowIndex, ++colIndex, d.bl.product_use);
-                cells.Add(rowIndex, ++colIndex, d.bl.project_group);
-                cells.Add(rowIndex, ++colIndex, d.bl.User.Department1.name);
-                //cells.Add(rowIndex, ++colIndex, d.bl_project);
-                cells.Add(rowIndex, ++colIndex, d.bl.comment);
-
-                cells.Add(rowIndex, ++colIndex, d.bd.fmodel);
-                cells.Add(rowIndex, ++colIndex, d.bd.fname);
-                cells.Add(rowIndex, ++colIndex, d.bd.unitname);
-                cells.Add(rowIndex, ++colIndex, d.bd.fqty);
-                cells.Add(rowIndex, ++colIndex, d.bd.total_qty);
-                cells.Add(rowIndex, ++colIndex, d.bd.highest_price);
-                cells.Add(rowIndex, ++colIndex, d.bd.comment);
-                cells.Add(rowIndex, ++colIndex, d.bd.source);
+                cells.Add(rowIndex, ++colIndex, d.order_qty);
+                cells.Add(rowIndex, ++colIndex, d.k3_qty);
+                cells.Add(rowIndex, ++colIndex, d.source);
+                cells.Add(rowIndex, ++colIndex, d.order_name);
             }
 
             xls.Send();
         }
 
-        //导出事业部已审核但是还未导入K3的客退数据
         public void exportAuditNotInK3Excel() {
             var myData = (from v in db.VwDepHasAuditNoInK3
                           orderby v.dep_name, v.sys_no

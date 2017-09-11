@@ -173,6 +173,7 @@
                     if (rows[i].FHookStatus == 2) {
                         var currentRow = rows[i];//必须先缓存，因为post异步执行后，会进入下一个for循环，导致i加了1，post执行结果会取加了1的i，导致错误出现
                         $.post("@Url.Content("~/BadProduct/CheckStockBillsHasNoHook")", {
+                            FCustomerNo: $("#cust_no").val(),
                             FOrderBillNo: currentRow.FOrderBillNo,
                             FProductNumber: currentRow.FProductNumber
                         }, function (data) {

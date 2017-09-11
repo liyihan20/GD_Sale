@@ -32,8 +32,8 @@
       <Association Name="User_SampleBill" Member="SampleBill" ThisKey="id" OtherKey="original_user_id" Type="SampleBill" />
       <Association Name="User_CcmModelContract" Member="CcmModelContract" ThisKey="id" OtherKey="user_id" Type="CcmModelContract" />
       <Association Name="User_ModelContract" Member="ModelContract" ThisKey="id" OtherKey="original_user_id" Type="ModelContract" />
-      <Association Name="User_Sale_BL" Member="Sale_BL" ThisKey="id" OtherKey="original_user_id" Type="Sale_BL" />
       <Association Name="User_Sale_BL_stock" Member="Sale_BL_stock" ThisKey="id" OtherKey="clerk_id" Type="Sale_BL_stock" />
+      <Association Name="User_Sale_BL" Member="Sale_BL" ThisKey="id" OtherKey="original_user_id" Type="Sale_BL" />
       <Association Name="Department_User" Member="Department1" ThisKey="department" OtherKey="id" Type="Department" IsForeignKey="true" />
     </Type>
   </Table>
@@ -1646,23 +1646,6 @@
       <Association Name="User_ModelContract" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
-  <Table Name="dbo.Sale_BL_details" Member="Sale_BL_details">
-    <Type Name="Sale_BL_details">
-      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="bl_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="levels" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
-      <Column Name="fnumber" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="fmodel" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="fname" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="unitname" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="fqty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="total_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="highest_price" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
-      <Column Name="source" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL" ThisKey="bl_id" OtherKey="id" Type="Sale_BL" IsForeignKey="true" />
-    </Type>
-  </Table>
   <Table Name="dbo.vw_BL_plugin" Member="vw_BL_plugin">
     <Type Name="vw_BL_plugin">
       <Column Name="原销售订单" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
@@ -1682,6 +1665,37 @@
       <Column Name="[税率(%)]" Member="税率___" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="备注" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
       <Column Name="源单单号" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Sale_BL_stock" Member="Sale_BL_stock">
+    <Type Name="Sale_BL_stock">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="bill_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="product_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="product_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="product_name" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="clerk_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="clerk_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="bl_time" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
+      <Column Name="remain_qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="bus_dep" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="sys_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Association Name="Sale_BL_stock_Sale_BL_stock_details" Member="Sale_BL_stock_details" ThisKey="id" OtherKey="stock_id" Type="Sale_BL_stock_details" />
+      <Association Name="User_Sale_BL_stock" Member="User" ThisKey="clerk_id" OtherKey="id" Type="User" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Sale_BL_stock_details" Member="Sale_BL_stock_details">
+    <Type Name="Sale_BL_stock_details">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="stock_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="item_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="item_name" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="item_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="bl_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="k3_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="remain_qty" Type="System.Decimal" DbType="Decimal(18,10)" CanBeNull="true" />
+      <Association Name="Sale_BL_stock_Sale_BL_stock_details" Member="Sale_BL_stock" ThisKey="stock_id" OtherKey="id" Type="Sale_BL_stock" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.Sale_BL" Member="Sale_BL">
@@ -1720,40 +1734,40 @@
       <Column Name="clerk_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="clerk_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="bl_project_other" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
-      <Column Name="planner" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="planner_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="planner_name" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="order_names" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="order_ids" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL_details" ThisKey="id" OtherKey="bl_id" Type="Sale_BL_details" />
       <Association Name="User_Sale_BL" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
-  <Table Name="dbo.Sale_BL_stock" Member="Sale_BL_stock">
-    <Type Name="Sale_BL_stock">
+  <Table Name="dbo.Sale_BL_details" Member="Sale_BL_details">
+    <Type Name="Sale_BL_details">
       <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="bill_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="product_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="product_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="product_name" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="clerk_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="clerk_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="bl_time" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
-      <Column Name="remain_qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="bus_dep" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="sys_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Association Name="Sale_BL_stock_Sale_BL_stock_details" Member="Sale_BL_stock_details" ThisKey="id" OtherKey="stock_id" Type="Sale_BL_stock_details" />
-      <Association Name="User_Sale_BL_stock" Member="User" ThisKey="clerk_id" OtherKey="id" Type="User" IsForeignKey="true" />
+      <Column Name="bl_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="levels" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="fnumber" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="fmodel" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="fname" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="unitname" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="fqty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="total_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="highest_price" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="source" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="order_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="k3_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="order_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="order_name" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
+      <Column Name="entry_no" Type="System.Int32" DbType="int" CanBeNull="true" />
+      <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL" ThisKey="bl_id" OtherKey="id" Type="Sale_BL" IsForeignKey="true" />
     </Type>
   </Table>
-  <Table Name="dbo.Sale_BL_stock_details" Member="Sale_BL_stock_details">
-    <Type Name="Sale_BL_stock_details">
-      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="stock_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="item_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="item_name" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="item_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
-      <Column Name="bl_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="k3_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
-      <Column Name="remain_qty" Type="System.Decimal" DbType="Decimal(18,10)" CanBeNull="true" />
-      <Association Name="Sale_BL_stock_Sale_BL_stock_details" Member="Sale_BL_stock" ThisKey="stock_id" OtherKey="id" Type="Sale_BL_stock" IsForeignKey="true" />
+  <Table Name="dbo.vw_modelUsage" Member="vw_modelUsage">
+    <Type Name="vw_modelUsage">
+      <Column Name="model" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
+      <Column Name="usage" Type="System.String" DbType="NVarChar(100)" CanBeNull="true" />
     </Type>
   </Table>
   <Function Name="dbo.getGroupBelongToUnit" Method="getGroupBelongToUnit">
@@ -2088,6 +2102,34 @@
       <Column Name="trade_type_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
       <Column Name="quote_num" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="biller_name" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+      <Column Name="audit_result" Type="System.Int32" DbType="Int" CanBeNull="true" />
+    </ElementType>
+  </Function>
+  <Function Name="dbo.getAuditorBLExcels" Method="getAuditorBLExcels">
+    <Parameter Name="ids" Type="System.String" DbType="VarChar(2000)" />
+    <ElementType Name="getAuditorBLExcelsResult">
+      <Column Name="sys_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="bl_date" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="bill_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="product_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="customer_name" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="plan_order_date" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="real_name" Type="System.String" DbType="VarChar(40)" CanBeNull="true" />
+      <Column Name="deal_price" Type="System.Decimal" DbType="Decimal(12,2)" CanBeNull="true" />
+      <Column Name="bus_dep" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="product_use" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="agency_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="comment" Type="System.String" DbType="VarChar(1000)" CanBeNull="true" />
+      <Column Name="fmodel" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="fname" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="unitname" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="fqty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="total_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="order_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="k3_qty" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
+      <Column Name="source" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="order_name" Type="System.String" DbType="VarChar(30)" CanBeNull="true" />
       <Column Name="audit_result" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </ElementType>
   </Function>
