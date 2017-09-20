@@ -1192,12 +1192,19 @@ namespace Sale_Order.Controllers
             if (!DateTime.TryParse(fromDateStr, out fromDate)) fromDate = DateTime.Parse("1980-1-1");
             if (!DateTime.TryParse(toDateStr, out toDate)) toDate = DateTime.Parse("2099-9-9");
 
-            if ("all".Equals(procDep))
-            {
-                procDep = db.User.Single(u => u.id == userId).can_check_deps;
+            string[] depArr;
+            if ("all".Equals(procDep)) {
+                string userCanCheckDeps = db.User.Single(u => u.id == userId).can_check_deps;
+                if (userCanCheckDeps.Equals("*")) {
+                    depArr = db.Department.Where(d => d.dep_type == "退货事业部").Select(d => d.name).ToArray();
+                }
+                else {
+                    depArr = userCanCheckDeps.Split(new Char[] { ',', '，' });
+                }
             }
-
-            var depArr = procDep.Split(new Char[] { ',', '，' });
+            else {
+                depArr = procDep.Split(new Char[] { ',', '，' });
+            }
 
             BeginExportTHExcelByCon(customerNumber, fromDate, toDate, billNo, sysNo, depArr);
             utl.writeEventLog("Excel导出", "物控导出退换货列表", "", Request);

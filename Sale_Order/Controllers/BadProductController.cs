@@ -191,7 +191,6 @@ namespace Sale_Order.Controllers
         //从旧退修单新增
         [SessionTimeOutFilter()]
         public ActionResult NewOrderFromOld(string sys_no) {
-
             int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             ViewData["userName"] = db.User.Single(u => u.id == userId).real_name;
 
@@ -201,6 +200,7 @@ namespace Sale_Order.Controllers
             bill.sys_no = utl.getReturnSystemNo(sys_no.Substring(0, 2));
             bill.old_sys_no = sys_no;
             bill.id = 0;
+            bill.fdate = DateTime.Now;
             ViewData["bill"] = bill;
             
             utl.writeEventLog(MODELNAME, "从旧退修单【"+sys_no+"】新增", bill.sys_no, Request);
@@ -620,7 +620,7 @@ namespace Sale_Order.Controllers
 
             return Json(new { suc = true });
         }
-              
+        
         //提交申请
         public ActionResult BeginApply(string sys_no)
         {
@@ -799,7 +799,6 @@ namespace Sale_Order.Controllers
 
         public JsonResult CheckRedBillsBase(string customerInfo, DateTime fromDate, DateTime toDate, string sys_no, string model, int hasImportToK3)
         {
-
             //首先与K3交互，更新本地红字数量和状态
             db.updateReturnRedQty();
             utl.writeEventLog(MODELNAME, "查询所有红字单之前，更新红字数量和状态", "", Request);
