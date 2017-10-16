@@ -1750,7 +1750,16 @@ namespace Sale_Order.Controllers
             int stepVersion = 0;
             string saveResult = utl.saveBLBill(col, stepVersion, userId);
             if (string.IsNullOrWhiteSpace(saveResult)) {
-                return Json(new { suc = true });
+                //2017-10-16 增加是否有下挂bom的提示
+                string busDep = col.Get("bus_dep");
+                string productNo = col.Get("product_no");
+                var result = db.ExecuteQuery<BomProductModel>("exec [dbo].[getBomInfo] @bus_dep = {0},@mat_number = {1},@is_main = {2}", busDep, productNo, 1).ToList();
+                if (result.Count() > 0) {
+                    return Json(new { suc = true, msg = "" });
+                }
+                else {
+                    return Json(new { suc = true, msg = "查询不到此产品的bom明细，请催促研发尽快生效bom，否则将影响订料员审批时效。" });
+                }
             }
             else {
                 return Json(new { suc = false, msg = saveResult });

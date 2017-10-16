@@ -26380,7 +26380,7 @@ namespace Sale_Order.Models
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_main_data", DbType="VarChar(MAX)")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_main_data", DbType="NVarChar(MAX)")]
 		public string main_data
 		{
 			get
@@ -26400,7 +26400,7 @@ namespace Sale_Order.Models
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_secondary_data", DbType="VarChar(MAX)")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_secondary_data", DbType="NVarChar(MAX)")]
 		public string secondary_data
 		{
 			get

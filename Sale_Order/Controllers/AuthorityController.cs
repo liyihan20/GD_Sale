@@ -1532,7 +1532,7 @@ namespace Sale_Order.Controllers
             }
             else {
                 depArr = procDep.Split(new Char[] { ',', '，' });
-            }    
+            }
 
             var result = (from re in db.ReturnBill
                           join red in db.ReturnBillDetail on re.id equals red.bill_id

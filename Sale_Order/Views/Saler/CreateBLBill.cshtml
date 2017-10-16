@@ -431,6 +431,9 @@
                                 title: '@Html.Lang("tip")',
                                 msg: "@Html.Lang("suc_save")"
                             });
+                            if (result.msg) {
+                                alert(result.msg);
+                            }
                         } else {
                             $.messager.show({
                                 title: '@Html.Lang("tip")',
