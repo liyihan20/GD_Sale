@@ -310,8 +310,8 @@
         }
 
         for (var i in dataS) {
-            dataS[i].total_qty = qty * dataS[i].fqty;
-            dataS[i].order_qty = qty * dataS[i].fqty;
+            dataS[i].total_qty = (qty * dataS[i].fqty).toFixed(4);
+            dataS[i].order_qty = (qty * dataS[i].fqty).toFixed(4);
             dataS[i].order_id = "@ViewData["order_id"]";
             dataS[i].order_name = "@ViewData["order_name"]";
             dataS[i].highest_price = $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
@@ -510,6 +510,7 @@ else {
             $("#order_form input[type='radio']").attr("disabled", "disabled");
             if ("@stepName" == "计划审批") {
                 $("#order_ids").combobox("readonly", false);
+                $("#planner_comment").attr("readonly", false);
             }
         }
         });
@@ -862,6 +863,14 @@ else {
                                 <textarea cols="90" rows="4" spellcheck="false" name="comment" id="comment" style="margin: 0;">@bl.comment</textarea>
                             </td>
                         </tr>
+                        @if (stepName.Contains("订料") || stepName.Contains("计划审")) {
+                            <tr>
+                                <td>计划备注:</td>
+                                <td colspan="5">
+                                    <textarea cols="90" rows="4" spellcheck="false" name="planner_comment" id="planner_comment" style="margin: 0;">@bl.planner_comment</textarea>
+                                </td>
+                            </tr>
+                        }
                     </table>
                     @if (stepName.Contains("订料")) {
                         <br />

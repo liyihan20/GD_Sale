@@ -1869,7 +1869,14 @@ namespace Sale_Order.Controllers
             string pre = sys_no.Substring(0, 2);
             int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == sys_no);
-            string processType = pre;                       
+            string processType = pre;
+
+            if (bl.bus_dep.Contains("TDD")) {
+                processType = "BL_TDD";
+            }
+            else {
+                processType = "BL_other";
+            }
 
             Apply apply = new Apply();
             apply.user_id = userId;

@@ -463,7 +463,9 @@ namespace Sale_Order.Controllers
                     int?[] orderIds = bl.order_ids.Split(new char[] { ',' }).Select(i => { int? id = Int32.Parse(i); return id; }).ToArray();
                     utl.AppendStepAtLast(ap.id, "订料会签", orderIds, step, true, false, true);
                     utl.AppendStepAtLast(ap.id, "营业员确认", new int?[] { bl.original_user_id }, step);
-                    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
+                    if (bl.bus_dep.Contains("TDD")) {
+                        utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
+                    }
                     utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
                 }
             }
@@ -1490,6 +1492,7 @@ namespace Sale_Order.Controllers
                 //计划员指定订料员
                 string orderIds = fc.Get("order_ids");
                 string orderNames = fc.Get("order_names");
+                string plannerComment = fc.Get("planner_comment");
                 if (string.IsNullOrEmpty(orderIds)) {
                     return Json(new { suc = false, msg = "必须至少选择一个订料员" }, "text/html");
                 }
@@ -1498,6 +1501,7 @@ namespace Sale_Order.Controllers
                 bl.order_names = orderNames;
                 bl.update_user_id = userId;
                 bl.step_version = step;
+                bl.planner_comment = plannerComment;
             }
             else if (stepName.Contains("订料")) {
                 //订料员只能修改备料明细

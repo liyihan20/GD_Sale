@@ -1738,6 +1738,7 @@
       <Column Name="planner_name" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
       <Column Name="order_names" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="order_ids" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="planner_comment" Type="System.String" DbType="Varchar(1000)" CanBeNull="true" />
       <Association Name="Sale_BL_Sale_BL_details" Member="Sale_BL_details" ThisKey="id" OtherKey="bl_id" Type="Sale_BL_details" />
       <Association Name="User_Sale_BL" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
