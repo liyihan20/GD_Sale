@@ -1528,8 +1528,11 @@ namespace Sale_Order.Controllers
                     bd.secondary_data = utl.ModelsToString<Sale_BL_details>(bl.Sale_BL_details.ToList());
                     db.BackupData.InsertOnSubmit(bd);
 
-                    bl.Sale_BL_details.Clear();
-                    bl.Sale_BL_details.AddRange(details);
+                    //因为是会签，同时审批时如果将旧数据删除，会造成数据丢失的情况，A、B同时编辑时，A保存后，B再保存，那么A编辑的内容将会消失。
+                    //改为只删除和插入自己的那些分录，其它不动。
+
+                    db.Sale_BL_details.DeleteAllOnSubmit(bl.Sale_BL_details.Where(b => b.order_id == userId));
+                    bl.Sale_BL_details.AddRange(details.Where(d => d.order_id == userId));
                     bl.update_user_id = userId;
                     bl.step_version = step;
                 }
