@@ -558,6 +558,12 @@ namespace Sale_Order.Controllers
                                 remain_qty = bl.qty
                             });
 
+                            //备料明细entry_no重新排序
+                            int entry_index = 1;
+                            foreach (var det in bl.Sale_BL_details.OrderBy(d => d.id)) {
+                                det.entry_no = entry_index++;
+                            }
+
                         }
                     }
                     else
@@ -1488,7 +1494,14 @@ namespace Sale_Order.Controllers
             string stepName = db.Apply.Single(a => a.sys_no == sysNo).ApplyDetails.Where(ad => ad.step == step).First().step_name;
             Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == sysNo);
 
-            if (stepName.Contains("计划")) {
+            if (stepName.Contains("成控")) {
+                decimal dealPrice = decimal.Parse(fc.Get("deal_price"));
+                if (dealPrice != bl.deal_price) {
+                    utl.writeEventLog("备料单", "成控修改成交价：" + bl.deal_price + "->" + dealPrice, bl.sys_no, Request);
+                    bl.deal_price = dealPrice;
+                }
+                
+            }else if (stepName.Contains("计划")) {
                 //计划员指定订料员
                 string orderIds = fc.Get("order_ids");
                 string orderNames = fc.Get("order_names");

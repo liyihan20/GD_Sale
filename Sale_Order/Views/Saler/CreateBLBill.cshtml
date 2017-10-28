@@ -483,7 +483,7 @@ else {
                     }
                 }, "json"
             );
-        if ("@stepName" == "计划审批" || "@stepName" == "订料会签") {
+        if ("@stepName" == "计划审批" || "@stepName" == "订料会签" || "@stepName".indexOf("成控") >= 0) {
             $("#order_form input").each(function () {
                 var thisClass = $(this).attr("class");
                 if (thisClass) {
@@ -511,11 +511,13 @@ else {
             if ("@stepName" == "计划审批") {
                 $("#order_ids").combobox("readonly", false);
                 $("#planner_comment").attr("readonly", false);
+            } else if ("@stepName".indexOf("成控") >= 0) {
+                $("#deal_price").attr("readonly", false);
             }
         }
-        });
-        function okClick() {
-            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
+    });
+    function okClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
             if (r) {
                 $.messager.progress();
                 $('#order_form').form('submit', {
@@ -813,7 +815,7 @@ else {
                                 <input class="easyui-validatebox" name="create_user" id="create_user" readonly="readonly" style="width:135px" value="@bl.User.real_name" />
                             </td>
                         </tr>
-                        @if (bl.step_version > 0) { 
+                        @if (bl.step_version > 4) { 
                         <tr>
                             <td>订料员:</td>
                             <td colspan="5">
