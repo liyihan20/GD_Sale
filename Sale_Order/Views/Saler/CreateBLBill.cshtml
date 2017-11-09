@@ -102,7 +102,7 @@
 
         $("#dg_detail").datagrid({
             width: 1200,
-            height:250,
+            height: 250,
             loadMsg: "加载中...",
             rownumbers: true,
             singleSelect: true,
@@ -139,7 +139,7 @@
                 handler: function () {
                     var row = $('#dg_detail').datagrid('getSelected');
                     if (row) {
-                        if(row.order_id!="@ViewData["order_id"]"){
+                        if (row.order_id != "@ViewData["order_id"]") {
                             $.messager.show({
                                 title: '@Html.Lang("tip")',
                                 msg: "订料员只能删除自己新增的物料"
@@ -196,7 +196,7 @@
         $("#dg_bom").datagrid({
             title: "BOM清单",
             width: 1000,
-            height:395,
+            height: 395,
             loadMsg: "加载中...",
             rownumbers: true,
             singleSelect: false,
@@ -237,9 +237,21 @@
                 if (newValue != oldValue) {
                     $.post("@Url.Content("~/Items/GetAuditorsWithStep")", { stepName: 'BL_事业部计划员', depName: newValue },
                         function (data) {
-                            $('#planner_id').combobox("setValue", "");
-                            $('#planner_id').combobox("setText", "");
-                            $('#planner_id').combobox("loadData",data);
+                            var planerInBus = false;
+                            //如果是营业员编辑阶段，计划员不在此事业部的计划员列表中，则清空此计划员 2017-11-09
+                            if ("@bl.step_version" == "0") {
+                                for (var i = 0; i < data.length; i++) {
+                                    if (data[i].auditorId == $('#planner_id').combobox("getValue")) {
+                                        planerInBus = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!planerInBus) {
+                                $('#planner_id').combobox("setValue", "");
+                                $('#planner_id').combobox("setText", "");
+                            }
+                            $('#planner_id').combobox("loadData", data);
                         }, "json"
                     );
                 }
@@ -251,6 +263,8 @@
         $("#clerk_no").combobox("setValue", "@bl.clerk_no");
         $("#clerk_no").combobox("setText", "@bl.clerk_name");
         $("#planner_id").combobox("setText", "@bl.planner_name");
+        $("#planner_id").combobox("setValue", "@bl.planner_id");
+        $("#bus_dep").combobox("setValue", "@bl.bus_dep");
         $.map("@bl.bl_project".split(","), function (item) { $("input[name='bl_project'][value='" + item + "']").attr("checked", true); });
         $("#agency_div").css("visibility", "visible").click(function () { endEditing(); });
         $(".ck_label").css("cursor", "pointer").click(function () { $("input[name='bl_project'][value='" + $.trim($(this).html()) + "']").trigger("click"); });
@@ -524,7 +538,9 @@ else {
                     url: '@Url.Content("~/Audit/AuditorSaveBLBill")',
                     onSubmit: function (param) {
                         param.step = "@bl.step_version";
-                        param.order_names = $("#order_ids").combobox("getText");
+                        if ($("#order_ids").length>0) {
+                            param.order_names = $("#order_ids").combobox("getText");
+                        }
                         if ("@stepName".indexOf("订料") >= 0) {
                             param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
                         }
@@ -775,7 +791,7 @@ else {
                                 事业部:
                             </td>
                             <td>
-                                <input class="easyui-combobox" style="width: 140px" name="bus_dep" id="bus_dep" value="@bl.bus_dep"
+                                <input class="easyui-combobox" style="width: 140px" name="bus_dep" id="bus_dep" 
                                        data-options="textField:'name',valueField:'name',panelHeight:'auto', required:true,editable:false,url:'@Url.Content("~/items/getrelatedeps?dep_type=备料事业部")'" />
                             </td>
                             <td>
@@ -806,7 +822,7 @@ else {
                                 计划员:
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="planner_id" name="planner_id" style="width: 140px" panelwidth="140" valuefield="auditorId" textfield="auditorName" editable="false" required="true" value="@bl.planner_id" />
+                                <input class="easyui-combobox" id="planner_id" name="planner_id" style="width: 140px" panelwidth="140" valuefield="auditorId" textfield="auditorName" editable="false" required="true" />
                             </td>
                             <td>
                                 制单人:
@@ -815,7 +831,7 @@ else {
                                 <input class="easyui-validatebox" name="create_user" id="create_user" readonly="readonly" style="width:135px" value="@bl.User.real_name" />
                             </td>
                         </tr>
-                        @if (bl.step_version > 4) { 
+                        @if (stepName.Contains("订料") || stepName.Contains("计划审")) { 
                         <tr>
                             <td>订料员:</td>
                             <td colspan="5">

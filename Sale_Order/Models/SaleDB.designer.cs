@@ -34274,7 +34274,7 @@ namespace Sale_Order.Models
 			}
 		}
 		
-		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_order_names", DbType="VarChar(50)")]
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_order_names", DbType="VarChar(300)")]
 		public string order_names
 		{
 			get

@@ -1871,7 +1871,7 @@ namespace Sale_Order.Controllers
             Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == sys_no);
             string processType = pre;
 
-            if (bl.bus_dep.Contains("TDD")) {
+            if (bl.bus_dep.Contains("TDD") || bl.bus_dep.Contains("IMDS")) {
                 processType = "BL_TDD";
             }
             else {
