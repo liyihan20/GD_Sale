@@ -287,36 +287,39 @@ namespace Sale_Order.Utils
             string operateType = "新增";
             string orderType = getBillType(app.order_type);
             string orderNo = null;
-            string model = null;
 
-            if (app.order_type.Equals("SB"))
-            {
-                var order = db.SampleBill.Where(m => m.sys_no == app.sys_no).First();
-                orderNo = order.bill_no;
-                model = order.product_model;
-            }
-            if (app.order_type.Equals("CC"))
-            {
-                var order = db.CcmModelContract.Where(m => m.sys_no == app.sys_no).First();
-                orderNo = order.old_bill_no;
-                model = order.product_model;
-            }
-            if (app.order_type.Equals("CM"))
-            {
-                var order = db.ModelContract.Where(m => m.sys_no == app.sys_no).First();
-                orderNo = order.old_bill_no;
-                model = order.product_model;
-            }
             if (app.success != null)
             {
                 string ccEmail = null;
+                List<User> prAuditors = null;
+
+                if (app.order_type.Equals("SB")) {
+                    var order = db.SampleBill.Where(m => m.sys_no == app.sys_no).First();
+                    orderNo = order.bill_no;
+                    prAuditors = app.ApplyDetails.Where(ad => ad.step == 1 && (ad.step_name.Contains("项目管理员") || ad.step_name.Contains("项目经理") || ad.step_name.Contains("项目组上级"))).Select(ad => ad.User).ToList();
+                }
+                if (app.order_type.Equals("CC")) {
+                    var order = db.CcmModelContract.Where(m => m.sys_no == app.sys_no).First();
+                    orderNo = order.old_bill_no;
+                    prAuditors = app.ApplyDetails.Where(ad => ad.step == 1 && (ad.step_name.Contains("项目管理员") || ad.step_name.Contains("项目经理") || ad.step_name.Contains("项目组上级"))).Select(ad => ad.User).ToList();
+                }
+                if (app.order_type.Equals("CM")) {
+                    var order = db.ModelContract.Where(m => m.sys_no == app.sys_no).First();
+                    orderNo = order.old_bill_no;
+                    prAuditors = app.ApplyDetails.Where(ad => ad.step == 1 && (ad.step_name.Contains("项目管理员") || ad.step_name.Contains("项目经理") || ad.step_name.Contains("项目组上级"))).Select(ad => ad.User).ToList();
+                }
+                if (app.order_type.Equals("BL")) {
+                    var order = db.Sale_BL.Where(s => s.sys_no == app.sys_no).First();
+                    orderNo = order.bill_no;
+                    prAuditors = app.ApplyDetails.Where(ad => ad.step_name.Contains("计划审批") || ad.step_name.Contains("订料") || ad.step_name.Contains("运作中心")).Select(ad => ad.User).Distinct().ToList();
+                    prAuditors.AddRange((from v in db.vw_auditor_relations
+                                         join u in db.User on v.auditor_id equals u.id
+                                         where v.step_name == "BL_事业部接单员"
+                                         && v.department_name == order.bus_dep
+                                         select u).ToList());
+                    prAuditors.Add(db.User.Single(u => u.real_name == "林莲杏"));
+                }
                 
-                //开改模单，最后流程结束需要cc给项目经理和项目管理员，OK或NG都要。
-                IEnumerable<User> prAuditors = null;
-                if (new string[] { "CM", "SB","CC" }.Contains(app.order_type))
-                {
-                    prAuditors = app.ApplyDetails.Where(ad => ad.step == 1 && (ad.step_name.Contains("项目管理员") || ad.step_name.Contains("项目经理") || ad.step_name.Contains("项目组上级"))).Select(ad => ad.User);
-                }                
                 if (prAuditors != null)
                 {
                     foreach (var prAuditor in prAuditors)
@@ -328,7 +331,7 @@ namespace Sale_Order.Utils
                             ccEmail += "," + prEmail;
                     }
                 }
-                return MyEmail.SendBackToSaler((bool)app.success, sysNo, saler.email, orderType, operateType, ccEmail, orderNo, model);
+                return MyEmail.SendBackToSaler((bool)app.success, sysNo, saler.email, orderType, operateType, ccEmail, orderNo, app.p_model);
             }
             else
             {
