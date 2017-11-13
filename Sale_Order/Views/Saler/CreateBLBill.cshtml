@@ -232,194 +232,193 @@
             }
         });
 
-        $("#bus_dep").combobox({
-            onChange: function (newValue, oldValue) {
-                if (newValue != oldValue) {
-                    $.post("@Url.Content("~/Items/GetAuditorsWithStep")", { stepName: 'BL_事业部计划员', depName: newValue },
-                        function (data) {
-                            var planerInBus = false;
-                            //如果是营业员编辑阶段，计划员不在此事业部的计划员列表中，则清空此计划员 2017-11-09
-                            if ("@bl.step_version" == "0") {
-                                for (var i = 0; i < data.length; i++) {
-                                    if (data[i].auditorId == $('#planner_id').combobox("getValue")) {
-                                        planerInBus = true;
-                                        break;
+        if ("@bl.step_version" == "0") {
+            $("#bus_dep").combobox({
+                onChange: function (newValue, oldValue) {
+                    if (newValue != oldValue) {
+                        $.post("@Url.Content("~/Items/GetAuditorsWithStep")", { stepName: 'BL_事业部计划员', depName: newValue },
+                                function (data) {
+                                    var planerInBus = false;
+                                    //如果是营业员编辑阶段，计划员不在此事业部的计划员列表中，则清空此计划员 2017-11-09                                    
+                                    for (var i = 0; i < data.length; i++) {
+                                        if (data[i].auditorId == $('#planner_id').combobox("getValue")) {
+                                            planerInBus = true;
+                                            break;
+                                        }
+                                    }                                    
+                                    if (!planerInBus) {
+                                        $('#planner_id').combobox("setValue", "");
+                                        $('#planner_id').combobox("setText", "");
                                     }
-                                }
-                            }
-                            if (!planerInBus) {
-                                $('#planner_id').combobox("setValue", "");
-                                $('#planner_id').combobox("setText", "");
-                            }
-                            $('#planner_id').combobox("loadData", data);
-                        }, "json"
-                    );
-                }
-            }
-        });
-
-        $("#customer_no").combogrid("setValue", "@bl.customer_no");
-        $("#product_no").combogrid("setValue", "@bl.product_no");
-        $("#clerk_no").combobox("setValue", "@bl.clerk_no");
-        $("#clerk_no").combobox("setText", "@bl.clerk_name");
-        $("#planner_id").combobox("setText", "@bl.planner_name");
-        $("#planner_id").combobox("setValue", "@bl.planner_id");
-        $("#bus_dep").combobox("setValue", "@bl.bus_dep");
-        $.map("@bl.bl_project".split(","), function (item) { $("input[name='bl_project'][value='" + item + "']").attr("checked", true); });
-        $("#agency_div").css("visibility", "visible").click(function () { endEditing(); });
-        $(".ck_label").css("cursor", "pointer").click(function () { $("input[name='bl_project'][value='" + $.trim($(this).html()) + "']").trigger("click"); });
-    });
-
-    function getBom() {
-        var busDep = $("#bus_dep").combobox("getValue");
-        var productNumber = $("#product_no").combogrid("getValue");
-        if (busDep == "") {
-            $.messager.show({
-                title: '@Html.Lang("tip")',
-                msg: "请先选择事业部"
-            });
-            return;
-        }
-        if (productNumber == "") {
-            $.messager.show({
-                title: '@Html.Lang("tip")',
-                msg: "请先选择产品编码"
-            });
-            return;
-        }
-        $.post("@Url.Content("~/Items/GetBom")", { busDep: busDep, productNumber: productNumber }, function (result) {
-            if (result.length == 0) {
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "此产品型号查不到BOM，请检查是否录入错误，或者手动录入备料项目"
-                });
-            } else {
-                $("#win_bom").window('open');
-                tpBoms = result;
-                $("#dg_bom").datagrid("loadData", tpBoms);
-            }
-
-        });
-    }
-
-    function searchB(value) {
-        var ds = [];
-        for (var i in tpBoms) {
-            if (tpBoms[i].fname.indexOf(value) >= 0 || tpBoms[i].fmodel.indexOf(value) >= 0) {
-                ds.push(tpBoms[i]);
-            }
-        }
-        $("#dg_bom").datagrid("loadData", ds);
-    }
-    function confirmSel() {
-        var dataS = $("#dg_bom").datagrid("getSelections");
-        var qty = $("#qty").numberbox("getValue");
-        var tx = "";
-        if (dataS.length == 0) {
-            $.messager.show({
-                title: '@Html.Lang("tip")',
-                msg: "请先选择BOM物料"
-            });
-            return;
-        }
-
-        for (var i in dataS) {
-            dataS[i].total_qty = (qty * dataS[i].fqty).toFixed(4);
-            dataS[i].order_qty = (qty * dataS[i].fqty).toFixed(4);
-            dataS[i].order_id = "@ViewData["order_id"]";
-            dataS[i].order_name = "@ViewData["order_name"]";
-            dataS[i].highest_price = $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
-            $("#dg_detail").datagrid("appendRow", dataS[i]);
-        }
-        $("#win_bom").window('close');
-    }
-
-    function saveBomDetails() {
-        if ($("#mat_model").val() == "") {
-            $.messager.show({
-                title: '@Html.Lang("tip")',
-                msg: "请先输入物料编码"
-            });
-            return;
-        }
-        $("#dg_detail").datagrid("appendRow", {
-            levels: "-",
-            fnumber: $("#mat_no").combogrid("getValue"),
-            fmodel: $("#mat_model").val(),
-            fname: $("#mat_name").val(),
-            unitname: $("#mat_unit_name").val(),
-            fqty: $("#mat_qty").numberbox("getValue"),
-            total_qty: $("#mat_qty").numberbox("getValue") * $("#qty").numberbox("getValue"),
-            order_qty: $("#mat_qty").numberbox("getValue") * $("#qty").numberbox("getValue"),
-            highest_price: $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
-            comment: $("#mat_comment").val(),
-            source: "手工",
-            order_id: "@ViewData["order_id"]",
-            order_name: "@ViewData["order_name"]"
-        });
-        $("#dlg_details").dialog("close");
-    }
-
-    var editIndex = undefined;
-    function endEditing() {
-        if (editIndex == undefined) { return true }
-        if ($('#dg_detail').datagrid('validateRow', editIndex)) {
-            $('#dg_detail').datagrid('endEdit', editIndex);
-            editIndex = undefined;
-            return true;
-        } else {
-            return false;
-        }
-    }
-    //点击行，如果是订料员自己的行，即可以编辑，否则不能编辑
-    function onClickRow(index) {
-        if (editIndex != index) {
-            if (endEditing()) {
-                $('#dg_detail').datagrid('selectRow', index);
-                var row = $('#dg_detail').datagrid('getSelected');
-                if (row) {
-                    if (row.order_id == "@ViewData["order_id"]") {
-                        $('#dg_detail').datagrid('beginEdit', index);
-                        editIndex = index;
-
-                        var ed = $('#dg_detail').datagrid('getEditors', index);
-                        var rowCount = $('#dg_detail').datagrid('getRows').length;
-                        for (var i = 0; i < ed.length; i++) {
-                            var e = ed[i];
-                            if (e.field == "order_qty") {
-                                $(e.target).focus();
-                            }
-                            $(e.target).bind("keyup", function () {
-                                //下箭头，往下一行
-                                if (window.event.keyCode == 40) {
-                                    if (index + 1 < rowCount);
-                                    onClickRow(index + 1);
-                                }
-                                //上箭头，往上一行
-                                if (window.event.keyCode == 38) {
-                                    if (index > 0);
-                                    onClickRow(index - 1);
-                                }
-                            });
-                        }
+                                    $('#planner_id').combobox("loadData", data);
+                                }, "json"
+                            );
                     }
                 }
+            });
+        }
+            $("#customer_no").combogrid("setValue", "@bl.customer_no");
+            $("#product_no").combogrid("setValue", "@bl.product_no");
+            $("#clerk_no").combobox("setValue", "@bl.clerk_no");
+            $("#clerk_no").combobox("setText", "@bl.clerk_name");
+            $("#planner_id").combobox("setValue", "@bl.planner_id");
+            $("#planner_id").combobox("setText", "@bl.planner_name");
+            $("#bus_dep").combobox("setValue", "@bl.bus_dep");
+            $.map("@bl.bl_project".split(","), function (item) { $("input[name='bl_project'][value='" + item + "']").attr("checked", true); });
+            $("#agency_div").css("visibility", "visible").click(function () { endEditing(); });
+            $(".ck_label").css("cursor", "pointer").click(function () { $("input[name='bl_project'][value='" + $.trim($(this).html()) + "']").trigger("click"); });
+        });
+
+        function getBom() {
+            var busDep = $("#bus_dep").combobox("getValue");
+            var productNumber = $("#product_no").combogrid("getValue");
+            if (busDep == "") {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "请先选择事业部"
+                });
+                return;
+            }
+            if (productNumber == "") {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "请先选择产品编码"
+                });
+                return;
+            }
+            $.post("@Url.Content("~/Items/GetBom")", { busDep: busDep, productNumber: productNumber }, function (result) {
+                if (result.length == 0) {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "此产品型号查不到BOM，请检查是否录入错误，或者手动录入备料项目"
+                    });
+                } else {
+                    $("#win_bom").window('open');
+                    tpBoms = result;
+                    $("#dg_bom").datagrid("loadData", tpBoms);
+                }
+
+            });
+        }
+
+        function searchB(value) {
+            var ds = [];
+            for (var i in tpBoms) {
+                if (tpBoms[i].fname.indexOf(value) >= 0 || tpBoms[i].fmodel.indexOf(value) >= 0) {
+                    ds.push(tpBoms[i]);
+                }
+            }
+            $("#dg_bom").datagrid("loadData", ds);
+        }
+        function confirmSel() {
+            var dataS = $("#dg_bom").datagrid("getSelections");
+            var qty = $("#qty").numberbox("getValue");
+            var tx = "";
+            if (dataS.length == 0) {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "请先选择BOM物料"
+                });
+                return;
+            }
+
+            for (var i in dataS) {
+                dataS[i].total_qty = (qty * dataS[i].fqty).toFixed(4);
+                dataS[i].order_qty = (qty * dataS[i].fqty).toFixed(4);
+                dataS[i].order_id = "@ViewData["order_id"]";
+                dataS[i].order_name = "@ViewData["order_name"]";
+                dataS[i].highest_price = $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
+                $("#dg_detail").datagrid("appendRow", dataS[i]);
+            }
+            $("#win_bom").window('close');
+        }
+
+        function saveBomDetails() {
+            if ($("#mat_model").val() == "") {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "请先输入物料编码"
+                });
+                return;
+            }
+            $("#dg_detail").datagrid("appendRow", {
+                levels: "-",
+                fnumber: $("#mat_no").combogrid("getValue"),
+                fmodel: $("#mat_model").val(),
+                fname: $("#mat_name").val(),
+                unitname: $("#mat_unit_name").val(),
+                fqty: $("#mat_qty").numberbox("getValue"),
+                total_qty: $("#mat_qty").numberbox("getValue") * $("#qty").numberbox("getValue"),
+                order_qty: $("#mat_qty").numberbox("getValue") * $("#qty").numberbox("getValue"),
+                highest_price: $("#mat_highest_price").numberbox("getValue") == "" ? 0 : $("#mat_highest_price").numberbox("getValue"),
+                comment: $("#mat_comment").val(),
+                source: "手工",
+                order_id: "@ViewData["order_id"]",
+                order_name: "@ViewData["order_name"]"
+            });
+            $("#dlg_details").dialog("close");
+        }
+
+        var editIndex = undefined;
+        function endEditing() {
+            if (editIndex == undefined) { return true }
+            if ($('#dg_detail').datagrid('validateRow', editIndex)) {
+                $('#dg_detail').datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
             } else {
-                $('#dg_detail').datagrid('selectRow', editIndex);
+                return false;
             }
         }
-    }
-    //function onClickRow(index) {
-    //    if (editIndex != index) {
-    //        if (endEditing()) {
-    //            $('#dg_detail').datagrid('selectRow', index)
-    //                    .datagrid('beginEdit', index);
-    //            editIndex = index;
-    //        } else {
-    //            $('#dg_detail').datagrid('selectRow', editIndex);
-    //        }
-    //    }
-    //}
+        //点击行，如果是订料员自己的行，即可以编辑，否则不能编辑
+        function onClickRow(index) {
+            if (editIndex != index) {
+                if (endEditing()) {
+                    $('#dg_detail').datagrid('selectRow', index);
+                    var row = $('#dg_detail').datagrid('getSelected');
+                    if (row) {
+                        if (row.order_id == "@ViewData["order_id"]") {
+                            $('#dg_detail').datagrid('beginEdit', index);
+                            editIndex = index;
+
+                            var ed = $('#dg_detail').datagrid('getEditors', index);
+                            var rowCount = $('#dg_detail').datagrid('getRows').length;
+                            for (var i = 0; i < ed.length; i++) {
+                                var e = ed[i];
+                                if (e.field == "order_qty") {
+                                    $(e.target).focus();
+                                }
+                                $(e.target).bind("keyup", function () {
+                                    //下箭头，往下一行
+                                    if (window.event.keyCode == 40) {
+                                        if (index + 1 < rowCount);
+                                        onClickRow(index + 1);
+                                    }
+                                    //上箭头，往上一行
+                                    if (window.event.keyCode == 38) {
+                                        if (index > 0);
+                                        onClickRow(index - 1);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    $('#dg_detail').datagrid('selectRow', editIndex);
+                }
+            }
+        }
+        //function onClickRow(index) {
+        //    if (editIndex != index) {
+        //        if (endEditing()) {
+        //            $('#dg_detail').datagrid('selectRow', index)
+        //                    .datagrid('beginEdit', index);
+        //            editIndex = index;
+        //        } else {
+        //            $('#dg_detail').datagrid('selectRow', editIndex);
+        //        }
+        //    }
+        //}
 </script>
 
 @if (bl.step_version == 0) {

@@ -669,7 +669,7 @@ namespace Sale_Order.Controllers
         //备料单获取bom
         public JsonResult GetBom(string busDep, string productNumber)
         {
-            var result = db.ExecuteQuery<BomProductModel>("exec [dbo].[getBomInfo] @bus_dep = {0},@mat_number = {1},@is_main = {2}", busDep, productNumber, 1).ToList();
+            var result = db.ExecuteQuery<BomProductModel>("exec [dbo].[getBomInfo] @bus_dep = {0},@mat_number = {1}", busDep, productNumber).ToList();
             return Json(result);
         }
 
