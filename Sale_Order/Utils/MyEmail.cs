@@ -79,6 +79,10 @@ namespace Sale_Order.Utils
                 string url = utl.MyUrlEncoder("Files/printSBYFReport?sysNo=" + sys_no);
                 table += string.Format("<tr><td>PDF:</td><td><a href='{0}{1}{2}{3}{4}'>内网点此</a> <a href='{5}{1}{2}{3}{4}'>外网点此</a></td></tr>", webAddress, urlPrefix, url, accountParam, notInnerFrame, outAddress);
             }
+            else if (orderType.Equals("备料单")) {
+                string url = utl.MyUrlEncoder("Files/printBLReport?sysNo=" + sys_no);
+                table += string.Format("<tr><td>PDF:</td><td><a href='{0}{1}{2}{3}{4}'>内网点此</a> <a href='{5}{1}{2}{3}{4}'>外网点此</a></td></tr>", webAddress, urlPrefix, url, accountParam, notInnerFrame, outAddress);
+            }
 
             table += "</table>";
 

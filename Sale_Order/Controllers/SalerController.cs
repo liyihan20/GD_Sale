@@ -2066,8 +2066,7 @@ namespace Sale_Order.Controllers
         //    conn.Close();
 
         //    var rows = ds.Tables[0].Rows;
-        //    if (rows.Count < 1)
-        //    {
+        //    if (rows.Count < 1) {
         //        return string.Format("规格型号[{0}]与报价序号[{1}]不匹配", model, quoteNo);
         //    }
 

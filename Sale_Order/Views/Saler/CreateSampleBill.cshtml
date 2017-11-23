@@ -135,7 +135,7 @@
                 if (newValue == "带摄像功能，摄像头由TRULY提供") {
                     $("#has_video_function_model_span").show();
                     $("#has_video_function_reason_span").hide();
-                } else if (newValue == "带摄像功能，摄像头不是TRULY提供"){
+                } else if (newValue == "带摄像功能，摄像头不是TRULY提供") {
                     $("#has_video_function_reason_span").show();
                     $("#has_video_function_model_span").hide();
                 } else {
@@ -151,7 +151,7 @@
                 if (newValue == "带触摸屏，触摸屏由TRULY提供") {
                     $("#has_touch_panel_model_span").show();
                     $("#has_touch_panel_reason_span").hide();
-                } else if (newValue == "带触摸屏，触摸屏不是TRULY提供"){
+                } else if (newValue == "带触摸屏，触摸屏不是TRULY提供") {
                     $("#has_touch_panel_reason_span").show();
                     $("#has_touch_panel_model_span").hide();
                 } else {
@@ -193,7 +193,21 @@
                                 return 'white-space:normal';
                             }
 					    }
-            ]]
+            ]],
+            onLoadSuccess: function () {
+                var rawValue = "@Html.Raw(sb.project_team)";
+                if ("" != rawValue && 0 == "@sb.step_version") {
+                    var pjDatas = $("#project_team").combogrid("grid").datagrid("getData");
+                    for (var i = 0; i < pjDatas.rows.length; i++) {
+                        if (pjDatas.rows[i].pjGroup == rawValue) {
+                            $("#project_team").combogrid("setValue", rawValue);
+                            return;
+                        }
+                    }
+                } else {
+                    $("#project_team").combogrid("setValue", rawValue);
+                }
+            }
         });
 
         $("#product_classification").combogrid({
@@ -218,7 +232,7 @@
                             }
 					    }
             ]]
-        });        
+        });
 
         //手动设置一下从后台过来的值
         $('#product_model').combogrid('setValue', '@sb.product_model');
@@ -472,7 +486,7 @@
                     对应项目组:
                 </td>
                 <td>
-                    <input id="project_team" name="project_team" style="width: 120px" value="@sb.project_team" />
+                    <input id="project_team" name="project_team" style="width: 120px" />
                 </td>
                 <td>
                     系统流水号:

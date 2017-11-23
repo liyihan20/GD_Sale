@@ -5,7 +5,7 @@
     SomeUtils utl=new SomeUtils();
     }
 <script type="text/javascript">
-    
+
     document.onkeydown = function (event) {
         var e = event || window.event || arguments.callee.caller.arguments[0];
         if (e && e.keyCode == 13) { // enter 键
@@ -24,32 +24,32 @@
                 $('#mm').menu('show', {
                     left:e.pageX,
                     top:e.pageY
-                }); 
+                });
             },
             columns: [[
                         { field: 'encryptNo', title: 'encryptNo', width: 10, hidden: true },
                         { field: 'applyId', title: 'ID', width: 10, hidden: true },
                         { field: 'apply_date', title: '@Html.Lang("apply_date")', width: 120 },
-                        { field: 'orderType', title: '@Html.Lang("bill_type")', width: 100 },          
+                        { field: 'orderType', title: '@Html.Lang("bill_type")', width: 100 },
                         { field: 'sysNum', title: '@Html.Lang("sys_num")', width: 100 },
                         { field: 'model', title: '@Html.Lang("pro_model")', width: 100 },
     					{ field: 'depName', title: '@Html.Lang("agency")', width: 120 },
-    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 100 },               
+    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 100 },
                         { field: 'status', title: '@Html.Lang("audit_result")', width: 80, align: 'center',
-                        styler: function(value,row,index){
-				            if (value == 'NG'){
-					            return 'color:red;';
-				            }else if(value == 'PASS'){
-					            return 'color:green;';
-				            }
-			            } }
-    				]],
+                            styler: function(value,row,index){
+                                if (value == 'NG'){
+                                    return 'color:red;';
+                                }else if(value == 'PASS'){
+                                    return 'color:green;';
+                                }
+                            } }
+            ]],
             toolbar: [{
                 text: "@Html.Lang("check_detail")",
                 iconCls: 'icon-search',
                 handler: function () {
                     var row=$("#orderList").datagrid("getSelected");
-                    if(row){ 
+                    if(row){
                         window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+row.applyId;
                     }
                 }
@@ -76,7 +76,7 @@
                         $.messager.show({
                             title: '@Html.Lang("tip")',
                             msg: "列表中无数据，请先搜索之后再导出Excel报表"
-                        }); 
+                        });
                     }else{
                         var ids="";
                         var type=rows[0].sysNum;
@@ -88,13 +88,13 @@
                                     ids+=rows[i].applyId+",";
                                 }
                             }
-                        }            
+                        }
                         if(type.indexOf("SO")>=0){
                             window.location.href='@Url.Content("~/Excels/exportAuditorSOExcel")'+'?ids='+ids;
                         }else if(type.indexOf("CM")>=0 || type.indexOf("CC")>=0){
                             window.location.href="@Url.Content("~/Excels/exportAuditorCMExcel")"+"?ids="+ids;
-                        }    
-                        //openDownloadDialog(ids);           
+                        }
+                        //openDownloadDialog(ids);
                         //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;
                     }
                 }
@@ -107,9 +107,9 @@
         $("#checkBt").click(function () {
             $("#fm").submit();
         });
-        
+
         $("#contDiv").css("visibility","visible");
-    });    
+    });
 
     function CheckReport(){
         var row = $("#orderList").datagrid("getSelected");
@@ -124,11 +124,13 @@
                 window.open("@Url.Content("~/Files/printSBYFReport")"+"?sysNo="+row.sysNum);
             }else if(row.sysNum.substring(0,2)=="CC"){
                 window.open("@Url.Content("~/Files/printCCYFReport")"+"?sysNo="+row.sysNum);
+            }else if(row.sysNum.substring(0,2)=="BL"){
+                window.open("@Url.Content("~/Files/printBLReport")"+"?sysNo="+row.sysNum);
             }else{
                 $.messager.show({
                     title: '@Html.Lang("tip")',
                     msg: "不能导出报表。"
-                }); 
+                });
             }
         }
     }

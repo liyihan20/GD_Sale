@@ -476,15 +476,15 @@ namespace TestCRM.Controllers.Sales
             int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string crystalFile = "BL_A4_Report.rpt";
 
-            if ((from a in db.Apply
-                 from ad in a.ApplyDetails
-                 where a.sys_no == sysNo
-                 && ad.user_id == userId
-                 select ad).Count() < 1) {
-                utl.writeEventLog(model, "流水号不存在或没有权限查看", sysNo, Request, -100);
-                ViewBag.tip = "流水号不存在或没有权限查看";
-                return View("Tip");
-            }
+            //if ((from a in db.Apply
+            //     from ad in a.ApplyDetails
+            //     where a.sys_no == sysNo
+            //     && ad.user_id == userId
+            //     select ad).Count() < 1) {
+            //    utl.writeEventLog(model, "流水号不存在或没有权限查看", sysNo, Request, -100);
+            //    ViewBag.tip = "流水号不存在或没有权限查看";
+            //    return View("Tip");
+            //}
 
             utl.writeEventLog(model, "导出备料单报表", sysNo, Request, 0);
 

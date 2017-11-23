@@ -29,57 +29,57 @@
         });
 
         $("#model_type").combobox({
-            onChange: function(newValue,oldValue){
-                if(newValue=="改模"){
+            onChange: function (newValue, oldValue) {
+                if (newValue == "改模") {
                     $("#modify_model_tr").show();
-                }else{
+                } else {
                     $("#modify_model_tr").hide();
                 }
             }
         });
         $("#has_customer_sample").combobox({
-            onChange: function(newValue,oldValue){
-                if(newValue=="有"){
+            onChange: function (newValue, oldValue) {
+                if (newValue == "有") {
                     $("#customer_sample_span").show();
-                }else{
+                } else {
                     $("#customer_sample_span").hide();
                 }
             }
         });
         $("#same_with_customer_sample").combobox({
-            onChange: function(newValue,oldValue){
-                if(newValue=="否"){
+            onChange: function (newValue, oldValue) {
+                if (newValue == "否") {
                     $("#customer_sample_diff_span").show();
-                }else{
+                } else {
                     $("#customer_sample_diff_span").hide();
                 }
             }
         });
         $("#display_module_by_truly").combobox({
-            onChange: function(newValue,oldValue){
-                if(newValue=="是"){
+            onChange: function (newValue, oldValue) {
+                if (newValue == "是") {
                     $("#display_module_model_span").show();
                     $("#display_module_reason_span").hide();
-                }else{
+                } else {
                     $("#display_module_model_span").hide();
                     $("#display_module_reason_span").show();
                 }
             }
         });
         $("#display_panel_by_truly").combobox({
-            onChange: function(newValue,oldValue){
-                if(newValue=="捆绑信利显示屏"){
+            onChange: function (newValue, oldValue) {
+                if (newValue == "捆绑信利显示屏") {
                     $("#display_panel_truly_span").show();
-                }else{
+                } else {
                     $("#display_panel_truly_span").hide();
                 }
             }
         });
         $("#env_demand").combobox({
-            onChange: function(newValue,oldValue){
-                if(newValue=="特殊标准:"){
+            onChange: function (newValue, oldValue) {
+                if (newValue == "特殊标准:") {
                     $("#env_special_span").show();
-                }else{
+                } else {
                     $("#env_special_span").hide();
                 }
             }
@@ -106,17 +106,31 @@
                                 return 'white-space:normal';
                             }
 					    }
-            ]]
+            ]],
+            onLoadSuccess: function () {
+                var rawValue = "@Html.Raw(cmc.project_team)";
+                if ("" != rawValue && 0 == "@cmc.step_version") {
+                    var pjDatas = $("#project_team").combogrid("grid").datagrid("getData");
+                    for (var i = 0; i < pjDatas.rows.length; i++) {
+                        if (pjDatas.rows[i].pjGroup == rawValue) {
+                            $("#project_team").combogrid("setValue", rawValue);
+                            return;
+                        }
+                    }
+                } else {
+                    $("#project_team").combogrid("setValue", rawValue);
+                }
+            }
         });
 
         $("#product_classification").combogrid({
             textField: "value",
             idField: "value",
             panelWidth: 500,
-            noWap:false,
-            editable:false,
-            required:true,
-            url:'@Url.Content("~/Items/GetProjectItems?what=分类")',
+            noWap: false,
+            editable: false,
+            required: true,
+            url: '@Url.Content("~/Items/GetProjectItems?what=分类")',
             columns: [[
                         {
                             field: 'value', title: '@Html.Lang("classification")', width: 140,
@@ -563,7 +577,7 @@ else
                             对应项目组:
                         </td>
                         <td>
-                            <input id="project_team" name="project_team" style="width: 120px" value="@cmc.project_team"/>
+                            <input id="project_team" name="project_team" style="width: 120px" />
                         </td>
                         <td>
                             事业部:
