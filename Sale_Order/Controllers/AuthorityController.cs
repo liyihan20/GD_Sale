@@ -1396,6 +1396,16 @@ namespace Sale_Order.Controllers
             return Json(result);
         }
 
+        public JsonResult GetNextSBBillNumber(string currencyNo, bool isFree)
+        {
+            try {
+                return Json(new { suc = true, data = utl.getYPBillNo(currencyNo, isFree), msg = "样品单编号获取成功" });
+            }
+            catch (Exception ex) {
+                return Json(new { suc = false, msg = ex.Message });                
+            }
+        }
+
         //各级审核步骤与人员管理        
         public JsonResult getAuditorRelations(string value)
         {

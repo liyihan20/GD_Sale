@@ -541,7 +541,7 @@ namespace Sale_Order.Controllers
                         if (ap.order_type.Equals("BL")) {
                             //写入备料单号
                             var bl = db.Sale_BL.Single(b => b.sys_no == ap.sys_no);
-                            bl.bill_no = utl.getBLbillNo(bl.market_dep,bl.bus_dep);
+                            bl.bill_no = utl.getBLbillNo(bl.market_dep,bl.bus_dep,(int)bl.original_user_id);
 
                             //写入备料库存
                             db.Sale_BL_stock.InsertOnSubmit(new Sale_BL_stock()
@@ -563,7 +563,10 @@ namespace Sale_Order.Controllers
                             foreach (var det in bl.Sale_BL_details.OrderBy(d => d.id)) {
                                 det.entry_no = entry_index++;
                             }
-
+                        } else if (ap.order_type.Equals("SB")) {
+                            //写入样品单号
+                            var sb = db.SampleBill.Single(s => s.sys_no == ap.sys_no);
+                            sb.bill_no = utl.getYPBillNo(sb.currency_no, sb.is_free == "免费");
                         }
                     }
                     else

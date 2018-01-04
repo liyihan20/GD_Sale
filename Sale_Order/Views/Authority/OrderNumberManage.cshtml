@@ -1,6 +1,6 @@
 ﻿<script type="text/javascript">
 
-$(function(){
+@*$(function(){
     $("#big_type").combobox({
             onSelect: function (record) {
                 var account=$("#account").combobox("getValue");
@@ -10,7 +10,7 @@ $(function(){
                         $('#product_type').combobox("loadData",data);
                     }, "json"
                 );
-            }            
+            }
         });
 });
 function getNumber(){
@@ -32,7 +32,7 @@ function getNumber(){
                                 msg: data.result
                             });
                         }
-                        
+
                     }, "json"
                 );
 }
@@ -42,7 +42,7 @@ function returnNumber(){
     if($.trim(return_number)==""){
         alert("编号不能为空");
         return;
-    }else{        
+    }else{
         $.post("@Url.Content("~/Authority/returnOrderNumber")",{return_number:return_number},
         function(data){
             $.messager.show({
@@ -51,9 +51,33 @@ function returnNumber(){
             });
         },"json");
     }
-}
+}*@
+    function getYpNumber() {
+        var currencyNo = $("#currencyNo").combobox("getValue");
+        var isFree = $("#isFree").combobox("getValue");
+        if (currencyNo == "") {
+            alert("必须选择币别");
+            return;
+        }
+        if (isFree == "") {
+            alert("必须选择是否免费");
+            return;
+        }
+        $.post("@Url.Content("~/Authority/GetNextSBBillNumber")", {currencyNo:currencyNo,isFree:isFree},
+        function (result) {
+            if (result.suc) {
+                $("#ypNumber").val(result.data);
+            }
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: result.msg
+            });
+        });
+
+
+    }
 </script>
-<div id="GetNumber" class="easyui-panel" title="获取订单编号" style="width: 800px; height: 90px;
+@*<div id="GetNumber" class="easyui-panel" title="获取订单编号" style="width: 800px; height: 90px;
     padding: 5px 10px">
     <table>
         <tr>
@@ -128,4 +152,58 @@ function returnNumber(){
     订单编号：
     <input type="text" id="return_number" name="return_number" style="width: 100px" />
     <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="returnNumber()">回收编号</a>
+</div>*@
+<div id="GetYPNumber" class="easyui-panel" title="获取样品单编号" style="width: 800px; height: 90px; padding: 5px 10px">
+    <table>
+        <tr>
+            <td>
+                币别:
+            </td>
+            <td>
+                是否收费:
+            </td>
+            <td>
+                订单编号：
+            </td>
+            <td>
+                &nbsp;
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="easyui-combobox" id="currencyNo" style="width: 80px" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 'auto',
+                        editable:false,
+		                data: [{
+			                label: 'RMB',
+			                value: 'RMB'
+		                },{
+			                label: '非RMB',
+			                value: '非RMB'
+		                }]" />
+            </td>
+            <td>
+                <input class="easyui-combobox" id="isFree" style="width: 80px" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 'auto',
+                        editable:false,
+		                data: [{
+			                label: '收费',
+			                value: 'false'
+		                },{
+			                label: '免费',
+			                value: 'true'
+		                }]" />
+            </td>
+            <td>
+                <input type="text" readonly="readonly" id="ypNumber" style="width: 120px" />
+            </td>
+            <td>
+                <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="getYpNumber()">获取编号</a>
+            </td>
+        </tr>
+    </table>
 </div>

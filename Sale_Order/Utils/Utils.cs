@@ -87,8 +87,13 @@ namespace Sale_Order.Utils
         }
 
         //获得备料单单号
-        public string getBLbillNo(string marketName,string busDepName="")
+        public string getBLbillNo(string marketName,string busDepName,int userId)
         {
+            //2018年后编码新规则
+            if (DateTime.Now >= DateTime.Parse("2018-1-1")) {
+                return getBLbillNo2008(marketName, busDepName, userId);
+            }
+
             string prefix = "G";
             switch (marketName) {
                 case "MDS市场部":
@@ -105,6 +110,9 @@ namespace Sale_Order.Utils
                     break;
                 case "新加坡市场部":
                     prefix += "XJP";
+                    break;
+                case "CCM车载市场部":
+                    prefix += "VCCM";
                     break;
             }
             prefix += "BL" + DateTime.Now.ToString("yy") + "-";
@@ -128,6 +136,118 @@ namespace Sale_Order.Utils
 
 
             return busDepName.Contains("客服") ? prefix + "KF" : prefix;
+        }
+        public string getBLbillNo2008(string marketName, string busDepName, int userId)
+        {
+            string prefix = "G";
+            string agencyValue = "", marketValue = "/";
+            string agencyName = db.User.Single(u => u.id == userId).Department1.name;
+            string[] agencyNameArr = new string[] { "汕尾本部", "深圳", "上海", "北京", "光能", "杭州","新加坡" };
+            string[] agencyValueArr = new string[] { "SZ", "SZ", "SH", "BJ", "GN", "HZ", "XJP" };
+            string[] marketNameArr = new string[] { "汕尾本部", "MDS", "IDS", "CDS", "AUT", "新加坡", "CCM" };
+            string[] marketValueArr = new string[] { "MDS", "MDS", "IDS", "CDS", "AUT", "", "VCCM" };
+
+            for (var i =0;i<agencyNameArr.Length;i++) {
+                if (agencyName.Contains(agencyNameArr[i])) {
+                    agencyValue = agencyValueArr[i];
+                    break;
+                }
+            }
+            prefix += agencyValue;
+
+            for (var i = 0; i < marketNameArr.Length; i++) {
+                if (agencyName.Contains(marketNameArr[i])) {
+                    marketValue = marketValueArr[i];
+                    break;
+                }
+            }
+            if (marketValue.Equals("/")) {
+                switch (marketName) {
+                    case "MDS市场部":
+                        marketValue = "MDS";
+                        break;
+                    case "IDS市场部":
+                        marketValue = "IDS";
+                        break;
+                    case "CDS市场部":
+                        marketValue = "CDS";
+                        break;
+                    case "AUT市场部":
+                        marketValue = "AUT";
+                        break;
+                    case "新加坡市场部":
+                        marketValue = "XJP";
+                        break;
+                    case "CCM车载市场部":
+                        marketValue = "VCCM";
+                        break;
+                }
+            }
+            prefix += marketValue;    
+
+            prefix += "BL" + DateTime.Now.ToString("yy") + "-";
+            var maxRecord = db.SystemNo.Where(sn => sn.bill_type == "BL" && sn.date_string == prefix);
+            if (maxRecord.Count() == 0) {
+                SystemNo sysNo = new SystemNo()
+                {
+                    bill_type = "BL",
+                    date_string = prefix,
+                    max_num = 1
+                };
+                db.SystemNo.InsertOnSubmit(sysNo);
+                prefix += "0001";
+            }
+            else {
+                var firstRecord = maxRecord.First();
+                firstRecord.max_num = firstRecord.max_num + 1;
+                prefix += string.Format("{0:0000}", firstRecord.max_num);
+            }
+            db.SubmitChanges();
+
+
+            return busDepName.Contains("客服") ? prefix + "KF" : prefix;
+        }
+
+        //样品单编号
+        public string getYPBillNo(string currencyNo, bool isFree)
+        {
+            string prefix = "";
+            int shortYear = int.Parse(DateTime.Now.ToString("yy"));
+            if (!"RMB".Equals(currencyNo)) {
+                prefix = "H";
+            }
+            if (isFree) {
+                prefix += "GYPMF";
+            }
+            else {
+                prefix += "GSWYP";
+            }
+            if ("RMB".Equals(currencyNo)) {
+                prefix += "-" + shortYear;
+            }
+            else {
+                //2018年为j，2019年为k，以此类推
+                prefix += (char)(((int)'J' + (shortYear - 18)) > 'Z' ? 'A' : ((int)'J' + (shortYear - 18)));
+            }
+            var maxRecord = db.SystemNo.Where(sn => sn.bill_type == "YP" && sn.date_string == prefix);
+            if (maxRecord.Count() == 0) {
+                SystemNo sysNo = new SystemNo()
+                {
+                    bill_type = "YP",
+                    date_string = prefix,
+                    max_num = 1
+                };
+                db.SystemNo.InsertOnSubmit(sysNo);
+                prefix += "0001";
+            }
+            else {
+                var firstRecord = maxRecord.First();
+                firstRecord.max_num = firstRecord.max_num + 1;
+                prefix += string.Format("{0:0000}", firstRecord.max_num);
+            }
+            db.SubmitChanges();
+
+            return prefix;
         }
 
         //取得步骤名称
@@ -471,7 +591,7 @@ namespace Sale_Order.Utils
             string operateType = "新增";
             string orderType = getBillType(app.order_type);
             User auditor = db.User.Single(a => a.id == auditor_id);
-            return MyEmail.SendBackToSalerForBlock(sysNo, saler.email, orderType, operateType, auditor.real_name, reason);
+            return MyEmail.SendBackToSalerForBlock(sysNo, saler.email, orderType, operateType, auditor.real_name, reason,app.p_model);
         }
 
         //发送审核失败邮件给前一位审核者，重新审核
@@ -480,6 +600,7 @@ namespace Sale_Order.Utils
             bool sendEmail = bool.Parse(ConfigurationManager.AppSettings["SendEmail"]);
             if (!sendEmail)
                 return true;
+
 
             Apply app = db.Apply.Single(ap => ap.id == applyId);
 
@@ -1991,27 +2112,27 @@ namespace Sale_Order.Utils
                 salerId = db.Apply.Where(a => a.sys_no == sb.sys_no).First().user_id;
             }
 
-            //下单组审批，检查订单号的合法性
-            if (stepVersion == 4)
-            {
-                if (string.IsNullOrWhiteSpace(sb.bill_no))
-                {
-                    return "下单组审核必须填写订单号，保存失败。";
-                }
-                else if (db.SampleBill.Where(m => m.sys_no != sb.sys_no && m.bill_no == sb.bill_no).Count() > 0)
-                {
-                    return "订单号在下单系统已存在，保存失败。";
-                }
-                else
-                {
-                    bool? isExistedInK3 = null;
-                    db.isDublicatedBillNo(sb.bill_no, "SB", ref isExistedInK3);
-                    if (isExistedInK3 == true)
-                    {
-                        return "订单编号在K3已经存在，保存失败。";
-                    }
-                }
-            }
+            //下单组审批，检查订单号的合法性,2018年开始自动生成编号
+            //if (stepVersion == 4)
+            //{
+            //    if (string.IsNullOrWhiteSpace(sb.bill_no))
+            //    {
+            //        return "下单组审核必须填写订单号，保存失败。";
+            //    }
+            //    else if (db.SampleBill.Where(m => m.sys_no != sb.sys_no && m.bill_no == sb.bill_no).Count() > 0)
+            //    {
+            //        return "订单号在下单系统已存在，保存失败。";
+            //    }
+            //    else
+            //    {
+            //        bool? isExistedInK3 = null;
+            //        db.isDublicatedBillNo(sb.bill_no, "SB", ref isExistedInK3);
+            //        if (isExistedInK3 == true)
+            //        {
+            //            return "订单编号在K3已经存在，保存失败。";
+            //        }
+            //    }
+            //}
 
             //检查字段合法性
             //方案公司、终端公司、海外客户

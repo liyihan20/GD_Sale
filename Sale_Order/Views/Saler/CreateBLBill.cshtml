@@ -115,8 +115,8 @@
                 { field: 'unitname', title: '单位', width: 60, align: 'center' },
                 { field: 'fqty', title: '单位用量', width: 100, align: 'center' },
                 { field: 'total_qty', title: '标准数量', width: 60, align: 'center' },
-                { field: 'order_qty', title: '订料数量', width: 80, align: 'center', editor: { type: 'numberbox', options: { precision: 4 } } },
-                { field: 'highest_price', title: '最高采购价', width: 60, align: 'center', editor: { type: 'numberbox', options: { precision: 4 } } },
+                { field: 'order_qty', title: '订料数量', width: 80, align: 'center', editor: { type: 'numberbox', options: { precision: 4,groupSeparator:"," } } },
+                { field: 'highest_price', title: '最高采购价', width: 60, align: 'center', editor: { type: 'numberbox', options: { precision: 4, groupSeparator: "," } } },
                 { field: 'comment', title: '备注', width: 200, editor: { type: 'validatebox', options: { validType: ['length[0,200]'] } } },
                 { field: 'source', title: '来源', width: 80, align: 'center' },
                 { field: 'order_name', title: '订料员', width: 80, align: 'center' },
@@ -715,7 +715,7 @@ else {
                                 订单数量:
                             </td>
                             <td>
-                                <input id="qty" class="easyui-numberbox" name="qty" style="width: 135px" required="true" value="@bl.qty" />
+                                <input id="qty" class="easyui-numberbox" name="qty" groupSeparator="," style="width: 135px" required="true" value="@bl.qty" />
                             </td>
                             <td>
                                 计划交货期:
@@ -806,7 +806,7 @@ else {
                                 <input class="easyui-combobox" style="width: 140px" name="market_dep" id="market_dep"
                                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
-                                           {value:'MDS市场部'},{value:'IDS市场部'},{value:'CDS市场部'},{value:'AUT市场部'},{value:'新加坡市场部'}
+                                           {value:'MDS市场部'},{value:'IDS市场部'},{value:'CDS市场部'},{value:'AUT市场部'},{value:'新加坡市场部'},{value:'CCM车载市场部'}
                                            ]" value="@bl.market_dep" />
                             </td>
                         </tr>

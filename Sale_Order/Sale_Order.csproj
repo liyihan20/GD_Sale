@@ -307,6 +307,7 @@
     <Compile Include="Utils\Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\TrulyEmail.dll" />
     <Content Include="Content\MyCSS.css" />
     <Content Include="Content\themes\base\images\processbar.jpg" />
     <Content Include="Content\themes\base\images\ui-bg_diagonals-thick_18_b81900_40x40.png" />

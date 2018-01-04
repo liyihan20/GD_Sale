@@ -129,7 +129,7 @@
                             订单数量:
                         </td>
                         <td>
-                            <input type="text" style="width: 140px" value="@bl.qty" />
+                            <input type="text" style="width: 140px" value="@(((int)bl.qty).ToString("N0"))" />
                         </td>
                         <td>
                             计划交货期:
@@ -306,11 +306,11 @@
                                     <td>@det.fmodel</td>
                                     <td>@det.fname</td>
                                     <td>@det.unitname</td>
-                                    <td>@(det.fqty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.fqty, 4)))</td>
-                                    <td>@(det.total_qty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.total_qty, 4)))</td>
-                                    <td>@(det.order_qty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.order_qty, 4)))</td>
-                                    <td>@(det.k3_qty == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.k3_qty, 4)))</td>
-                                    <td>@(det.highest_price == null ? "0" : String.Format("{0:0.####}", Math.Round((decimal)det.highest_price, 4)))</td>
+                                    <td>@(det.fqty == null ? "0" : String.Format("{0:N4}", Math.Round((decimal)det.fqty, 4)))</td>
+                                    <td>@(det.total_qty == null ? "0" : String.Format("{0:N4}", Math.Round((decimal)det.total_qty, 4)))</td>
+                                    <td>@(det.order_qty == null ? "0" : String.Format("{0:N4}", Math.Round((decimal)det.order_qty, 4)))</td>
+                                    <td>@(det.k3_qty == null ? "0" : String.Format("{0:N4}", Math.Round((decimal)det.k3_qty, 4)))</td>
+                                    <td>@(det.highest_price == null ? "0" : String.Format("{0:N4}", Math.Round((decimal)det.highest_price, 4)))</td>
                                     <td>@det.comment</td>
                                     <td>@det.source</td>
                                     <td>@det.order_name</td>

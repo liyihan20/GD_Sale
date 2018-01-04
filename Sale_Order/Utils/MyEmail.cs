@@ -93,11 +93,11 @@ namespace Sale_Order.Utils
         }
 
         //挂起操作通知订单申请者
-        public static bool SendBackToSalerForBlock(string sys_no, string salerEmailAdd, string orderType, string operateType, string auditor, string reason)
+        public static bool SendBackToSalerForBlock(string sys_no, string salerEmailAdd, string orderType, string operateType, string auditor, string reason,string model="")
         {
             string content = "<div>你好:</div>";
             content += string.Format("<div style='margin-left:30px;'><div>你申请的流水号为{0}的单据被挂起，详细如下。</div>", sys_no);
-            content += String.Format("<div style='float:left;width:100px'>公司:<br/>订单类型:<br/>申请操作:<br/>挂起操作人:<br/>挂起原因:<br/></div><div style='float:left;width:500px'>{3}</br>{0}</br>{1}<br/>{2}<br/>{4}<br/></div>", orderType, operateType, auditor, copName, reason);
+            content += String.Format("<div style='float:left;width:100px'>公司:<br/>订单类型:<br/>申请操作:<br/>规格型号:<br/>挂起操作人:<br/>挂起原因:<br/></div><div style='float:left;width:500px'>{3}<br/>{0}<br/>{5}<br/>{1}<br/>{2}<br/>{4}<br/></div>", orderType, operateType, auditor, copName, reason,model);
 
             if (SendEmail(content, salerEmailAdd))
                 return true;

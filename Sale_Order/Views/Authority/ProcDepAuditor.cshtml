@@ -37,7 +37,7 @@
     var url;
     function newRel() {
         $('#rel_dlg').dialog('open').dialog('setTitle', '新建关系');
-        $('#fm').form('clear');
+        //$('#fm').form('clear');
         url = 'saveAuditorRelation';
     }
     function editRel() {
@@ -63,7 +63,7 @@
             success: function (data) {                
                 var result = eval('(' + data + ')');
                 if (result.suc) {
-                    $('#rel_dlg').dialog('close');      // close the dialog   
+                   // $('#rel_dlg').dialog('close');      // close the dialog   
                     $('#rel_dg').datagrid('reload');    // reload the user data   
                 } else {
                     $.messager.show({
