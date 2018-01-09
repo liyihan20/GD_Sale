@@ -1,18 +1,26 @@
 ﻿<script type="text/javascript">
     $(function () {
         var orderType="@ViewData["orderType"]";
-        var orderId="@ViewData["order_id"]";
-        var url="@Url.Content("~/Saler/CheckOrderDetail")"+"?id=@ViewData["order_id"]"+"&billType="+orderType;
+        var orderId = "@ViewData["order_id"]";
+        var canCheckBLFile = false;//2018年开始限制只有市场部的人才能查看备料单附件
+        if (orderType == "BL") {
+            var stepName="@ViewData["step_name"]";
+            if (stepName.indexOf("营业") >= 0 || stepName.indexOf("办事处") >= 0 || stepName.indexOf("总部") >= 0) {
+                canCheckBLFile = true;
+            }
+        }
+        
+        var url = "@Url.Content("~/Saler/CheckOrderDetail")" + "?id=@ViewData["order_id"]" + "&billType=" + orderType + "&canCheckBLFile="+canCheckBLFile;
 
         $("#agency_div").layout("panel","center").panel({
-                href:url,
-                onLoad:function(){
-                    //加载完之后将生产部门赋值给运作中心的生产部门
-                    if($("#new_dep")){                        
-                        $("#new_dep").combobox("setValue",$("#proc_dep_id").val());
-                    }
+            href:url,
+            onLoad:function(){
+                //加载完之后将生产部门赋值给运作中心的生产部门
+                if($("#new_dep")){
+                    $("#new_dep").combobox("setValue",$("#proc_dep_id").val());
                 }
-        });       
+            }
+        });
         getAuditResult();
 
         $('#dlg_selectNext').dialog({
@@ -36,9 +44,9 @@
                         { field: 'id', title: 'id', width: 120,hidden: true },
                         //{ field: 'card', title: '厂牌', width: 120, align: "center" },
                         { field: 'name', title: '姓名', width: 160, align: "center" }
-                    ]]             
+            ]]
         });
-        
+
 
         //SO流程运作中心郭玲敏可以修改生产部门
         if(orderType=="SO" && "@ViewData["step_name"]" == "运作中心审核"){
@@ -52,8 +60,8 @@
                 editable:false
             });
         }
-    });    
-    
+    });
+
     function okClick(){
         $("#okFlag").val("true");
         if('@ViewData["can_select_next"]' == 'Y'){
@@ -62,10 +70,10 @@
             $("#tb_select").datagrid({url:"@Url.Content("~/Items/getPZAuditors")",queryParams:{apply_id:'@ViewData["applyId"]'} });
         }else{
             $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
-	            if (r){
+                if (r){
                     submitForm();
-	            }
-            });    
+                }
+            });
         }
     }
 
@@ -73,9 +81,9 @@
         var rows=$("#tb_select").datagrid("getChecked");
         if(rows.length<1){
             $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "请至少选择一个审核人员"
-                });   
+                title: '@Html.Lang("tip")',
+                msg: "请至少选择一个审核人员"
+            });
         }else{
             var ids="";
             for(var i=0;i<rows.length;i++){
@@ -99,7 +107,7 @@
             $("#dlg_No").dialog("open");
         }else{
             $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
-	            if (r){                    
+                if (r){
                     submitForm();
                 }
             });
@@ -122,27 +130,27 @@
         var reason=$("#agency_comment").val();
         if($.trim(reason)==""){
             $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "挂起操作必须写明原因，提交失败"
-                });   
+                title: '@Html.Lang("tip")',
+                msg: "挂起操作必须写明原因，提交失败"
+            });
         }else{
-             $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
-	         if (r){
-                 $.messager.progress();
-                 $("#audit_fm").form("submit",{
-                    url:"@Url.Content("~/Audit/BlockOrder")",
-                    success:function(data){
-                        $.messager.progress('close');
-                        var result=eval("("+data+")"); 
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: result.msg + ",正在跳转..."
-                        });
-                        setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-                    }
-                });
-            }
-            });  
+            $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
+                if (r){
+                    $.messager.progress();
+                    $("#audit_fm").form("submit",{
+                        url:"@Url.Content("~/Audit/BlockOrder")",
+                        success:function(data){
+                            $.messager.progress('close');
+                            var result=eval("("+data+")");
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: result.msg + ",正在跳转..."
+                            });
+                            setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                        }
+                    });
+                }
+            });
         }
     }
 

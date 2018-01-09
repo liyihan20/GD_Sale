@@ -39,6 +39,8 @@
 					                return 'color:red;';
 				                }else if(value == '审核成功'){
 					                return 'color:green;';
+				                } else if (value == '挂起中') {
+				                    return 'color:#CC0000;';
 				                }
 			                } 
                         },
@@ -63,83 +65,10 @@
             ]],
             toolbar: '#audit_tb',
             rowStyler: function (index, row) {
-                if (row.status == '挂起中') {
+                if (row.orderType == '退换货') {
                     return 'color:blue;';
                 }
             },
-            @*toolbar: [{
-                text: "@Html.Lang("audit_bill")",
-                iconCls: 'icon-edit',
-                handler: EditOrder
-            }, '-', {
-                text: "@Html.Lang("check_status")",
-                iconCls: 'icon-help',
-                handler: AuditorCheckStatus
-            }, '-', {
-                text: "@Html.Lang("chk_report")",
-                iconCls: 'icon-document',
-                handler: CheckReport
-            }, '-',
-            {
-                text: "@Html.Lang("export_so_excel")",
-                iconCls: 'icon-xls',
-                handler: function () {
-                    var rows = $("#AuditList").datagrid("getRows");
-                    if(rows.length==0){
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "列表中无数据，请先搜索之后再导出Excel报表"
-                        }); 
-                    }else{
-                        var ids="";
-                        for(var i=0;i<rows.length;i++){
-                            if(rows[i].sysNum.substring(0,2)=="SO"){
-                                if(ids==""){
-                                    ids+=rows[i].applyId;
-                                }else{
-                                    ids+=","+rows[i].applyId;
-                                }
-                            }
-                        }
-                        if(ids==""){
-                            $.messager.show({
-                                title: '@Html.Lang("tip")',
-                                msg: "列表中没有任何销售订单的单据，不能导出。"
-                            }); 
-                        }else{
-                            openDownloadDialog(ids);
-                        }
-                        //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;
-                    }
-                }
-            }, '-',
-            {
-                text: "@Html.Lang("sb_excel")",
-                iconCls: 'icon-xls',
-                handler: function () {
-                    ExportAuditorExcel("样品","exportAuditorSBExcel");
-                }
-            }, '-', {
-                text: "@Html.Lang("export_th_excel")",
-                iconCls: 'icon-xls',
-                handler: function(){
-                    ExportAuditorExcel("退换货","BeginExportTHExcelByAuditor");                            
-                }
-            }, '-', {
-                text: "@Html.Lang("export_cm_excel")",
-                iconCls: 'icon-xls',
-                handler: function(){
-                    ExportAuditorExcel("开改模","exportAuditorCMExcel");
-                }
-            }, '-', {
-                text: "备料单Excel",
-                iconCls: 'icon-xls',
-                handler: function () { $('#dlg_BLExcel').dialog("open"); }
-            }, '-', {
-                text: "@Html.Lang("print_returned_report")",
-                iconCls: 'icon-document',
-                handler: PrintTHQS
-            }],*@
             onDblClickRow:EditOrder
         });
 
@@ -168,30 +97,30 @@
         }else{
             var ids="";
             for(var i=0;i<rows.length;i++){
-                if(rows[i].sysNum.substring(0,2)=="SO"){
-                    if(ids==""){
-                        ids+=rows[i].applyId;
-                    }else{
-                        ids+=","+rows[i].applyId;
+                if (rows[i].sysNum.substring(0, 2) == "SO") {
+                    if (ids == "") {
+                        ids += rows[i].applyId;
+                    } else {
+                        ids += "," + rows[i].applyId;
                     }
                 }
             }
-            if(ids==""){
+            if (ids == "") {
                 $.messager.show({
                     title: '@Html.Lang("tip")',
                     msg: "列表中没有任何销售订单的单据，不能导出。"
-                }); 
-            }else{
+                });
+            } else {
                 openDownloadDialog(ids);
             }
             //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;
         }
     }
 
-    function EditOrder(){
+    function EditOrder() {
         var row = $("#AuditList").datagrid("getSelected");
-        if (row) {            
-            window.location.href="@Url.Content("~/Audit/BeginAudit")"+"?step="+row.step+"&applyId="+row.applyId;
+        if (row) {
+            window.location.href = "@Url.Content("~/Audit/BeginAudit")" + "?step=" + row.step + "&applyId=" + row.applyId;
         }
     }
     
@@ -202,76 +131,76 @@
         }
     }
 
-    function CheckReport(){
-        var row = $("#AuditList").datagrid("getSelected");        
+    function CheckReport() {
+        var row = $("#AuditList").datagrid("getSelected");
         if (row) {
-            if(row.sysNum.substring(0,2)=="SO"){
-                window.open("@Url.Content("~/Files/printReport")"+"?sysNo="+row.encryptNo);
-            }else if(row.orderType=="退换货"){
-                window.open("@Url.Content("~/Files/printTHReport")"+"?sysNo="+row.sysNum);
-            }else if(row.sysNum.substring(0,2)=="SB"){
-                window.open('@Url.Content("~/Files/printSBYFReport")'+'?sysNo='+row.sysNum);
-            }else if(row.sysNum.substring(0,2)=="CC"){
-                window.open('@Url.Content("~/Files/printCCYFReport")'+'?sysNo='+row.sysNum);
-            }else if(row.sysNum.substring(0,2)=="CM"){
-                window.open('@Url.Content("~/Files/printCMYFReport")'+'?sysNo='+row.sysNum);
+            if (row.sysNum.substring(0, 2) == "SO") {
+                window.open("@Url.Content("~/Files/printReport")" + "?sysNo=" + row.encryptNo);
+            } else if (row.orderType == "退换货") {
+                window.open("@Url.Content("~/Files/printTHReport")" + "?sysNo=" + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "SB") {
+                window.open('@Url.Content("~/Files/printSBYFReport")' + '?sysNo=' + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "CC") {
+                window.open('@Url.Content("~/Files/printCCYFReport")' + '?sysNo=' + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "CM") {
+                window.open('@Url.Content("~/Files/printCMYFReport")' + '?sysNo=' + row.sysNum);
             } else if (row.sysNum.substring(0, 2) == "BL") {
                 window.open('@Url.Content("~/Files/printBLReport")' + '?sysNo=' + row.sysNum);
             } else {
                 $.messager.show({
                     title: '@Html.Lang("tip")',
                     msg: "不能导出报表。"
-                }); 
+                });
             }
         }
     }
     
-    function PrintTHQS(){
-        var row = $("#AuditList").datagrid("getSelected");        
+    function PrintTHQS() {
+        var row = $("#AuditList").datagrid("getSelected");
         if (row) {
-            if(row.orderType=="退换货"){
-                window.open("@Url.Content("~/Files/printTHQSReport")"+"?sysNo="+row.sysNum);
+            if (row.orderType == "退换货") {
+                window.open("@Url.Content("~/Files/printTHQSReport")" + "?sysNo=" + row.sysNum);
             }
-            else{
+            else {
                 $.messager.show({
                     title: '@Html.Lang("tip")',
                     msg: "不能导出报表。"
-                }); 
+                });
             }
         }
     }
 
-    function ExportAuditorExcel(typ,method){
+    function ExportAuditorExcel(typ, method) {
         $.messager.show({
             title: '@Html.Lang("tip")',
             msg: "正在导出符合查询条件且已审核的数据，请稍等..."
-        }); 
+        });
         var rows = $("#AuditList").datagrid("getRows");
-        if(rows.length==0){
+        if (rows.length == 0) {
             $.messager.show({
                 title: '@Html.Lang("tip")',
                 msg: "列表中无数据，请先搜索之后再导出Excel报表"
-            }); 
-        }else{
-            var ids="";
-            for(var i=0;i<rows.length;i++){
-                if(rows[i].orderType.indexOf(typ)>=0){
-                    if(ids==""){
-                        ids+=rows[i].applyId;
-                    }else{
-                        ids+=","+rows[i].applyId;
+            });
+        } else {
+            var ids = "";
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].orderType.indexOf(typ) >= 0) {
+                    if (ids == "") {
+                        ids += rows[i].applyId;
+                    } else {
+                        ids += "," + rows[i].applyId;
                     }
                 }
             }
-            if(ids==""){
+            if (ids == "") {
                 $.messager.show({
                     title: '@Html.Lang("tip")',
-                    msg: "列表中没有任何"+typ+"的单据，不能导出。"
-                }); 
-            }else{
-                window.location.href='@Url.Content("~/Excels/")'+method+'?ids='+ids;
-            }    
-        }   
+                    msg: "列表中没有任何" + typ + "的单据，不能导出。"
+                });
+            } else {
+                window.location.href = '@Url.Content("~/Excels/")' + method + '?ids=' + ids;
+            }
+        }
     }
 
 </script>
@@ -279,7 +208,7 @@
     <div data-options="region:'north',collapsed:false,split:true" style="height: 55px; background: #fafafa;
         padding: 1px;">
         <form id="fm" method="post" style="padding:2px 5px;">
-        <table cellpadding="0" cellspacing="0" border="0" width="700px">
+        <table cellpadding="0" cellspacing="0" border="0" width="700">
             <thead>
                 <tr>                    
                     <td>

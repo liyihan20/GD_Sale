@@ -1399,7 +1399,9 @@ namespace Sale_Order.Controllers
         public JsonResult GetNextSBBillNumber(string currencyNo, bool isFree)
         {
             try {
-                return Json(new { suc = true, data = utl.getYPBillNo(currencyNo, isFree), msg = "样品单编号获取成功" });
+                string billNo = utl.getYPBillNo(currencyNo, isFree);
+                utl.writeEventLog("手动获取样品单编号", "获取成功:" + billNo, "", Request);
+                return Json(new { suc = true, data = billNo, msg = "样品单编号获取成功" });
             }
             catch (Exception ex) {
                 return Json(new { suc = false, msg = ex.Message });                

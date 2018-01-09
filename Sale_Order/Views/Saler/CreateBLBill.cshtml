@@ -920,11 +920,12 @@ else {
                         @Html.Partial("_UploadFilePartial")
                     }
                     else {
-                        <div id="downloadPanel">
+                        @*有修改权限的审核人只有计划和订料，但是2018年开始限制他们不能查看备料单的附件*@
+                        @*<div id="downloadPanel">
                             <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
                                  title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + bl.sys_no)">
                             </div>
-                        </div>
+                        </div>*@
                     }
                 </div>
                 @if (0 == bl.step_version) {

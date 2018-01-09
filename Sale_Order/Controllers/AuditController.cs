@@ -108,22 +108,23 @@ namespace Sale_Order.Controllers
             int recordNum = 0;                       
 
             var details = (from ad in db.ApplyDetails
+                           join a in db.Apply on ad.apply_id equals a.id
                           where ad.user_id == userId
-                          && ad.Apply.sys_no.Contains(sysNo)
+                          && a.sys_no.Contains(sysNo)
                           //&& ad.Apply.User.real_name.Contains(saler)  去掉搜索申请者的过滤条件，大幅优化查询速度
-                          && ad.Apply.start_date >= fromDate
-                          && ad.Apply.start_date <= toDate
-                          && ad.Apply.p_model.Contains(proModel)
+                          && a.start_date >= fromDate
+                          && a.start_date <= toDate
+                          && a.p_model.Contains(proModel)
                           && (
                           (isFinish == 10
-                          || ad.Apply.success == true && isFinish == 1)
-                          || (ad.Apply.success == null && isFinish == 0)
-                          || (ad.Apply.success == false && isFinish == -1)
+                          || a.success == true && isFinish == 1)
+                          || (a.success == null && isFinish == 0)
+                          || (a.success == false && isFinish == -1)
                           )
                           && (auditResult == 10
-                          || ((ad.pass == true || ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == true).Count() > 0)) && auditResult == 1)
-                          || ((ad.pass == false || ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == false).Count() > 0)) && auditResult == -1)
-                          || (((ad.countersign == true && ad.pass == null) || ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass != null).Count() == 0)) && auditResult == 0)
+                          || ((ad.pass == true || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == true).Count() > 0)) && auditResult == 1)
+                          || ((ad.pass == false || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == false).Count() > 0)) && auditResult == -1)
+                          || (((ad.countersign == true && ad.pass == null) || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass != null).Count() == 0)) && auditResult == 0)
                           )
                           select ad).ToList();
             foreach (var ad in details)
@@ -202,28 +203,6 @@ namespace Sale_Order.Controllers
                         }
                     }
                 }
-
-                //switch (ap.order_type)
-                //{
-                //    case "SO":
-                //        model = db.vwProductInfo.Where(v => v.item_id == db.Order.Where(o => o.sys_no == ap.sys_no).OrderByDescending(o => o.id).First().OrderDetail.First().product_id).First().item_model;
-                //        break;
-                //    case "TH":
-                //        model = db.VwReturnBill.Where(v => v.sys_no == ap.sys_no).First().product_model;
-                //        break;
-                //    case "CC":
-                //        model = db.CcmModelContract.Where(c => c.sys_no == ap.sys_no).First().product_model;
-                //        break;
-                //    case "CM":
-                //        model = db.ModelContract.Where(m => m.sys_no == ap.sys_no).First().product_model;
-                //        break;
-                //    case "SB":
-                //        model = db.SampleBill.Where(s => s.sys_no == ap.sys_no).First().product_model;
-                //        break;
-                //    default:
-                //        model = "";
-                //        break;
-                //}
 
                 db.getOrderTypeBySysNo(ap.sys_no, ref orderType);
                 list.Add(new AuditListModel()
@@ -334,6 +313,7 @@ namespace Sale_Order.Controllers
                     break;
                 case "BL":
                     ViewData["order_id"] = db.Sale_BL.Single(s => s.sys_no == ap.sys_no).id;
+                    ViewData["step_name"] = ad.step_name;
                     break;
                 case "TH":
                     ViewData["order_id"] = db.ReturnBill.Where(r => r.sys_no == ap.sys_no).First().id;

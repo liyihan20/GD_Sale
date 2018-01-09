@@ -101,7 +101,7 @@
         var row=$("#orderList").datagrid("getSelected");
         if(row){ 
             var suff=row.sys_no.substring(0,2);
-            window.location.href="@Url.Content("~/Saler/CheckOrderDetail")"+"?id="+row.bill_id+"&billType="+suff;
+            window.location.href = "@Url.Content("~/Saler/CheckOrderDetail")" + "?id=" + row.bill_id + "&billType=" + suff + "&canCheckBLFile=true";
         }
     }
 

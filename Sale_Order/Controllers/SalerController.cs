@@ -1936,7 +1936,7 @@ namespace Sale_Order.Controllers
 
         //查看所有类型单据详细信息
         [SessionTimeOutFilter()]
-        public ActionResult CheckOrderDetail(int id, string billType)
+        public ActionResult CheckOrderDetail(int id, string billType, bool canCheckBLFile=false)
         {
             string sysNum;
             int newestId;
@@ -1997,6 +1997,7 @@ namespace Sale_Order.Controllers
                     ViewData["hiddenModel"] = new string[] { "上海", "北京", "深圳", "汕尾", "新加坡", "中国市场部", "香港", "光能", "杭州" }.Where(s => userDep.Contains(s)).Count() > 0 ? "true" : "false";
                     ViewData["bl"] = bl;
                     ViewData["blockInfo"] = blockInfo;
+                    ViewData["canCheckBLFile"] = canCheckBLFile;//2018年开始限制只有市场部的才能查看附件
                     return View("CheckBLBill");
                 case "6":
                 case "TH":

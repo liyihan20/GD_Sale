@@ -1,6 +1,7 @@
 ﻿@using Sale_Order.Models;
 @{
     Sale_BL bl = (Sale_BL)ViewData["BL"];
+    bool canCheckBLFile = (bool)ViewData["canCheckBLFile"];
 }
 
 <script type="text/javascript">
@@ -321,10 +322,12 @@
                 }
             </div>
             <br />
+            @if (canCheckBLFile) { 
             <div id="downloadPanel">
                 <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;" title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + bl.sys_no)">
                 </div>
             </div>
+            }
             <div style="line-height:18px;margin-top:8px;">
                 <div style="color:red">操作说明：</div>
                 <div>
@@ -340,6 +343,6 @@
             </div>
         </div>
     </div>
-    @*挂起信息*@
+    @*挂起信息*@    
     @Html.Partial("_BlockInfoPartial")
 </div>
