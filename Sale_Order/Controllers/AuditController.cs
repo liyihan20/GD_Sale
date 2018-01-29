@@ -435,19 +435,23 @@ namespace Sale_Order.Controllers
 
                 //计划经理审批后
                 if (thisDetail.step_name.Contains("计划经理") && isOK) {
-                    string busDep = bl.bus_dep;
-                    utl.AppendStepAtLast(ap.id, "计划审批", new int?[] { bl.planner_id }, step, true);
-                }
-                //计划经理审批后，如果有修改，则在最后插入营业审批
-                if (thisDetail.step_name.Contains("计划审批") && isOK) {
-                    int?[] orderIds = bl.order_ids.Split(new char[] { ',' }).Select(i => { int? id = Int32.Parse(i); return id; }).ToArray();
-                    utl.AppendStepAtLast(ap.id, "订料会签", orderIds, step, true, false, true);
-                    utl.AppendStepAtLast(ap.id, "营业员确认", new int?[] { bl.original_user_id }, step);
                     if (bl.bus_dep.Contains("TDD")) {
                         utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
                     }
                     utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
+                    //string busDep = bl.bus_dep;
+                    //utl.AppendStepAtLast(ap.id, "计划审批", new int?[] { bl.planner_id }, step, true);
                 }
+                //计划经理审批后，如果有修改，则在最后插入营业审批
+                //if (thisDetail.step_name.Contains("计划审批") && isOK) {
+                    //int?[] orderIds = bl.order_ids.Split(new char[] { ',' }).Select(i => { int? id = Int32.Parse(i); return id; }).ToArray();
+                    //utl.AppendStepAtLast(ap.id, "订料会签", orderIds, step, true, false, true);
+                    //utl.AppendStepAtLast(ap.id, "营业员确认", new int?[] { bl.original_user_id }, step);
+                    //if (bl.bus_dep.Contains("TDD")) {
+                    //    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
+                    //}
+                    //utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
+                //}
             }
 
             #endregion

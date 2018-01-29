@@ -226,12 +226,14 @@
                         <td>
                             <input type="text" style="width: 140px" value="@bl.clerk_name" />
                         </td>
+                        @if (!string.IsNullOrEmpty(bl.planner_name)) { 
                         <td>
                             计划员:
                         </td>
                         <td>
                             <input type="text" style="width: 140px" value="@bl.planner_name" />
                         </td>
+                        }
                         <td>
                             制单人:
                         </td>
@@ -239,12 +241,14 @@
                             <input type="text" style="width:140px" value="@bl.User.real_name" />
                         </td>
                     </tr>
+                    @if (!string.IsNullOrEmpty(bl.order_names)) { 
                     <tr>
                         <td>订料员:</td>
                         <td colspan="5">
                             <input type="text" style="width:381px" value="@bl.order_names" />
                         </td>
                     </tr>
+                    }
                     <tr>
                         @*<td>
                                 备料项目:
@@ -289,12 +293,14 @@
                             <textarea cols="92" rows="4" spellcheck="false" style="margin: 0;">@bl.comment</textarea>
                         </td>
                     </tr>
+                    @if (!string.IsNullOrEmpty(bl.planner_comment)) { 
                     <tr>
                         <td>计划备注:</td>
                         <td colspan="5">
                             <textarea cols="92" rows="4" spellcheck="false" style="margin: 0;">@bl.planner_comment</textarea>
                         </td>
                     </tr>
+                    }
                 </table>
                 @if (bl.Sale_BL_details.Count() > 0) {
                     <br />

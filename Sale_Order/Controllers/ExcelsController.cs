@@ -485,10 +485,10 @@ namespace Sale_Order.Controllers
                           orderby v.order_date
                           select v).ToList();
 
-            ushort[] colWidth = new ushort[] { 12, 12, 20, 18, 18, 28, 18, 14, 100 };
+            ushort[] colWidth = new ushort[] { 12, 12, 20, 18, 18, 18, 28, 18, 14, 100 };
 
             //下单日期，交货日期，办事处，产品类别，订单号，规格型号，成交金额，币别，说明
-            string[] colName = new string[] { "下单日期", "交货日期", "办事处", "产品类别", "订单号", "规格型号", "成交金额", "币别", "说明" };
+            string[] colName = new string[] { "下单日期", "交货日期", "办事处", "产品类别", "产品用途", "订单号", "规格型号", "成交金额", "币别", "说明" };
 
             //設置excel文件名和sheet名
             XlsDocument xls = new XlsDocument();
@@ -534,6 +534,7 @@ namespace Sale_Order.Controllers
                 cells.Add(rowIndex, ++colIndex, ((DateTime)d.delivery_date).ToShortDateString());
                 cells.Add(rowIndex, ++colIndex, d.department_name);
                 cells.Add(rowIndex, ++colIndex, d.product_type_name);
+                cells.Add(rowIndex, ++colIndex, d.product_use);
                 cells.Add(rowIndex, ++colIndex, d.order_no);
                 cells.Add(rowIndex, ++colIndex, d.product_model);
                 cells.Add(rowIndex, ++colIndex, d.deal_sum);

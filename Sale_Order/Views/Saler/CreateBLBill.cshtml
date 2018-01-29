@@ -434,7 +434,7 @@
                             return false;
                         }
                         //param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
-                        param.planner_name = $("#planner_id").combobox("getText");
+                        //param.planner_name = $("#planner_id").combobox("getText");
                         return true;
                     },
                     success: function (data) {
@@ -817,12 +817,12 @@ else {
                             <td>
                                 <input id="clerk_no" class="remotebox" name="clerk_no" style="width: 140px" required="true" />
                             </td>
-                            <td>
+                            @*<td>
                                 计划员:
                             </td>
                             <td>
                                 <input class="easyui-combobox" id="planner_id" name="planner_id" style="width: 140px" panelwidth="140" valuefield="auditorId" textfield="auditorName" editable="false" required="true" />
-                            </td>
+                            </td>*@
                             <td>
                                 制单人:
                             </td>
@@ -920,7 +920,7 @@ else {
                         @Html.Partial("_UploadFilePartial")
                     }
                     else {
-                        @*有修改权限的审核人只有计划和订料，但是2018年开始限制他们不能查看备料单的附件*@
+                        @*有修改权限的审核人只有计划和订料和成控，但是2018年开始限制他们不能查看备料单的附件*@
                         @*<div id="downloadPanel">
                             <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
                                  title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + bl.sys_no)">

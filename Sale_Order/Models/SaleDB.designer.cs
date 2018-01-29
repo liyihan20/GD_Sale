@@ -13412,6 +13412,8 @@ namespace Sale_Order.Models
 		
 		private string _description;
 		
+		private string _product_use;
+		
 		public VWCeoExcel()
 		{
 		}
@@ -13556,6 +13558,22 @@ namespace Sale_Order.Models
 				if ((this._description != value))
 				{
 					this._description = value;
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_product_use", DbType="varchar(255)")]
+		public string product_use
+		{
+			get
+			{
+				return this._product_use;
+			}
+			set
+			{
+				if ((this._product_use != value))
+				{
+					this._product_use = value;
 				}
 			}
 		}

@@ -682,6 +682,7 @@
       <Column Name="deal_sum" Type="System.Decimal" DbType="Decimal(28,10)" CanBeNull="true" />
       <Column Name="currency_name" Type="System.String" DbType="NVarChar(255)" CanBeNull="true" />
       <Column Name="description" Type="System.String" DbType="VarChar(255)" CanBeNull="true" />
+      <Column Name="product_use" Type="System.String" DbType="varchar(255)" CanBeNull="true" />
     </Type>
   </Table>
   <Table Name="dbo.Sale_process" Member="Process">
