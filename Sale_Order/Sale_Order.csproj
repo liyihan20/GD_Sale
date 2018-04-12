@@ -651,6 +651,7 @@
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Authority\ModifyBillNo.cshtml" />
     <Content Include="Views\Authority\CeoBatchAudit.cshtml" />
+    <Content Include="Views\Items\ProjectGroupAuditor.cshtml" />
     <None Include="Views\Project\NewProject.cshtml.bak" />
     <Content Include="Views\Project\CheckProjectBills.cshtml" />
     <Content Include="Views\Project\CheckSingleProjectBill.cshtml" />

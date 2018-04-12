@@ -1472,10 +1472,6 @@
     <value>UV试验</value>
     <comment>UV试验</comment>
   </data>
-  <data name="west_menu1" xml:space="preserve">
-    <value>菜单</value>
-    <comment>菜单</comment>
-  </data>
   <data name="audit_4" xml:space="preserve">
     <value>市场部二审</value>
     <comment>市场部二审</comment>
@@ -1615,5 +1611,13 @@
   <data name="create_model_bill" xml:space="preserve">
     <value>新建开模改模单</value>
     <comment>新建开模改模单</comment>
+  </data>
+  <data name="customer_item_model" xml:space="preserve">
+    <value>客户型号</value>
+    <comment>客户型号</comment>
+  </data>
+  <data name="customer_item_number" xml:space="preserve">
+    <value>客户料号</value>
+    <comment>客户料号</comment>
   </data>
 </root>

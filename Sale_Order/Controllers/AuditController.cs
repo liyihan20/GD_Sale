@@ -435,9 +435,9 @@ namespace Sale_Order.Controllers
 
                 //计划经理审批后
                 if (thisDetail.step_name.Contains("计划经理") && isOK) {
-                    if (bl.bus_dep.Contains("TDD")) {
-                        utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
-                    }
+                    //if (bl.bus_dep.Contains("TDD")) {
+                    //    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
+                    //}
                     utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
                     //string busDep = bl.bus_dep;
                     //utl.AppendStepAtLast(ap.id, "计划审批", new int?[] { bl.planner_id }, step, true);

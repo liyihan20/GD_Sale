@@ -251,9 +251,24 @@
 { 
     <script type="text/javascript">
     $(function () { 
-        
+
         //保存订单
         $('#saveAllBut').bind('click', function () {
+
+            ///2018-3-20加入的一些规则
+            var deliveryPlace = $("#fetch_add_no").combobox("getText");
+            if ($("#currency_no").combobox("getText") == "人民币") {
+                if (deliveryPlace.indexOf("中国汕尾") < 0) {
+                    alert("保存失败：币别为人民币时，交货地点必须选择中国汕尾（GN）！");
+                    return;
+                }
+            } else {
+                if (deliveryPlace.indexOf("香港货仓") < 0) {
+                    alert("保存失败：币别为非人民币时，交货地点必须选择香港货仓（HK）！");
+                    return;
+                }
+            }
+
             $.messager.progress(); 
             $('#order_form').form('submit',{
                 url: '@Url.Content("~/Saler/SalerSaveSampleBill")',
@@ -268,6 +283,18 @@
                             msg: "规格型号请搜索回车后从列表中选择"
                         });
                         return false;
+                    }
+
+                    //国内贸易的必须填写合同编号，且格式是CM年月流水号，比如CM201801001
+                    if ($("#trade_type_no").combobox("getValue") == "03") {
+                        var pat = /CM\d{9}/;
+                        if (!pat.test($("#contract_po_no").val())) {
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: "保存失败：国内贸易的【合同编号P/O】字段必须符合以下格式：CM+年+月+流水号，例如CM201802001"
+                            });
+                            return false;
+                        }
                     }
 
                     //保存客户名称
@@ -692,11 +719,22 @@
                     <input id="contract_price" class="easyui-numberbox" name="contract_price" style="width: 115px" precision="4" value="@sb.contract_price" />
                 </td>
                 <td>
+                    @Html.Lang("contract_num"):
+                </td>
+                <td>
+                    <input id="contract_po_no" class="easyui-validatebox" name="contract_po_no" style="width: 115px" value="@sb.contract_po_no" />
+                </td>
+            </tr>
+            <tr>     
+                <td>
                     制单人:
                 </td>
                 <td>
                     <input class="easyui-textbox" id="create_user" name="create_user"  value="@sb.User.real_name" readonly="readonly" style="width: 115px" />
-                </td>
+                </td> 
+                @for (var i = 0; i < 6; i++) {
+                    <td></td>
+                }           
             </tr>
             <tr>
                 <td colspan="8">

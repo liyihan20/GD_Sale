@@ -266,64 +266,124 @@
 @if (0 == cmc.step_version)
 {
     <script type="text/javascript">
-        $(function () {
+    $(function () {
         //保存订单
-        $('#saveAllBut').bind('click', function () {   
-            $.messager.progress(); 
-            $('#order_form').form('submit',{
+        
+        $('#saveAllBut').bind('click', function () {
+            ///2018-3-20加入的一些规则
+            var currency = $("#currency_no").combobox("getText");
+            var tradeType = $("#trade_type_no").combobox("getText");
+            var fetchAdd = $("#fetch_add_no").combobox("getText");
+            var customer = $("#customer_no").combogrid("getValue");
+            var oversea = $("#oversea_customer_no").combogrid("getValue");
+            if (currency == "人民币") {
+                if (tradeType != "国内贸易") {
+                    alert("保存失败：币别为人民币的贸易类型必须是【国内贸易】");
+                    return;
+                }
+                if (fetchAdd.indexOf("GN") < 0) {
+                    alert("保存失败：币别为人民币的交货地点必须选择【中国汕尾（GN）】");
+                    return;
+                }
+                if (customer.indexOf("01.") != 0) {
+                    alert("保存失败：币别为人民币的购货单位必须是【01.】开头的");
+                    return;
+                }
+                if (customer != oversea) {
+                    alert("保存失败：币别为人民币的购货单位必须跟同海外客户");
+                    return;
+                }
+            } else {
+                if (tradeType != "一般贸易") {
+                    alert("保存失败：币别为非人民币的贸易类型必须是【一般贸易】");
+                    return;
+                }
+                if (fetchAdd.indexOf("HK") < 0) {
+                    alert("保存失败：币别为非人民币的交货地点必须选择【香港货仓（HK）】");
+                    return;
+                }
+                if (oversea.indexOf("05.") != 0) {
+                    alert("保存失败：币别为非人民币的海外客户必须是【05.】开头的");
+                    return;
+                }
+                if (customer != "04.204") {
+                    alert("保存失败：币别为非人民币的购货单位必须是【香港信利光电有限公司】");
+                    return;
+                }
+            }
+            if ($("#clear_way").combobox("getValue") == "*") {
+                alert("保存失败：支付方式不能选择【*】");
+                return;
+            }
+
+            $.messager.progress();
+            $('#order_form').form('submit', {
                 url: '@Url.Content("~/Saler/SalerSaveModelContract")',
                 onSubmit:function(param){
                     if(!$('#order_form').form('validate')){
                         return false;
                     }
+
+                    //国内贸易的必须填写合同编号，且格式是CM年月流水号，比如CM201801001
+                    if ($("#trade_type_no").combobox("getValue") == "03") {
+                        var pat = /CM\d{9}/;
+                        if (!pat.test($("#contract_po_no").val())) {
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: "保存失败：国内贸易的【合同编号P/O】字段必须符合以下格式：CM+年+月+流水号，例如CM201802001"
+                            });
+                            return false;
+                        }
+                    }
+
                     param.customer_name=$("#customer_no").combogrid("getText");
                     param.zz_customer_name=$('#zz_customer_no').combogrid('getText');
                     param.plan_firm_name=$('#plan_firm_no').combogrid('getText');
                     param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
                     return true;
                 },
-                success: function (data) { 
+                success: function (data) {
                     var result = eval('('+ data +')');
-                    if(result.suc){ 
+                    if(result.suc){
                         $.messager.show({
                             title: '@Html.Lang("tip")',
                             msg: "@Html.Lang("suc_save")"
                         });
-                    }else{
+                    } else {
                         $.messager.show({
                             title: '@Html.Lang("tip")',
-                            msg: "@Html.Lang("failure_save"):"+result.msg
+                            msg: "@Html.Lang("failure_save"):" + result.msg
                         });
-                    }                        
+                    }
                 }
             });
-            $.messager.progress("close");             
+            $.messager.progress("close");
         });
-        
-           //提交申请按钮
-            $("#submitApply").click(function(){
-                //首先检测订单是否已保存
-                $("#submitApply").linkbutton('disable');
-                $('#saveAllBut').linkbutton('disable');
-                $.post("@Url.Content("~/Saler/CheckIsBillExist")",{sysNum:$("#sys_no").val()},
-                function(data){
-                    if(data.success){  
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "正在提交，请等待跳转。。。"
-                        });
-                        setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyCM?sys_no=")"+$("#sys_no").val();',2000);
-                    }else{
-                        $("#submitApply").linkbutton('enable');
-                        $('#saveAllBut').linkbutton('enable');
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: '提交之前请先保存订单'
-                         });
-                    }
-                },"json");
-            });
+
+        //提交申请按钮
+        $("#submitApply").click(function () {
+            //首先检测订单是否已保存
+            $("#submitApply").linkbutton('disable');
+            $('#saveAllBut').linkbutton('disable');
+            $.post("@Url.Content("~/Saler/CheckIsBillExist")", { sysNum: $("#sys_no").val() },
+            function (data) {
+                if (data.success) {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "正在提交，请等待跳转。。。"
+                    });
+                    setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyCM?sys_no=")"+$("#sys_no").val();', 2000);
+                } else {
+                    $("#submitApply").linkbutton('enable');
+                    $('#saveAllBut').linkbutton('enable');
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: '提交之前请先保存订单'
+                    });
+                }
+            }, "json");
         });
+    });
     </script>
 }
 else
@@ -763,6 +823,12 @@ else
                                            data:[
                                            {value:'可靠性测试'},{value:'功能性测试'},{value:'结构测试'}
                                            ]" value="@cmc.sample_use"/>
+                        </td>
+                        <td>
+                            @Html.Lang("contract_num"):
+                        </td>
+                        <td>
+                            <input id="contract_po_no" class="easyui-validatebox" name="contract_po_no" style="width: 115px" value="@cmc.contract_po_no" />
                         </td>
                         <td>
                             制单人:

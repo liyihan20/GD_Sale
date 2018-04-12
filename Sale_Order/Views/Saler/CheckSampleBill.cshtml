@@ -228,11 +228,22 @@
                             <input type='text' style="width: 120px" value="@sb.contract_price" />
                         </td>
                         <td>
+                            @Html.Lang("contract_num"):
+                        </td>
+                        <td>
+                            <input type='text' style="width: 120px" value="@sb.contract_po_no" />
+                        </td>
+                    </tr>
+                    <tr>                        
+                        <td>
                             制单人:
                         </td>
                         <td>
                             <input type='text' style="width: 120px" value="@sb.User.real_name" />
-                        </td>
+                        </td>                        
+                            @for (var i = 0; i < 6; i++) {
+                                <td></td>
+                            }         
                     </tr>
                     <tr>
                         <td colspan="8">

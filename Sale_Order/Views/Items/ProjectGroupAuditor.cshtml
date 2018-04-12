@@ -1,0 +1,26 @@
+﻿@using Sale_Order.Models;
+@{
+    List<vw_project_group_auditor> list = (List<vw_project_group_auditor>)ViewData["list"];
+}
+
+
+<table class="easyui-datagrid" data-options="fitColumns:true,singleSelect:true">
+    <thead>
+        <tr>
+            <th data-options="field:'a',width:200,align:'center'">项目组</th>
+            <th data-options="field:'b',width:100,align:'center'">项目管理员</th>
+            <th data-options="field:'c',width:100,align:'center'">项目经理</th>
+            <th data-options="field:'d',width:100,align:'center'">项目组上级</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in list) {
+            <tr>
+                <td>@p.项目组</td>
+                <td>@p.项目管理员</td>
+                <td>@p.项目经理</td>
+                <td>@p.项目组上级</td>
+            </tr>
+        }
+    </tbody>
+</table>

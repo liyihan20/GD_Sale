@@ -9,7 +9,7 @@
         //订单明细表
         $("#order_detail").datagrid({
             //            height: "140",
-            width: "2200",
+            width: "2400",
             fitColumns: true,
             rownumbers: true,
             singleSelect: true,
@@ -106,6 +106,8 @@
                         { field: 'suggestd_delivery_date', title: '@Html.Lang("suggest_delivery_date")', width: 100, align: 'center' },
     					{ field: 'target_date', title: '@Html.Lang("finish_date")', width: 100, align: 'center' }, //完成交货期=>目标日期
                         { field: 'confirm_date', title: '@Html.Lang("confirm_date")', width: 100, align: 'center' },
+                        { field: 'customer_item_number', title: '@Html.Lang("customer_item_number")', width: 120 },
+                        { field: 'customer_item_model', title: '@Html.Lang("customer_item_model")', width: 120 },
                         { field: 'project_name', title: '@Html.Lang("project_name")', width: 120 },
                         { field: 'comment', title: '@Html.Lang("pro_size")', width: 200 }
     				]]
@@ -384,6 +386,12 @@
                                 @(detail.confirm_date == null ? "" : ((DateTime)(detail.confirm_date)).ToShortDateString())
                             </td>
                             <td>
+                                @detail.customer_item_number
+                            </td>
+                            <td>
+                                @detail.customer_item_model
+                            </td>
+                            <td>
                                 @detail.project_name
                             </td>
                             <td>
@@ -396,7 +404,7 @@
             <br />
             <div>
                 @*表尾*@
-                <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                <table border="0" cellpadding="0" cellspacing="3" style="width:800px;">
                     <tr>
                         <td>
                             @Html.Lang("biller"):

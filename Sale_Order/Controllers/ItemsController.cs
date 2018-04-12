@@ -698,5 +698,51 @@ namespace Sale_Order.Controllers
                 return Json(new { suc = false });
             }
         }
+
+        //获取客户信用是否超过额度
+        public JsonResult GetCustomerCreditInfo(int? customerId, int? currencyId)
+        {
+            //return Json(new { suc = false, msg = "信用额度：<span style='color:green'>8000</span>；已用额度：9000；超出额度：<span style='color:red'>1000</span>" });
+            var result = db.getCustomerCreditInfo(customerId, currencyId).First();
+            return Json(new { suc = (result.suc == 1 ? true : false), msg = result.msg });
+        }
+        public JsonResult GetCustomerCreditInfo2(int orderId)
+        {
+            var param = db.Order.Where(o => o.id == orderId).Select(o => new { customerId = o.buy_unit, currencyId = o.currency }).First();
+            return GetCustomerCreditInfo(param.customerId, param.currencyId);
+        }
+
+        public ActionResult ProjectGroupAuditor()
+        {
+            ViewData["list"] = db.vw_project_group_auditor.ToList();
+            return View();
+        }
+
+        //获取k3的客户型号和客户料号 -2018-4-12
+        public JsonResult GetK3CustomerModel(int customerId, int productId)
+        {
+            string customerItemNumber = "", customerItemModel = "";
+            var list = db.getK3CustomerModel(customerId, productId).ToList();
+            if (list.Count() > 0) {
+                customerItemNumber = list.First().FMapNumber;
+                customerItemModel = list.First().FMapName;
+            }
+            return Json(new { customerItemNumber = customerItemNumber, customerItemModel = customerItemModel });
+        }
+
+        //更新客户料号和型号到k3系统 -2018-4-12
+        public JsonResult SynchroToK3CustomerModel(int? customerId, int? productId, string customerItemNumber, string customerItemModel)
+        {
+            if (customerId != null && productId != null) {
+                try {
+                    db.synchroK3CustomerModel(customerId, productId, customerItemNumber, customerItemModel);
+                }
+                catch (Exception ex) {
+                    return Json(new { suc = false, msg = ex.Message });                    
+                }
+            }
+            return Json(new { suc = true });
+        }
+
     }
 }

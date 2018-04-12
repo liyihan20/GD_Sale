@@ -359,7 +359,8 @@ namespace Sale_Order.Controllers
         public void exportBLExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
         {
             var myData = (from sb in db.Sale_BL
-                          from bd in sb.Sale_BL_details
+                          join detail in db.Sale_BL_details on sb.id equals detail.bl_id into dtemp
+                          from bd in dtemp.DefaultIfEmpty()
                           where (sb.sys_no.Contains(sysNo) || sb.product_model.Contains(sysNo))
                           && sb.bl_date >= fromDate
                           && sb.bl_date <= toDate
@@ -432,14 +433,16 @@ namespace Sale_Order.Controllers
                 //cells.Add(rowIndex, ++colIndex, d.bl.bl_project);
                 cells.Add(rowIndex, ++colIndex, d.bl.comment);
 
-                cells.Add(rowIndex, ++colIndex, d.bd.fmodel);
-                cells.Add(rowIndex, ++colIndex, d.bd.fname);
-                cells.Add(rowIndex, ++colIndex, d.bd.unitname);
-                cells.Add(rowIndex, ++colIndex, d.bd.fqty);
-                cells.Add(rowIndex, ++colIndex, d.bd.total_qty);
-                cells.Add(rowIndex, ++colIndex, d.bd.highest_price);
-                cells.Add(rowIndex, ++colIndex, d.bd.comment);
-                cells.Add(rowIndex, ++colIndex, d.bd.source);
+                if (d.bd != null) {
+                    cells.Add(rowIndex, ++colIndex, d.bd.fmodel);
+                    cells.Add(rowIndex, ++colIndex, d.bd.fname);
+                    cells.Add(rowIndex, ++colIndex, d.bd.unitname);
+                    cells.Add(rowIndex, ++colIndex, d.bd.fqty);
+                    cells.Add(rowIndex, ++colIndex, d.bd.total_qty);
+                    cells.Add(rowIndex, ++colIndex, d.bd.highest_price);
+                    cells.Add(rowIndex, ++colIndex, d.bd.comment);
+                    cells.Add(rowIndex, ++colIndex, d.bd.source);
+                }
             }
 
             xls.Send();
@@ -1552,12 +1555,12 @@ namespace Sale_Order.Controllers
             var myData = db.getAuditorBLExcels(ids);
 
             //列宽：
-            ushort[] colWidth = new ushort[] { 16, 12, 16, 32, 12, 24, 18, 16,
+            ushort[] colWidth = new ushort[] { 16, 12, 16, 32, 12, 24, 18, 16,32,
                     16, 18,18,18,32,32,28,16,18,18,
                     18,18,16,18};
 
             //列名：
-            string[] colName = new string[] { "流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员",
+            string[] colName = new string[] { "流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员","备料项目",
                 "成交价（不含税）","事业部","产品用途","办事处","摘要","物料型号","物料名称","单位","单位用量","标准数量",
                 "订料数量","K3数量","来源","订料员"};
 
@@ -1607,6 +1610,7 @@ namespace Sale_Order.Controllers
                 cells.Add(rowIndex, ++colIndex, d.customer_name);
                 cells.Add(rowIndex, ++colIndex, d.plan_order_date);
                 cells.Add(rowIndex, ++colIndex, d.real_name);
+                cells.Add(rowIndex, ++colIndex, d.bl_project);
 
                 cells.Add(rowIndex, ++colIndex, d.deal_price);
                 cells.Add(rowIndex, ++colIndex, d.bus_dep);

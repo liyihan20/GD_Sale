@@ -36,7 +36,7 @@ namespace Sale_Order.Controllers
                 {
                     filename = Path.GetFileName(FileData.FileName);//获得文件名
                     string ext = Path.GetExtension(filename);//获取拓展名
-                    if (!".rar".Equals(ext)) {
+                    if (! ".rar".Equals(ext)) {
                         return Content("FILETYPE");
                     }
                     finalname = num + ext;
@@ -97,8 +97,7 @@ namespace Sale_Order.Controllers
             }
             return result;
         }
-
-
+        
         public JsonResult GetFileInfo(string sys_no)
         {
             var fileName = sys_no + ".rar";

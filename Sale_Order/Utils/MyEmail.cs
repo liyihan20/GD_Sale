@@ -8,7 +8,7 @@ namespace Sale_Order.Utils
         static string server = "smtp.truly.com.cn";
         //static string semiServer = "smtp.truly.cn";
         static string webAddress = "http://192.168.90.100/SaleOrder";
-        static string outAddress = "http://59.37.42.23/SaleOrder";
+        static string outAddress = "http://crm.truly.com.cn/SaleOrder";
         //static string fsrMail = "fangsr.sale@truly.com.cn";
         static string accountParam = "&accountset=op";
         static string isInnerFrame = "&isInnerFrame=true";
@@ -127,8 +127,8 @@ namespace Sale_Order.Utils
             content += string.Format("<div style='margin-left:30px;'><div>你有一张待审核的流水号为{0}的单据，请尽快处理。</div>", sys_no);
             content += String.Format("<div style='float:left;width:100px'>公司:<br/>申请人:<br/>办事处:<br/>订单类型：<br/>申请操作:<br/>审核步骤:<br/></div><div style='float:left;width:300px'>{5}<br/>{0}</br>{4}<br/>{1}<br/>{2}<br/>{3}<br/></div>", salerName, orderType, operateType, stepName, depName, copName);
             content += "<div style='clear:both'><br/>单击以下链接可进入系统审核这张单据。</div>";
-            content += string.Format("<div><a href='{0}{1}{2}{3}{4}'>内网用户点击此链接</a></div>", webAddress, urlPrefix, returnUrl, accountParam, isInnerFrame);
-            content += string.Format("<div><a href='{0}{1}{2}{3}{4}'>外网用户点击此链接</a></div></div>", outAddress, urlPrefix, returnUrl, accountParam, isInnerFrame);
+            //content += string.Format("<div><a href='{0}{1}{2}{3}{4}'>内网用户点击此链接</a></div>", webAddress, urlPrefix, returnUrl, accountParam, isInnerFrame);
+            content += string.Format("<div><a href='{0}{1}{2}{3}{4}'>内外网统一点击此链接</a></div></div>", outAddress, urlPrefix, returnUrl, accountParam, isInnerFrame);
             if (SendEmail(content, nextEmailAdds, null, orderType + "审批"))
                 return true;
             else

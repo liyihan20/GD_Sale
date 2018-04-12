@@ -144,8 +144,8 @@ namespace Sale_Order.Utils
             string agencyName = db.User.Single(u => u.id == userId).Department1.name;
             string[] agencyNameArr = new string[] { "汕尾本部", "深圳", "上海", "北京", "光能", "杭州","新加坡" };
             string[] agencyValueArr = new string[] { "SZ", "SZ", "SH", "BJ", "GN", "HZ", "XJP" };
-            string[] marketNameArr = new string[] { "汕尾本部", "MDS", "IDS", "CDS", "AUT", "新加坡", "CCM" };
-            string[] marketValueArr = new string[] { "MDS", "MDS", "IDS", "CDS", "AUT", "", "VCCM" };
+            string[] marketNameArr = new string[] { "汕尾本部", "MDS", "IDS", "CDS", "AUT", "新加坡", "CCM","SDB" };
+            string[] marketValueArr = new string[] { "MDS", "MDS", "IDS", "CDS", "AUT", "", "VCCM","SDB" };
 
             for (var i =0;i<agencyNameArr.Length;i++) {
                 if (agencyName.Contains(agencyNameArr[i])) {
@@ -180,6 +180,9 @@ namespace Sale_Order.Utils
                         break;
                     case "CCM车载市场部":
                         marketValue = "VCCM";
+                        break;
+                    case "SDB市场部":
+                        marketValue = "SDB";
                         break;
                 }
             }
@@ -439,7 +442,10 @@ namespace Sale_Order.Utils
                                          select u).ToList());
                     prAuditors.Add(db.User.Single(u => u.real_name == "林莲杏"));
                 }
-                
+                if (app.order_type.Equals("TH")) {
+                    prAuditors = app.ApplyDetails.Where(ad => ad.step_name.Contains("客服")).Select(ad => ad.User).Distinct().ToList();
+                }
+
                 if (prAuditors != null)
                 {
                     foreach (var prAuditor in prAuditors)
@@ -466,7 +472,7 @@ namespace Sale_Order.Utils
                 string returnUrl = MyUrlEncoder("Audit/BeginAudit?step=" + step + "&applyId=" + applyId);
                 foreach (var dt in nextDetails) {
                     if (!string.IsNullOrEmpty(nextEmails))
-                        nextEmails += ",";//多收件人要用逗号隔开，MSDN的文档写的是分号...
+                        nextEmails += ",";  //多收件人要用逗号隔开，MSDN的文档写的是分号...
                     nextEmails += dt.User.email;
                 }
                 
@@ -2380,6 +2386,9 @@ namespace Sale_Order.Utils
             //验证字段合法性            
             if (string.IsNullOrEmpty(bl.product_model)) {
                 return "产品型号不能为空";
+            }
+            if (string.IsNullOrEmpty(bl.bl_type)) {
+                return "备料类型必须选择";
             }
             if ("有合同协议".Equals(bl.bl_type) && string.IsNullOrWhiteSpace(bl.bl_contract_no)) {
                 return "有合同协议的协议号不能为空";

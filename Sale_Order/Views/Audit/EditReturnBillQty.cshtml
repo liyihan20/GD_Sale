@@ -264,19 +264,21 @@
         }
     }
 
-    function submitForm(){
-        if(!validateQty())  return;
-        var FRealQty = new Array();
-        var FEntryNo=new Array();
-        var FIsOnline=new Array();
-        var FChDepName=new Array();
-        var FQtyComment = $("#qty_comment").val();         
-        var details=$("#bill_detail").datagrid("getRows");            
-        for(var i=0;i<details.length;i++){
-            FRealQty[i]=details[i].real_qty;
-            FEntryNo[i]=details[i].entry_no;
-            FIsOnline[i]=details[i].is_online;
-            FChDepName[i]=details[i].ch_dep_name;
+    function submitForm() {
+        if ($("#okFlag").val() == "true") {
+            if (!validateQty()) return;
+            var FRealQty = new Array();
+            var FEntryNo = new Array();
+            var FIsOnline = new Array();
+            var FChDepName = new Array();
+            var FQtyComment = $("#qty_comment").val();
+            var details = $("#bill_detail").datagrid("getRows");
+            for (var i = 0; i < details.length; i++) {
+                FRealQty[i] = details[i].real_qty;
+                FEntryNo[i] = details[i].entry_no;
+                FIsOnline[i] = details[i].is_online;
+                FChDepName[i] = details[i].ch_dep_name;
+            }
         }
         $.messager.progress();
         $("#audit_fm").form("submit",{

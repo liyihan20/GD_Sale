@@ -1,8 +1,8 @@
-﻿<script type="text/javascript">
+﻿<script type="text/javascript">    
+    var orderType="@ViewData["orderType"]";
+    var orderId = "@ViewData["order_id"]";
+    var canCheckBLFile = false;//2018年开始限制只有市场部的人才能查看备料单附件
     $(function () {
-        var orderType="@ViewData["orderType"]";
-        var orderId = "@ViewData["order_id"]";
-        var canCheckBLFile = false;//2018年开始限制只有市场部的人才能查看备料单附件
         if (orderType == "BL") {
             var stepName="@ViewData["step_name"]";
             if (stepName.indexOf("营业") >= 0 || stepName.indexOf("办事处") >= 0 || stepName.indexOf("总部") >= 0) {
@@ -155,29 +155,53 @@
     }
 
     function submitForm(){
+        if (orderType == "SO") {
+            //验证客户信用额度 2018-2-27
+            $.post("@Url.Content("~/Items/GetCustomerCreditInfo2")", { orderId: orderId }, function (data) {
+                if (data.suc) {
+                    beginAudit(false);
+                } else {
+                    $.messager.confirm('@Html.Lang("confirm")', '检测到当前客户的信用额度已超额，是否继续操作?如继续操作，必须填写审核意见。<br/>明细：' + data.msg, function (r) {
+                        if (r) {
+                            beginAudit(true);
+                        }
+                    });
+                }
+            });
+        } else {
+                beginAudit(false);
+        }
+    }
+
+    function beginAudit(needOption) {
+        if (needOption) {
+            if ($.trim($("#agency_comment").val()) == "") {
+                showTip("客户信用额度超额的情况下必须填写审核意见");
+                return;
+            }
+        }
         $.messager.progress();
         $("#audit_fm").form("submit",{
             url:"@Url.Content("~/Audit/HandleAgencyAudit")",
             success:function(data){
-                $.messager.progress('close');
-                var result=eval("("+data+")");
-                if(result.success){
-                    $.messager.show({
-                        title: '@Html.Lang("tip")',
-                        msg: result.msg + ",正在跳转..."
-                    });
-                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-                }else{
-                    $.messager.show({
-                        title: '@Html.Lang("tip")',
-                        msg: result.msg
-                    });
-                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
-                }
+            $.messager.progress('close');
+            var result=eval("("+data+")");
+            if(result.success){
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: result.msg + ",正在跳转..."
+                });
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+            }else{
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: result.msg
+                });
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
             }
-        });
+        }
+    });
     }
-
     //获取审批信息
     function getAuditResult(){
         $.post("@Url.Content("~/Audit/RefleshAuditResult")",

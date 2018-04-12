@@ -93,6 +93,10 @@
                             window.location.href='@Url.Content("~/Excels/exportAuditorSOExcel")'+'?ids='+ids;
                         }else if(type.indexOf("CM")>=0 || type.indexOf("CC")>=0){
                             window.location.href="@Url.Content("~/Excels/exportAuditorCMExcel")"+"?ids="+ids;
+                        }else if(type.indexOf("SB")>=0){
+                            window.location.href="@Url.Content("~/Excels/exportAuditorSBExcel")"+"?ids="+ids;
+                        }else if(type.indexOf("BL")>=0){
+                            window.location.href="@Url.Content("~/Excels/exportAuditorBLExcel")"+"?ids="+ids;
                         }
                         //openDownloadDialog(ids);
                         //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;

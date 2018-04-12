@@ -1609,4 +1609,12 @@
     <value>Create Model Contract</value>
     <comment>新建开模改模单</comment>
   </data>
+  <data name="customer_item_model" xml:space="preserve">
+    <value>Customer Item Module</value>
+    <comment>客户型号</comment>
+  </data>
+  <data name="customer_item_number" xml:space="preserve">
+    <value>Customer Item No.</value>
+    <comment>客户料号</comment>
+  </data>
 </root>
