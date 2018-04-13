@@ -141,8 +141,9 @@
                     $("#final_client").combogrid("setText", order.final_client_name);
                     $("#plan_firm").combogrid("setValue", order.plan_firm);
                     $("#plan_firm").combogrid("setText", order.plan_firm_name);
-                    $("#oversea_client").combogrid("setValue", order.oversea_client);
-                    $("#oversea_client").combogrid("setText", order.oversea_client_name);
+                    //加入了客户料号之后，防止从旧单新增时，会错误的覆盖掉正确的料号，强制要求营业重新选择海外客户
+                    //$("#oversea_client").combogrid("setValue", order.oversea_client);
+                    //$("#oversea_client").combogrid("setText", order.oversea_client_name);
                     $("#trade_rule").combobox("setValue", order.trade_rule);
                     $("#trade_rule").combobox("setText", order.trade_rule_name);
                     $("#proc_dep").combobox("setValue", order.proc_dep_id);
@@ -358,7 +359,7 @@
 
                 //加载客户料号和型号信息 2018-4-12
                 var customerId = $("#oversea_client").combogrid("getValue");
-                if (!isNaN(customerId)) {
+                if (customerId!="" && !isNaN(customerId)) {
                     $.post("@Url.Content("~/Items/GetK3CustomerModel")", { customerId: customerId, productId: rowData.id }, function (data) {
                         $("#customer_item_number").val(data.customerItemNumber);
                         $("#customer_item_model").val(data.customerItemModel);
@@ -520,6 +521,14 @@
                         }
                     }
                 });
+            },
+            onBeforeOpen: function () {                
+                var customerId = $("#oversea_client").combogrid("getValue");                
+                if (customerId=="" || isNaN(customerId)) {
+                    alert("请先选择海外客户后再新增条目");
+                    return false;
+                }
+                return true;
             }
         });
         //alert($("#clearing_way").combobox().innerHtml());
@@ -828,7 +837,7 @@
 
         //每一次保存都更新客户料号、型号到k3 2018-4-12
         var customerId = $("#oversea_client").combogrid("getValue");
-        if (!isNaN(customerId)) {
+        if (customerId!="" && !isNaN(customerId)) {
             $.post("@Url.Content("~/Items/SynchroToK3CustomerModel")", {
                 customerId: customerId,
                 productId: theRow.product_id,
