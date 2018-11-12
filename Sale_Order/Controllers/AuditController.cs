@@ -430,18 +430,18 @@ namespace Sale_Order.Controllers
 
             #region 备料单特殊处理
 
-            if (ap.order_type.Equals("BL")) {
-                Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == ap.sys_no);
+           //if (ap.order_type.Equals("BL")) {
+                //Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == ap.sys_no);
 
                 //计划经理审批后
-                if (thisDetail.step_name.Contains("计划经理") && isOK) {
+                //if (thisDetail.step_name.Contains("计划经理") && isOK) {
                     //if (bl.bus_dep.Contains("TDD")) {
                     //    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
                     //}
-                    utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
+                    //utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
                     //string busDep = bl.bus_dep;
                     //utl.AppendStepAtLast(ap.id, "计划审批", new int?[] { bl.planner_id }, step, true);
-                }
+                //}
                 //计划经理审批后，如果有修改，则在最后插入营业审批
                 //if (thisDetail.step_name.Contains("计划审批") && isOK) {
                     //int?[] orderIds = bl.order_ids.Split(new char[] { ',' }).Select(i => { int? id = Int32.Parse(i); return id; }).ToArray();
@@ -452,7 +452,7 @@ namespace Sale_Order.Controllers
                     //}
                     //utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
                 //}
-            }
+            //}
 
             #endregion
 
@@ -1353,6 +1353,8 @@ namespace Sale_Order.Controllers
                     od.suggested_delivery_date = string.IsNullOrEmpty(p_suggest_date[i]) ? null : (DateTime?)(DateTime.Parse(p_suggest_date[i]));
                     od.confirm_date = string.IsNullOrEmpty(p_confirm_date[i]) ? null : (DateTime?)(DateTime.Parse(p_confirm_date[i]));
                     od.project_number = string.IsNullOrEmpty(p_project_number[i]) ? 467 : Int32.Parse(p_project_number[i]);//467表示无客户编码
+                    od.customer_po = db.Order.Where(o => o.sys_no == order.sys_no).First().OrderDetail.Where(e => e.product_id == od.product_id).FirstOrDefault().customer_po;
+                    od.customer_pn = db.Order.Where(o => o.sys_no == order.sys_no).First().OrderDetail.Where(e => e.product_id == od.product_id).FirstOrDefault().customer_pn;
                     ots.Add(od);
                 }
 
@@ -1547,6 +1549,11 @@ namespace Sale_Order.Controllers
             }
 
             return Json(new { suc = true }, "text/html");
-        }    
+        }
+
+        public string test()
+        {
+            return utl.ValidateHasInvoiceFlag("SWTH18082901");
+        }
     }
 }

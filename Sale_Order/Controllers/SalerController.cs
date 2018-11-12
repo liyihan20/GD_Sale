@@ -185,11 +185,13 @@ namespace Sale_Order.Controllers
                 case "SO":                    
                     ViewData["orderId"] = id;
                     ViewData["sys_no"] = newSysNo;
+                    ViewData["fo"] = "fo";
                     return View("CreateSaleOrder");
                 case "SB":
                     SampleBill sb = db.SampleBill.Single(s => s.sys_no == sys_no);
                     sb.sys_no = newSysNo;
                     sb.bill_date = DateTime.Now;
+                    sb.step_version = 0;
                     ViewData["sb"] = sb;
                     ViewData["step"] = 0;
                     return View("CreateSampleBill");
@@ -367,9 +369,9 @@ namespace Sale_Order.Controllers
             {
                 return Json(new { success = false, msg = "本系统暂时只能下生产单和物料处理单，保存失败！" }, "text/html");
             }
-            if (orderType == 40547 && !procDepName.Equals("市场部")) {
-                return Json(new { success = false, msg = "物料处理单的【生产部门】字段必须选择市场部，保存失败！" }, "text/html");
-            }
+            //if (orderType == 40547 && !procDepName.Equals("市场部")) {
+            //    return Json(new { success = false, msg = "物料处理单的【生产部门】字段必须选择市场部，保存失败！" }, "text/html");
+            //}
             #endregion
 
             #region 验证购货单位和海外客户
@@ -384,7 +386,7 @@ namespace Sale_Order.Controllers
             {
                 return Json(new { success = false, msg = "现在的购货单位编号是：" + customer.number + ";内销单的购货客户代码必须是01开头" }, "text/html");
             }
-            if (currencyID != 1 && !customer.name.Contains("香港信利光电有限公司"))
+            if (currencyID != 1 && !customer.name.Contains("香港信利光电有限公司") && customer.number!="02.S001" && customer.number!="02.S002" )
             {
                 return Json(new { success = false, msg = "现在的购货单位编号是：" + customer.number + ";外销单的购货客户必须为香港信利光电有限公司" }, "text/html");
             }
@@ -710,6 +712,11 @@ namespace Sale_Order.Controllers
         //保存订单表体
         public string saveOrderDetails(FormCollection col, Order order, string pro_type)
         {
+            int taxRateNum = 17;
+            if (DateTime.Now > DateTime.Parse("2018-05-01")) {
+                taxRateNum = 16;
+            }
+
             string[] p_ids = col.Get("p_id").Split(',');
             string[] p_qty = col.Get("p_qty").Split(',');
             string[] p_quote = col.Get("p_quote").Split(',');
@@ -724,6 +731,9 @@ namespace Sale_Order.Controllers
             string[] p_tar_date = col.Get("p_tar_date").Split(',');
             string[] p_comment = col.Get("p_comment").Split(',');
             string[] p_project_number = col.Get("p_project_number").Split(',');
+            string[] p_customer_po = col.Get("p_customer_po").Split(',');
+            string[] p_customer_pn = col.Get("p_customer_pn").Split(',');
+
             double exchange = order.exchange_rate == null ? 0 : (double)order.exchange_rate;
             SomeUtils utl = new SomeUtils();
             //保存表体
@@ -738,8 +748,8 @@ namespace Sale_Order.Controllers
                     var qty = decimal.Parse(p_qty[i]);
                     decimal? fee_rate = null, MU = 0, commission = 0, commission_rate = 0;
                     //人民币，税率必须为17；其它，税率必须是0
-                    if (order.currency == 1 && tax_rate != 17) {
-                        return "第"+(i+1).ToString()+ "行：币别为人民币，税率必须是17";
+                    if (order.currency == 1 && tax_rate != taxRateNum) {
+                        return "第" + (i + 1).ToString() + "行：币别为人民币，税率必须是" + taxRateNum;
                     }
                     else if (order.currency != 1 && tax_rate != 0) {
                         return "第"+(i+1).ToString()+ "行：币别不是人民币，税率必须是0";
@@ -755,6 +765,11 @@ namespace Sale_Order.Controllers
                     {
                         auxUnitPrice = unitPrice * (1 + tax_rate / 100);
                     }
+                    else {
+                        if (Math.Abs(unitPrice * (1 + tax_rate / 100) - auxUnitPrice) > 0.001m) {
+                            return "第" + (i + 1).ToString() + "行：不含税单价 * (1+税率%）不等于含税单价";
+                        }
+                    }
                     if (!string.IsNullOrEmpty(p_fee_rate[i]))
                     {
                         fee_rate = decimal.Parse(p_fee_rate[i]);
@@ -769,13 +784,14 @@ namespace Sale_Order.Controllers
                             {
                                 commission_rate = (decimal)utl.GetCommissionRate(pro_type, (double)MU);
                             }
+                            //2018-10-1开始，佣金计算公式修改，将佣金再除（1+税率%）
                             if (pro_type == "CCM" && MU < -6)
                             {
-                                commission = deal_price * cost * 0.002m * (decimal)exchange;
+                                commission = (deal_price / (1 + tax_rate / 100)) * cost * 0.002m * (decimal)exchange;
                             }
                             else
                             {
-                                commission = deal_price * qty * (decimal)exchange * commission_rate / 100;
+                                commission = (deal_price / (1 + tax_rate / 100)) * qty * (decimal)exchange * commission_rate / 100;
                             }
                             commission = Decimal.Round((decimal)commission, 2);
                         }
@@ -802,7 +818,9 @@ namespace Sale_Order.Controllers
                         delivery_date = string.IsNullOrEmpty(p_del_date[i]) ? null : (DateTime?)(DateTime.Parse(p_del_date[i])),
                         target_date = string.IsNullOrEmpty(p_tar_date[i]) ? null : (DateTime?)(DateTime.Parse(p_tar_date[i])),
                         project_number = string.IsNullOrEmpty(p_project_number[i]) ? 467 : Int32.Parse(p_project_number[i]),//467表示无客户编码
-                        comment = p_comment[i]
+                        comment = p_comment[i],
+                        customer_po = p_customer_po[i],
+                        customer_pn = p_customer_pn[i]
                     });
                 }
 
@@ -1394,6 +1412,7 @@ namespace Sale_Order.Controllers
             string projectTeam = "";
             string busDep = "";
             string pModel = "";
+            string modelType = "";
             int? quotationClerkId = null;
 
             if ("CC".Equals(pre)) {
@@ -1402,6 +1421,7 @@ namespace Sale_Order.Controllers
                 projectTeam = cc.project_team;
                 quotationClerkId = cc.quotation_clerk_id;
                 pModel = cc.product_model;
+                modelType = cc.model_type;
             }
             else if ("CM".Equals(pre))
             {
@@ -1411,10 +1431,24 @@ namespace Sale_Order.Controllers
                 quotationClerkId = mc.quotation_clerk_id;
                 busDep = mc.bus_dep;
                 pModel = mc.product_model;
+                modelType = mc.model_type;
+
+                //OLED的需要一个固定报价员审批 2018-10-24
+                if (busDep.Equals("OLED")) {
+                    processType = "CM_OLED";
+                }
             }
             else {
                 ViewBag.tip = "流程出错";
                 return View("Tip");
+            }
+
+            if (modelType.Equals("开模")) {
+                //开模要判断规格型号是否重复
+                if (db.Apply.Where(a => a.order_type == pre && a.p_model == pModel && (a.success == null || a.success == true)).Count() > 0) {
+                    ViewBag.tip = "存在已提交的重复的开模规格型号，提交失败";
+                    return View("Tip");
+                }
             }
 
             Apply apply = new Apply();
@@ -1440,7 +1474,9 @@ namespace Sale_Order.Controllers
                     Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
                     auditorsDic.Add("部门ID", db.User.Single(u => u.id == userId).Department1.dep_no);
                     auditorsDic.Add("研发项目组ID", db.Department.Single(d => d.name == projectTeam && d.dep_type == "研发项目组").dep_no);
-                    auditorsDic.Add("表单报价员值ID", quotationClerkId);
+                    if (quotationClerkId != null) {
+                        auditorsDic.Add("表单报价员值ID", quotationClerkId);
+                    }
                     if ("CM".Equals(pre)) {
                         auditorsDic.Add("开模事业部ID", db.Department.Single(d => d.name == busDep && d.dep_type == "开模事业部").dep_no);
                     }
@@ -1642,7 +1678,10 @@ namespace Sale_Order.Controllers
             SampleBill sb = db.SampleBill.Single(m => m.sys_no == sys_no);
             string processType = pre;
 
-            if (sb.is_free.Equals("免费"))
+            if (sb.project_team.StartsWith("OLED")) {
+                processType += "_OLED";
+            }
+            else if (sb.is_free.Equals("免费"))
             {
                 processType += "_Free";
             }
@@ -1680,7 +1719,9 @@ namespace Sale_Order.Controllers
                     Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
                     auditorsDic.Add("部门ID", db.User.Single(u => u.id == userId).Department1.dep_no);
                     auditorsDic.Add("研发项目组ID", db.Department.Single(d => d.name == sb.project_team && d.dep_type == "研发项目组").dep_no);
-                    auditorsDic.Add("表单报价员值ID", sb.quotation_clerk_id);
+                    if (sb.quotation_clerk_id != null) {
+                        auditorsDic.Add("表单报价员值ID", sb.quotation_clerk_id);
+                    }
                     ads = utl.getApplySequence(apply, processType, userId, auditorsDic);
                 }
                 else
@@ -1878,6 +1919,11 @@ namespace Sale_Order.Controllers
                 processType = "BL_other";
             }
 
+            //2018年启用的新流程
+            if (DateTime.Now > DateTime.Parse("2018-04-23")) {
+                processType = "BL";
+            }
+
             Apply apply = new Apply();
             apply.user_id = userId;
             apply.sys_no = sys_no;
@@ -2073,6 +2119,35 @@ namespace Sale_Order.Controllers
 
         //    return "";
         //}
+
+        public string UPro()
+        {
+            var list = (from a in db.Apply
+                        where a.order_type == "BL"
+                        && a.success == null
+                        && a.ApplyDetails.Where(d => d.step_name == "市场总部审批").Count() == 0
+                        select new
+                        {
+                            applyId = a.id,
+                            maxStep = a.ApplyDetails.Max(d => d.step)
+                        }).ToList();
+
+            foreach (var l in list) {
+                db.ApplyDetails.InsertOnSubmit(new ApplyDetails()
+                {
+                    apply_id = l.applyId,
+                    step_name = "市场总部审批",
+                    step = l.maxStep + 1,
+                    can_modify = false,
+                    countersign = false,
+                    user_id = 87
+                });
+            }
+
+            db.SubmitChanges();
+
+            return "ok:" + list.Count();
+        }
 
     }
 }

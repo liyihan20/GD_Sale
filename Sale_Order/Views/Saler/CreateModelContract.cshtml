@@ -243,6 +243,15 @@
             });
         });
 
+        //$("#quotation_clerk_id").combobox({
+        //    onLoadSuccess: function () {
+        //        if ($("#quotation_clerk_id").combobox("getValue") == $("#quotation_clerk_id").combobox("getText")) {
+        //            $("#quotation_clerk_id").combobox("setValue", "");
+        //            $("#quotation_clerk_id").combobox("setText", "");
+        //        }
+        //    }
+        //});
+
         //设置值
         $('#clerk_no').combobox('setText', '@cmc.clerk_name');
         $('#customer_no').combogrid('setText', '@Html.Raw(cmc.customer_name)');
@@ -585,7 +594,7 @@ else
                             <input class="easyui-combobox" style="width: 120px" name="product_type" id="product_type"
                         data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
-                                           {value:'TP'},{value:'TDD'},{value:'FPI'}
+                                           {value:'TP'},{value:'TDD'},{value:'FPI'},{value:'FIC'}
                                            ]" value="@cmc.product_type"/>
                         </td>
                         <td>
@@ -646,13 +655,13 @@ else
                             <input class="easyui-combobox" style="width: 120px" name="bus_dep" id="bus_dep" value="@cmc.bus_dep"
                                 data-options="textField:'name',valueField:'name',panelHeight:'auto', required:true,editable:false, url:'@Url.Content("~/Items/getRelateDeps?dep_type=开模事业部")'" />                    
                         </td>
-                        <td>
+                        @*<td>
                             报价员:
                         </td>
                         <td>
                             <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id" style="width: 120px"  editable="false"
-                    valuefield="user_id" textfield="user_name" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" required="true" value="@cmc.quotation_clerk_id" />
-                        </td>
+                    valuefield="value" textfield="text" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" value="@cmc.quotation_clerk_id" />
+                        </td>*@
                         <td>
                             报价编号:
                         </td>
@@ -788,11 +797,7 @@ else
                             产品用途:
                         </td>
                         <td>
-                            <input class="easyui-combobox" style="width: 120px" name="product_use" id="product_use"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
-                                           data:[
-                                           {value:'手机'},{value:'非手机'},{value:'其它'}
-                                           ]" value="@cmc.product_use"/>
+                            <input class="easyui-textbox" style="width: 115px" name="product_use" id="product_use" required="true" value="@cmc.product_use" />
                         </td>
                         <td>
                             客户机型:

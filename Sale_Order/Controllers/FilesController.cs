@@ -240,11 +240,14 @@ namespace TestCRM.Controllers.Sales
                             cmTa.Fill(sbDt.Sale_sample_bill, sysNo);
                         }
                         //设置办事处1、总裁办3，市场部2审核人名字
-                        string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "", quotationAuditor = "";
+                        string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "", quotationAuditor = "",marketManager="";
                         var ad = db.Apply.Where(a => a.sys_no == sysNo).First().ApplyDetails.ToList();
-                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("部门") && a.pass == true).Count() > 0)
+                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("办事处") && a.pass == true).Count() > 0)
                         {
-                            agencyAuditor = ad.Where(a => a.step == 1 && a.step_name.Contains("部门") && a.pass == true).First().User.real_name;
+                            agencyAuditor = ad.Where(a => a.step == 1 && a.step_name.Contains("办事处") && a.pass == true).First().User.real_name;
+                        }
+                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("总经理") && a.pass == true).Count() > 0) {
+                            marketManager = ad.Where(a => a.step == 1 && a.step_name.Contains("总经理") && a.pass == true).First().User.real_name;
                         }
                         if (ad.Where(a => a.step == 1 && a.step_name.Contains("项目经理") && a.pass == true).Count() > 0)
                         {
@@ -270,7 +273,7 @@ namespace TestCRM.Controllers.Sales
                         {
                             ceoAuditor = ad.Where(a => a.step == 3 && a.pass == true).First().User.real_name;
                         }
-                        sbDt.Sample_Bill_Auditor.AddSample_Bill_AuditorRow(agencyAuditor, yfManager, yfTopLevel, yfAdmin, quotationAuditor, marketAuditor, ceoAuditor);
+                        sbDt.Sample_Bill_Auditor.AddSample_Bill_AuditorRow(agencyAuditor, yfManager, yfTopLevel, yfAdmin, quotationAuditor, marketAuditor, ceoAuditor, marketManager);
 
                         rptH.FileName = Server.MapPath("~/Reports/" + crystalFile);
                         rptH.Load();
@@ -327,11 +330,14 @@ namespace TestCRM.Controllers.Sales
                             cmTa.Fill(ccDt.Sale_ccm_model_contract, sysNo);
                         }
                         //设置办事处1、总裁办3，市场部2审核人名字
-                        string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "", quotationAuditor = "";
+                        string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "", quotationAuditor = "", marketManager = "";
                         var ad = db.Apply.Where(a => a.sys_no == sysNo).First().ApplyDetails.ToList();
-                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("部门") && a.pass == true).Count() > 0)
+                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("办事处") && a.pass == true).Count() > 0)
                         {
-                            agencyAuditor = ad.Where(a => a.step == 1 && a.step_name.Contains("部门") && a.pass == true).First().User.real_name;
+                            agencyAuditor = ad.Where(a => a.step == 1 && a.step_name.Contains("办事处") && a.pass == true).First().User.real_name;
+                        }
+                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("总经理") && a.pass == true).Count() > 0) {
+                            marketManager = ad.Where(a => a.step == 1 && a.step_name.Contains("总经理") && a.pass == true).First().User.real_name;
                         }
                         if (ad.Where(a => a.step == 1 && a.step_name.Contains("项目经理") && a.pass == true).Count() > 0)
                         {
@@ -357,7 +363,7 @@ namespace TestCRM.Controllers.Sales
                         {
                             ceoAuditor = ad.Where(a => a.step == 3 && a.pass == true).First().User.real_name;
                         }
-                        ccDt.CCM_modelContract_auditor.AddCCM_modelContract_auditorRow(agencyAuditor, yfManager, quotationAuditor, yfAdmin, marketAuditor, ceoAuditor, yfTopLevel);
+                        ccDt.CCM_modelContract_auditor.AddCCM_modelContract_auditorRow(agencyAuditor, yfManager, quotationAuditor, yfAdmin, marketAuditor, ceoAuditor, yfTopLevel, marketManager);
 
                         rptH.FileName = Server.MapPath("~/Reports/" + crystalFile);
                         rptH.Load();
@@ -414,11 +420,14 @@ namespace TestCRM.Controllers.Sales
                             cmTa.Fill(cmDt.Sale_model_contract, sysNo);
                         }
                         //设置办事处1、总裁办3，市场部2审核人名字
-                        string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "", quotationAuditor = "",busAuditor="";
+                        string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "", quotationAuditor = "", busAuditor = "", marketManager = "";
                         var ad = db.Apply.Where(a => a.sys_no == sysNo).First().ApplyDetails.ToList();
-                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("部门") && a.pass == true).Count() > 0)
+                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("办事处") && a.pass == true).Count() > 0)
                         {
-                            agencyAuditor = ad.Where(a => a.step == 1 && a.step_name.Contains("部门") && a.pass == true).First().User.real_name;
+                            agencyAuditor = ad.Where(a => a.step == 1 && a.step_name.Contains("办事处") && a.pass == true).First().User.real_name;
+                        }
+                        if (ad.Where(a => a.step == 1 && a.step_name.Contains("总经理") && a.pass == true).Count() > 0) {
+                            marketManager = ad.Where(a => a.step == 1 && a.step_name.Contains("总经理") && a.pass == true).First().User.real_name;
                         }
                         if (ad.Where(a => a.step == 1 && a.step_name.Contains("项目经理") && a.pass == true).Count() > 0)
                         {
@@ -448,7 +457,7 @@ namespace TestCRM.Controllers.Sales
                         {
                             ceoAuditor = ad.Where(a => a.step == 3 && a.pass == true).First().User.real_name;
                         }
-                        cmDt.ModelContract_auditor.AddModelContract_auditorRow(agencyAuditor, yfManager, yfAdmin, yfTopLevel,quotationAuditor,busAuditor,marketAuditor,ceoAuditor);
+                        cmDt.ModelContract_auditor.AddModelContract_auditorRow(agencyAuditor, yfManager, yfAdmin, yfTopLevel, quotationAuditor, busAuditor, marketAuditor, ceoAuditor, marketManager);
 
                         rptH.FileName = Server.MapPath("~/Reports/" + crystalFile);
                         rptH.Load();

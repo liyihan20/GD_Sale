@@ -70,7 +70,7 @@
         $("#classification").combogrid({            
             textField: "value",
             panelWidth: 500,
-            noWap:"false",
+            nowrap:"false",
             required:'true',
             url:'@Url.Content("~/Items/GetProjectItems?what=分类")',
             columns: [[

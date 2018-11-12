@@ -337,6 +337,9 @@ namespace Sale_Order.Controllers
                 user.Department1 = department;
                 user.email = col.Get("email");
                 user.job = col.Get("job");
+                if (is_forbit == false && user.is_forbit == true) {
+                    user.last_login = DateTime.Now;
+                }
                 user.is_forbit = is_forbit;
                 user.can_check_deps = canCheckDeps;
                 db.SubmitChanges();
@@ -1712,7 +1715,14 @@ namespace Sale_Order.Controllers
                         ad.finish_date = DateTime.Now;
                         ad.comment = opinion;
 
-                        applyList.Add(ad.Apply); 
+                        applyList.Add(ad.Apply);
+
+                        if (ad.pass == false) {
+                            var ap = ad.Apply;
+                            ap.success = false;
+                            ap.finish_date = DateTime.Now;
+                        }
+
                         dealNum++;
                     }
                 }
@@ -1736,6 +1746,138 @@ namespace Sale_Order.Controllers
             utl.writeEventLog("总裁办批量审批", "数量：" + dealNum + ";pass:" + pass + ";opinion:" + opinion, "", Request);
             return Json(new { suc = true, msg = "成功批量审批单据数量： " + dealNum });
         }
+
+
+        #region 模单型号管理
+        [SessionTimeOutFilter()]
+        public ActionResult ModualNumberIndex()
+        {
+            return View();
+        }
+
+        public JsonResult LoadModualNumbers()
+        {
+            var result = db.Sale_modual_number.OrderBy(m => m.prefix).ToList();
+            return Json(result);
+        }
+
+        public JsonResult SaveModualNumber(string modualType, string prefix, int minNum, int maxNum,int currentNum, int numLength,int id = 0)
+        {
+            var existsed = db.Sale_modual_number.Where(m => (m.modual_type == modualType || m.prefix == prefix) && m.id != id).Count() > 0;
+            if (existsed) {
+                return Json(new { suc = false, msg = "产品类别或者前缀已存在，不能保存" });
+            }
+            if (minNum > currentNum) {
+                return Json(new { suc = false, msg = "当前编号不能比最小编号小" });
+            }
+            if (maxNum < currentNum) {
+                return Json(new { suc = false, msg = "当前编号不能比最大编号大" });
+            }
+            if (id == 0) {
+                //新增
+                db.Sale_modual_number.InsertOnSubmit(new Sale_modual_number()
+                {
+                    modual_type = modualType,
+                    prefix = prefix,
+                    min_num = minNum,
+                    max_num = maxNum,
+                    current_num = currentNum,
+                    num_length = numLength
+                });
+            }
+            else {
+                var mn = db.Sale_modual_number.Where(m => m.id == id).FirstOrDefault();
+
+                if (mn == null) {
+                    return Json(new { suc = false, msg = "记录不存在" });
+                }
+
+                mn.modual_type = modualType;
+                mn.prefix = prefix;
+                mn.min_num = minNum;
+                mn.max_num = maxNum;
+                mn.current_num = currentNum;
+                mn.num_length = numLength;
+            }
+            db.SubmitChanges();
+            utl.writeEventLog("模单型号", "保存型号：" + modualType + ";" + prefix + ";" + minNum + "~" + maxNum + ":" + currentNum, "id=" + id, Request);
+
+            return Json(new { suc = true, msg = "保存成功" });
+
+        }
+
+        public JsonResult RemoveModualNumber(int id)
+        {
+
+            try {
+                db.Sale_modual_number.DeleteAllOnSubmit(db.Sale_modual_number.Where(m => m.id == id));
+                db.SubmitChanges();
+            }
+            catch (Exception ex) {
+                return Json(new { suc = false, msg = "删除失败："+ex.Message });
+            }
+            return Json(new { suc = true, msg = "删除成功" });
+        }
+
+        //获取编号记录
+        [SessionTimeOutFilter()]
+        public ActionResult CheckModualNumLog()
+        {
+            return View();
+        }
+
+        public JsonResult GetModualNumLog(int page, int rows, string searchValue = "", bool self = false)
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            var user = db.User.Single(u => u.id == userId);
+
+            var logs = db.Sale_Modual_number_log
+                .Where(l => l.modual_type.Contains(searchValue) || l.modual_number.Contains(searchValue) || l.op_user.Contains(searchValue))
+                .Where(l => self == false || l.op_user == user.real_name)
+                .OrderByDescending(l => l.id)
+                .Select(l => new
+                {
+                    l.modual_type,
+                    l.modual_number,
+                    l.op_user,
+                    l.account,
+                    op_date = (DateTime.Parse(l.op_date.ToString())).ToString("yyyy-MM-dd HH:mm")
+                });            
+            var total = logs.Count();
+
+            return Json(new { rows = logs.Skip((page - 1) * rows).Take(rows).ToList(), total = total });
+        }
+
+        //获取编号
+        [SessionTimeOutFilter()]
+        public ActionResult FetchModualNumber()
+        {
+            return View();
+        }
+
+        //获取所有的型号类型
+        public JsonResult GetModualTypes()
+        {
+            return Json(db.Sale_modual_number.OrderBy(m => m.modual_type).Select(m => new { value = m.modual_type }).Distinct().ToList());
+        }
+
+        public JsonResult GetNextModualNumber(string modualType)
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            var user = db.User.Single(u => u.id == userId);
+            string result = "";
+
+            try {
+                db.getNextModualNumber(modualType, user.real_name,"光电", ref result);
+            }
+            catch (Exception ex) {
+                return Json(new { suc = false, msg = "取得编号失败："+ex.Message });
+            }
+            return Json(new { suc = true, result = result });
+
+        }
+
+        #endregion
 
     }
 }

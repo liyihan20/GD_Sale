@@ -159,6 +159,15 @@
             }
         });
 
+        //$("#quotation_clerk_id").combobox({
+        //    onLoadSuccess: function () {
+        //        if ($("#quotation_clerk_id").combobox("getValue") == $("#quotation_clerk_id").combobox("getText")) {
+        //            $("#quotation_clerk_id").combobox("setValue", "");
+        //            $("#quotation_clerk_id").combobox("setText", "");
+        //        }
+        //    }
+        //});
+
         //设置值
         $('#clerk_no').combobox('setText','@cmc.clerk_name');
         $('#customer_no').combogrid('setText', '@Html.Raw(cmc.customer_name)');
@@ -540,13 +549,13 @@ else
                             <td>
                                 <input id="project_team" name="project_team" style="width: 120px" />
                             </td>
-                            <td>
+                            @*<td>
                                 @Html.Lang("quotation_clerk"):
                             </td>
                             <td>
                                 <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id" style="width: 120px" editable="false"
-                                       valuefield="user_id" textfield="user_name" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" required="true" value="@cmc.quotation_clerk_id" />
-                            </td>
+                                       valuefield="value" textfield="text" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" value="@cmc.quotation_clerk_id" />
+                            </td>*@
                             <td>
                                 @Html.Lang("quote_num"):
                             </td>
@@ -716,11 +725,7 @@ else
                                 @Html.Lang("pro_use"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" style="width: 120px" name="product_use" id="product_use"
-                                       data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
-                                           data:[
-                                           {value:'手机'},{value:'非手机'}
-                                           ]" value="@cmc.product_use" />
+                                <input class="easyui-validatebox" style="width: 115px" name="product_use" id="product_use" value="@cmc.product_use" required="true" />
                             </td>
                             <td>
                                 @Html.Lang("plan_production_date"):

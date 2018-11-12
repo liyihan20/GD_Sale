@@ -535,7 +535,7 @@ namespace Sale_Order.Controllers
                 //下单日期，交货日期，办事处，产品类别，订单号，规格型号，成交金额，币别，说明
                 cells.Add(++rowIndex, colIndex, ((DateTime)d.order_date).ToShortDateString());
                 cells.Add(rowIndex, ++colIndex, ((DateTime)d.delivery_date).ToShortDateString());
-                cells.Add(rowIndex, ++colIndex, d.department_name);
+                cells.Add(rowIndex, ++colIndex, d.department_name);                
                 cells.Add(rowIndex, ++colIndex, d.product_type_name);
                 cells.Add(rowIndex, ++colIndex, d.product_use);
                 cells.Add(rowIndex, ++colIndex, d.order_no);

@@ -41,20 +41,20 @@
         var row = $('#dg').datagrid('getSelected');
         if (row) {
             $.post("@Url.Content("~/Authority/BeginReset")",{userID:row.id,newPass:"000000"},
-        function(data){
-            if(data.suc){
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: '保存成功'
-                });
-            }else{
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg:data.msg
-                });
-            }
-        });
-    }
+            function(data){
+                if(data.suc){
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: '保存成功'
+                    });
+                }else{
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg:data.msg
+                    });
+                }
+            });
+        }
     }
 
     function qq(value, name) {

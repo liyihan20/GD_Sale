@@ -417,7 +417,7 @@
         var p_tax_rate = new Array();
         var p_suggest_date = new Array();
         var p_confirm_date = new Array();
-        var p_project_number = new Array();
+        var p_project_number = new Array();        
         for (var i = 0; i < details.length; i++) {
             p_id[i] = details[i].product_id;
             p_qty[i] = details[i].qty;
@@ -683,11 +683,11 @@
                 }
             });
         }
-        //佣金
+        //佣金，2018-10-1变更，结果再除（1+税率%）
         if(v_pro_type == "CCM" && v_mu<-6){
-            v_com=v_deal_price*v_cost*0.002*v_exchange;
+            v_com = (v_deal_price / (1 + v_tax_rate / 100)) * v_cost * 0.002 * v_exchange;
         }else{
-            v_com=v_deal_price * v_qty *v_exchange*v_com_rate/100;
+            v_com = (v_deal_price / (1 + v_tax_rate / 100)) * v_qty * v_exchange * v_com_rate / 100;
         }
         v_com=v_com.toFixed(2);
         var theRow = {

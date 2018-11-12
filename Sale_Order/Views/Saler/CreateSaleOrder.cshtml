@@ -1,6 +1,12 @@
 ﻿<script type="text/javascript">
 
-    var tax_rate = 17;
+    var TAXRATENUM = 17;
+    if (new Date() > new Date(2018, 4, 1)) {
+        //2018年5月1号开始，将税率由17改为16
+        TAXRATENUM = 16;
+    }
+
+    var tax_rate = TAXRATENUM;
     function convertDate(inDate) {
         if (inDate == null || inDate == "") {
             return "";
@@ -81,7 +87,7 @@
             onChange: function (newValue, oldValue) {
                 if (newValue == "1") {
                     if (tax_rate == 0) {
-                        tax_rate = 17;
+                        tax_rate = TAXRATENUM;
                         $("#buy_unit").combogrid("clear");
                     }
                 } else {
@@ -142,8 +148,10 @@
                     $("#plan_firm").combogrid("setValue", order.plan_firm);
                     $("#plan_firm").combogrid("setText", order.plan_firm_name);
                     //加入了客户料号之后，防止从旧单新增时，会错误的覆盖掉正确的料号，强制要求营业重新选择海外客户
-                    //$("#oversea_client").combogrid("setValue", order.oversea_client);
-                    //$("#oversea_client").combogrid("setText", order.oversea_client_name);
+                    if ("fo" != "@ViewData["fo"]") {
+                        $("#oversea_client").combogrid("setValue", order.oversea_client);
+                        $("#oversea_client").combogrid("setText", order.oversea_client_name);
+                    }
                     $("#trade_rule").combobox("setValue", order.trade_rule);
                     $("#trade_rule").combobox("setText", order.trade_rule_name);
                     $("#proc_dep").combobox("setValue", order.proc_dep_id);
@@ -194,7 +202,7 @@
                             cost: (detail.cost).toFixed(3),
                             deal_price: (detail.deal_price).toFixed(detail.price_decimal),
                             unit_price: (detail.unit_price).toFixed(detail.price_decimal),
-                            tax_rate: (detail.taxRate).toFixed(2),
+                            tax_rate: tax_rate,
                             fee_rate: detail.fee_rate == null ? "" : (detail.fee_rate).toFixed(2),
                             discount_rate: detail.discount_rate == null ? "" : (detail.discount_rate).toFixed(2),
                             Aux_tax_price: (detail.aux_tax_price).toFixed(detail.price_decimal),
@@ -290,7 +298,7 @@
                 panelWidth: 400,
                 columns: [[
                         { field: 'number', title: '@Html.Lang("customer_num")', width: 150 },
-					    { field: 'name', title: '@Html.Lang("customer_name")', width: 220 }
+                        { field: 'name', title: '@Html.Lang("customer_name")', width: 220 }
                 ]],
                 keyHandler: {
                     query: function () { },
@@ -313,21 +321,23 @@
             });
         });
         $("#product_number").combogrid({
+            idField:"id",
             valueField: "id",
             textField: "name",
-            panelWidth: 420,
+            panelWidth: 470,
             required: 'true',
             columns: [[
                     { field: 'number', title: '@Html.Lang("pro_num")', width: 120 },
-					{ field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
-					{ field: 'model', title: '@Html.Lang("pro_model")', width: 150 }
-            ]],
-            keyHandler: {
-                query: function () { },
-                enter: function () {
-                    var q = $("#product_number").combogrid('getText');
-                    if (q != "") {
-                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
+                    { field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
+                    { field: 'model', title: '@Html.Lang("pro_model")', width: 150 },
+                    { field: 'unit_name', title: '@Html.Lang("unit")', width: 50 }
+        ]],
+        keyHandler: {
+            query: function () { },
+            enter: function () {
+                var q = $("#product_number").combogrid('getText');
+                if (q != "") {
+                    $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
                             function (data) {
                                 $("#product_number").combogrid('grid').datagrid('loadData', data);
                                 $("#product_number").combogrid('setText', q);
@@ -359,7 +369,7 @@
 
                 //加载客户料号和型号信息 2018-4-12
                 var customerId = $("#oversea_client").combogrid("getValue");
-                if (customerId!="" && !isNaN(customerId)) {
+                if (customerId != "" && !isNaN(customerId)) {
                     $.post("@Url.Content("~/Items/GetK3CustomerModel")", { customerId: customerId, productId: rowData.id }, function (data) {
                         $("#customer_item_number").val(data.customerItemNumber);
                         $("#customer_item_model").val(data.customerItemModel);
@@ -378,8 +388,8 @@
             //            required:'true',
             columns: [[
                     { field: 'id', title: '@Html.Lang("project_number")', width: 70 },
-					{ field: 'name', title: '@Html.Lang("project_name")', width: 120 },
-					{ field: 'client_name', title: '@Html.Lang("client_name")', width: 180 }
+                    { field: 'name', title: '@Html.Lang("project_name")', width: 120 },
+                    { field: 'client_name', title: '@Html.Lang("client_name")', width: 180 }
             ]],
             onShowPanel: function () {
                 var buy_unit = $("#buy_unit").combogrid("getValue");
@@ -417,6 +427,8 @@
                 var p_discount_rate = new Array();
                 var p_unit_price = new Array();
                 var p_project_number = new Array();
+                var p_customer_po = new Array();
+                var p_customer_pn = new Array();
                 for (var i = 0; i < details.length; i++) {
                     p_id[i] = details[i].product_id;
                     p_qty[i] = details[i].qty;
@@ -433,6 +445,8 @@
                     p_project_number[i] = details[i].project_number;
                     //将半角逗号,替换成全角逗号，因为后台要根据半角逗号恢复成数组
                     p_comment[i] = details[i].comment.replace(",", "，");
+                    p_customer_po[i] = details[i].customer_item_number.replace(",", "，");
+                    p_customer_pn[i] = details[i].customer_item_model.replace(",", "，");
                 }
                 $('#order_form').form('submit', {
                     url: '@Url.Content("~/Saler/saveSaleOrder")',
@@ -452,6 +466,8 @@
                         param.p_tar_date = p_tar_date;
                         param.p_comment = p_comment;
                         param.p_project_number = p_project_number;
+                        param.p_customer_po = p_customer_po;
+                        param.p_customer_pn = p_customer_pn;
                     },
                     success: function (data) {
                         var result = eval('(' + data + ')');
@@ -522,9 +538,9 @@
                     }
                 });
             },
-            onBeforeOpen: function () {                
-                var customerId = $("#oversea_client").combogrid("getValue");                
-                if (customerId=="" || isNaN(customerId)) {
+            onBeforeOpen: function () {
+                var customerId = $("#oversea_client").combogrid("getValue");
+                if (customerId == "" || isNaN(customerId)) {
                     alert("请先选择海外客户后再新增条目");
                     return false;
                 }
@@ -577,6 +593,9 @@
         var tradeType = $("#trade_type").combobox("getText");
         var saleWay = $("#sale_way").combobox("getText");
         var deliveryPlace = $("#delivery_place").combobox("getText");
+        var buyUnit = $("#buy_unit").combogrid("getText");
+        var overSeaClient = $("#oversea_client").combogrid("getText");
+
         if ($("#currency").combobox("getText") == "人民币") {
             if (tradeType != "国内贸易") {
                 alert("保存失败：币别为人民币时，贸易方式必须为国内贸易！");
@@ -591,7 +610,10 @@
                 return false;
             }
         } else {
-            if (tradeType.indexOf("异地报关") >= 0 && saleWay != "分期收款销售") {
+            //2018-10-11 05.43.0011  TIANJIN SAMSUNG TELECOM TECHNOLOGY CO LTD  
+            //这个设置异地报关销售方式不限定为分期收款
+
+            if (tradeType.indexOf("异地报关") >= 0 && saleWay != "分期收款销售" && overSeaClient.indexOf("TIANJIN SAMSUNG") < 0) {
                 alert("保存失败：币别为非人民币且贸易类型包含异地报关时，销售方式必须为分期收款销售！");
                 return false;
             }
@@ -781,11 +803,11 @@
                 }
             });
         }
-        //佣金
+        //佣金，2018-10-1变更，结果再除（1+税率%）
         if (v_pro_type == "CCM" && v_mu < -6) {
-            v_com = v_deal_price * v_cost * 0.002 * v_exchange;
+            v_com = (v_deal_price / (1 + v_tax_rate / 100)) * v_cost * 0.002 * v_exchange;
         } else {
-            v_com = v_deal_price * v_qty * v_exchange * v_com_rate / 100;
+            v_com = (v_deal_price / (1 + v_tax_rate / 100)) * v_qty * v_exchange * v_com_rate / 100;
         }
         v_com = v_com.toFixed(2);
         var theRow = {
@@ -837,7 +859,7 @@
 
         //每一次保存都更新客户料号、型号到k3 2018-4-12
         var customerId = $("#oversea_client").combogrid("getValue");
-        if (customerId!="" && !isNaN(customerId)) {
+        if (customerId != "" && !isNaN(customerId)) {
             $.post("@Url.Content("~/Items/SynchroToK3CustomerModel")", {
                 customerId: customerId,
                 productId: theRow.product_id,

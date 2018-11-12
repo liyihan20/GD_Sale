@@ -1,0 +1,27 @@
+﻿<script>
+    function qq(value, name) {
+        $('#log_dg').datagrid('load', {
+            searchValue: value
+        });
+    }
+</script>
+<table id="log_dg" title="模单编号获取记录日志" class="easyui-datagrid" fit="true"  
+        url="GetModualNumLog"
+        toolbar="#toolbar" 
+        rownumbers="true" fitColumns="true" singleSelect="true" pagination="true" pageSize="40">  
+    <thead>  
+        <tr>  
+            <th field="modual_type" width="120" align="center">型号类别</th>
+            <th field="modual_number" width="80" align="center">取得编号</th>
+            <th field="op_user" width="80" align="center">获取人</th> 
+            <th field="op_date" width="120" align="center">获取时间</th>
+            <th field="account" width="80" align="center">所在帐套</th> 
+        </tr>  
+    </thead>  
+</table>  
+<div id="toolbar">      
+    <input id="ss" class="easyui-searchbox" style="width:420px"  searcher="qq" menu="#mm" prompt="可输入型号类别、取得编号或获取人姓名，按回车搜索" />           
+    <div id="mm" style="width:180px">  
+        <div name="name">搜索内容:</div> 
+    </div>  
+</div>  

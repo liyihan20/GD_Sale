@@ -1744,6 +1744,8 @@ namespace Sale_Order.Models {
             
             private global::System.Data.DataColumn columnceo_auditor;
             
+            private global::System.Data.DataColumn columnmarketManager;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public Sample_Bill_AuditorDataTable() {
@@ -1835,6 +1837,14 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn marketManagerColumn {
+                get {
+                    return this.columnmarketManager;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -1870,7 +1880,7 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public Sample_Bill_AuditorRow AddSample_Bill_AuditorRow(string agency_auditor, string yf_manager, string yf_top_level, string yf_admin, string quotation_auditor, string maket_auditor, string ceo_auditor) {
+            public Sample_Bill_AuditorRow AddSample_Bill_AuditorRow(string agency_auditor, string yf_manager, string yf_top_level, string yf_admin, string quotation_auditor, string maket_auditor, string ceo_auditor, string marketManager) {
                 Sample_Bill_AuditorRow rowSample_Bill_AuditorRow = ((Sample_Bill_AuditorRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         agency_auditor,
@@ -1879,7 +1889,8 @@ namespace Sale_Order.Models {
                         yf_admin,
                         quotation_auditor,
                         maket_auditor,
-                        ceo_auditor};
+                        ceo_auditor,
+                        marketManager};
                 rowSample_Bill_AuditorRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowSample_Bill_AuditorRow);
                 return rowSample_Bill_AuditorRow;
@@ -1909,6 +1920,7 @@ namespace Sale_Order.Models {
                 this.columnquotation_auditor = base.Columns["quotation_auditor"];
                 this.columnmaket_auditor = base.Columns["maket_auditor"];
                 this.columnceo_auditor = base.Columns["ceo_auditor"];
+                this.columnmarketManager = base.Columns["marketManager"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1928,6 +1940,8 @@ namespace Sale_Order.Models {
                 base.Columns.Add(this.columnmaket_auditor);
                 this.columnceo_auditor = new global::System.Data.DataColumn("ceo_auditor", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnceo_auditor);
+                this.columnmarketManager = new global::System.Data.DataColumn("marketManager", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnmarketManager);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -4252,6 +4266,22 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string marketManager {
+                get {
+                    try {
+                        return ((string)(this[this.tableSample_Bill_Auditor.marketManagerColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("表“Sample_Bill_Auditor”中列“marketManager”的值为 DBNull。", e);
+                    }
+                }
+                set {
+                    this[this.tableSample_Bill_Auditor.marketManagerColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool Isagency_auditorNull() {
                 return this.IsNull(this.tableSample_Bill_Auditor.agency_auditorColumn);
             }
@@ -4332,6 +4362,18 @@ namespace Sale_Order.Models {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public void Setceo_auditorNull() {
                 this[this.tableSample_Bill_Auditor.ceo_auditorColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsmarketManagerNull() {
+                return this.IsNull(this.tableSample_Bill_Auditor.marketManagerColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetmarketManagerNull() {
+                this[this.tableSample_Bill_Auditor.marketManagerColumn] = global::System.Convert.DBNull;
             }
         }
         

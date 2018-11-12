@@ -37,6 +37,7 @@
              {
             <li><span>@Html.Lang("model_bill")</span>
                 <ul>                    
+                    <li id="~/Authority/FetchModualNumber"><span>获取开模序号</span></li>
                     <li id="~/Saler/CreateCCMModelContract"><span>@Html.Lang("create_ccm_model_bill")</span> </li>                     
                     <li id="~/Saler/CreateModelContract"><span>@Html.Lang("create_model_bill")</span> </li>                    
                     <li id="~/Saler/CheckAllOrders?bill_type=3"><span>@Html.Lang("check_add_apply")</span> </li>
@@ -226,6 +227,8 @@
                  @if (Array.IndexOf(powers, Powers.order_number_manage.ToString()) != -1)
                  {
                     <li id="~/Authority/OrderNumberManage"><span>@Html.Lang("order_number_manage")</span> </li>
+                    <li id="~/Authority/ModualNumberIndex"><span>开模序号管理</span></li>
+                    <li id="~/Authority/CheckModualNumLog"><span>开模序号获取记录</span></li>
                  }
                  @if (Array.IndexOf(powers, Powers.modify_bill_no.ToString()) != -1) {
                     <li id="~/Authority/ModifyBillNo"><span>单号修改</span> </li>

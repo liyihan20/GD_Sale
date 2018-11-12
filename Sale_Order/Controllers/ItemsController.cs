@@ -641,14 +641,15 @@ namespace Sale_Order.Controllers
         //获取权限组里面的成员
         public JsonResult GetGroupMembers(string group_name)
         {
-            var result = from g in db.Group
+            var result = (from g in db.Group
                          from gu in g.GroupAndUser
                          where g.name == group_name
-                         select new
+                         select new ResultModel()
                          {
-                             user_id = gu.user_id,
-                             user_name = gu.User.real_name
-                         };
+                             value = gu.user_id.ToString(),
+                             text = gu.User.real_name
+                         }).ToList();
+            result.Insert(0, new ResultModel() { value = "", text = "" });
             return Json(result);
         }
 

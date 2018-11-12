@@ -544,15 +544,12 @@ namespace Sale_Order.Controllers
                 //    return Json(new { suc = false, msg = string.Format("存在未结束的申请，对应行号：{0};对应的退货编号为：{1}", LineNo, notFinished.First().ReturnBill.sys_no) });
                 //}
 
-                var SEOrders = db.VWBlueStockBill.Where(v => v.FInterID == FInterID && v.FEntryID == FEntryID);
+                var SEOrder = db.VWBlueStockBill.Where(v => v.FInterID == FInterID && v.FEntryID == FEntryID).FirstOrDefault();
 
-                if (SEOrders.Count() < 1)
-                {
-                    return Json(new { suc = false, msg = "对应行号："+LineNo+";出库单号："+det.stock_no+";此出库单的可申请红字数量等于0，提交失败" });
+                if (SEOrder == null) {
+                    return Json(new { suc = false, msg = "对应行号：" + LineNo + ";出库单号：" + det.stock_no + ";此出库单的可申请红字数量等于0，提交失败" });
                 }
-
-                var SEOrder = SEOrders.First();
-
+                
                 //3.1
                 //正在申请中的数量
                 var isAppliedQty = (from r in db.ReturnBillDetail

@@ -1617,7 +1617,7 @@
     <comment>客户型号</comment>
   </data>
   <data name="customer_item_number" xml:space="preserve">
-    <value>客户料号</value>
+    <value>客户PO</value>
     <comment>客户料号</comment>
   </data>
 </root>

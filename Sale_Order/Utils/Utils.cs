@@ -89,9 +89,14 @@ namespace Sale_Order.Utils
         //获得备料单单号
         public string getBLbillNo(string marketName,string busDepName,int userId)
         {
+            //2018年后各办事处大变动，按照新规则
+            if (DateTime.Now >= DateTime.Parse("2018-07-01")) {
+                return getBLbillNo201807(marketName, busDepName, userId);
+            }
+
             //2018年后编码新规则
             if (DateTime.Now >= DateTime.Parse("2018-1-1")) {
-                return getBLbillNo2008(marketName, busDepName, userId);
+                return getBLbillNo2018(marketName, busDepName, userId);
             }
 
             string prefix = "G";
@@ -137,7 +142,7 @@ namespace Sale_Order.Utils
 
             return busDepName.Contains("客服") ? prefix + "KF" : prefix;
         }
-        public string getBLbillNo2008(string marketName, string busDepName, int userId)
+        public string getBLbillNo2018(string marketName, string busDepName, int userId)
         {
             string prefix = "G";
             string agencyValue = "", marketValue = "/";
@@ -187,6 +192,102 @@ namespace Sale_Order.Utils
                 }
             }
             prefix += marketValue;    
+
+            prefix += "BL" + DateTime.Now.ToString("yy") + "-";
+            var maxRecord = db.SystemNo.Where(sn => sn.bill_type == "BL" && sn.date_string == prefix);
+            if (maxRecord.Count() == 0) {
+                SystemNo sysNo = new SystemNo()
+                {
+                    bill_type = "BL",
+                    date_string = prefix,
+                    max_num = 1
+                };
+                db.SystemNo.InsertOnSubmit(sysNo);
+                prefix += "0001";
+            }
+            else {
+                var firstRecord = maxRecord.First();
+                firstRecord.max_num = firstRecord.max_num + 1;
+                prefix += string.Format("{0:0000}", firstRecord.max_num);
+            }
+            db.SubmitChanges();
+
+
+            return busDepName.Contains("客服") ? prefix + "KF" : prefix;
+        }
+
+        public string getBLbillNo201807(string marketName, string busDepName, int userId)
+        {
+            string prefix = "G";
+            string marketValue = "/";
+            string agencyName = db.User.Single(u => u.id == userId).Department1.name;
+            string[] marketNameArr = new string[] { "中国市场部一部", "中国市场部二部", "中国市场部三部", "中国市场部四部", "中国市场部五部", "中国市场部六部",
+                "中国市场部七部","中国市场部八部","中国市场部九部","中国市场部十部", "LCD Panle市场部A组", "LCD Panle市场部B组", "LCD Panle市场部C组", "新加坡", "华诚创", "光能", "杭州" };
+            string[] marketValueArr = new string[] { "1","2","3","4","5","6",
+                "7","8","9","10","PA","PB","PC","XJP","HCC","GN","HZ" };
+
+            for (var i = 0; i < marketNameArr.Length; i++) {
+                if (agencyName.Contains(marketNameArr[i])) {
+                    marketValue = marketValueArr[i];
+                    break;
+                }
+            }
+            if (marketValue.Equals("/")) {
+                switch (marketName) {
+                    case "中国市场部一部":
+                        marketValue = "1";
+                        break;
+                    case "中国市场部二部":
+                        marketValue = "2";
+                        break;
+                    case "中国市场部三部":
+                        marketValue = "3";
+                        break;
+                    case "中国市场部四部":
+                        marketValue = "4";
+                        break;
+                    case "中国市场部五部":
+                        marketValue = "5";
+                        break;
+                    case "中国市场部六部":
+                        marketValue = "6";
+                        break;
+                    case "中国市场部七部":
+                        marketValue = "7";
+                        break;
+                    case "中国市场部八部":
+                        marketValue = "8";
+                        break;
+                    case "中国市场部九部":
+                        marketValue = "9";
+                        break;
+                    case "中国市场部十部":
+                        marketValue = "10";
+                        break;
+                    case "LCD Panle市场部A组":
+                        marketValue = "PA";
+                        break;
+                    case "LCD Panle市场部B组":
+                        marketValue = "PB";
+                        break;
+                    case "LCD Panle市场部C组":
+                        marketValue = "PC";
+                        break;
+                    case "新加坡市场部":
+                        marketValue = "XJP";
+                        break;
+                    case "光能办":
+                        marketValue = "GN";
+                        break;
+                    case "杭州办":
+                        marketValue = "HZ";
+                        break;
+                    case "华诚创":
+                        marketValue = "HCC";
+                        break;
+                }
+            }
+            prefix += marketValue;
 
             prefix += "BL" + DateTime.Now.ToString("yy") + "-";
             var maxRecord = db.SystemNo.Where(sn => sn.bill_type == "BL" && sn.date_string == prefix);
@@ -1826,7 +1927,7 @@ namespace Sale_Order.Utils
                 mc.currency_name = db.vwItems.Where(v => v.what == "currency" && v.fid == mc.currency_no).First().fname;
                 mc.fetch_add_name = db.vwItems.Where(v => v.what == "delivery_place" && v.fid == mc.fetch_add_no).First().fname;
                 mc.trade_type_name = db.vwItems.Where(v => v.what == "trade_type" && v.fid == mc.trade_type_no).First().fname;
-                mc.quotation_clerk_name = db.User.Where(u => u.id == mc.quotation_clerk_id).First().real_name;
+                mc.quotation_clerk_name = mc.quotation_clerk_id == null ? "" : db.User.Where(u => u.id == mc.quotation_clerk_id).First().real_name;
                 mc.clear_way_no = db.vwItems.Where(v => v.fname == mc.clear_way && v.what == "clearing_way").First().fid;
             }
             catch (Exception ex)
@@ -2001,7 +2102,7 @@ namespace Sale_Order.Utils
                     if (!"GN".Equals(mc.fetch_add_no)) {
                         return "内销单的送货地点必须是汕尾";
                     }
-                    if (!mc.customer_no.StartsWith("01."))
+                    if (!mc.customer_no.StartsWith("01.") && !mc.customer_no.StartsWith("04."))
                     {
                         return "内销单的购货单位必须是01开头的，保存失败。";
                     }
@@ -2054,7 +2155,7 @@ namespace Sale_Order.Utils
                 mc.currency_name = db.vwItems.Where(v => v.what == "currency" && v.fid == mc.currency_no).First().fname;
                 mc.fetch_add_name = db.vwItems.Where(v => v.what == "delivery_place" && v.fid == mc.fetch_add_no).First().fname;
                 mc.trade_type_name = db.vwItems.Where(v => v.what == "trade_type" && v.fid == mc.trade_type_no).First().fname;
-                mc.quotation_clerk_name = db.User.Where(u => u.id == mc.quotation_clerk_id).First().real_name;
+                mc.quotation_clerk_name = mc.quotation_clerk_id == null ? "" : db.User.Where(u => u.id == mc.quotation_clerk_id).First().real_name;
                 mc.clear_way_no = db.vwItems.Where(v => v.fname == mc.clear_way && v.what == "clearing_way").First().fid;
             }
             catch (Exception ex)
@@ -2176,10 +2277,10 @@ namespace Sale_Order.Utils
                 {
                     return "收费样品必须填写[合同价]";
                 }
-                if (sb.quotation_clerk_id == null)
-                {
-                    return "收费样品必须选择[报价员]";
-                }
+                //if (sb.quotation_clerk_id == null)
+                //{
+                //    return "收费样品必须选择[报价员]";
+                //}
                 if (string.IsNullOrEmpty(sb.quote_num))
                 {
                     return "收费样品必须填写[报价编号]";
@@ -2233,11 +2334,11 @@ namespace Sale_Order.Utils
                     {
                         return "币别为RMB的[贸易类型]必须是国内贸易";
                     }
-                    if (!sb.customer_no.StartsWith("01."))
+                    if (!sb.customer_no.StartsWith("01.") && !sb.customer_no.StartsWith("04."))
                     {
                         return "币别为RMB的[购货单位]必须是01开头的";
                     }
-                    if (!sb.sea_customer_no.StartsWith("01."))
+                    if (!sb.sea_customer_no.StartsWith("01.") && !sb.customer_no.StartsWith("04."))
                     {
                         return "币别为RMB的[海外客户]必须是01开头的";
                     }
@@ -2449,8 +2550,8 @@ namespace Sale_Order.Utils
 
         //外销单验证海外客户与办事处的关系
         public string ValidateOverSearCustomerAndAgency(string agencyName, string overseaNumber) {
-            string[] agencyNameArr = new string[] { "上海", "深圳", "北京", "光能", "厦门", "新加坡", "中国市场部", "汕尾本部", "韩国", "杭州" };
-            string[] customerNumberArr = new string[] { "05.21.", "05.22.", "05.23.", "05.24.", "05.25.", "05.26.", "05.27.", "05.28.", "05.29.", "05.30." };          
+            //string[] agencyNameArr = new string[] { "上海", "深圳", "北京", "光能", "厦门", "新加坡", "中国市场部", "汕尾本部", "韩国", "杭州" };
+            //string[] customerNumberArr = new string[] { "05.21.", "05.22.", "05.23.", "05.24.", "05.25.", "05.26.", "05.27.", "05.28.", "05.29.", "05.30." };          
             //上海办：05.21.****
             //深圳办：05.22.****
             //北京办：05.23.****
@@ -2461,10 +2562,13 @@ namespace Sale_Order.Utils
             //汕尾本部：05.28.****
             //韩国办：05.29.****
             //杭州办：05.30.****
-            for (var i = 0; i < agencyNameArr.Count(); i++) {
-                if (agencyName.Contains(agencyNameArr[i]) && !overseaNumber.StartsWith(customerNumberArr[i])) {
-                    return "外销单【" + agencyName + "】的海外客户必须是【" + customerNumberArr[i] + "】开头的";
-                }
+            //for (var i = 0; i < agencyNameArr.Count(); i++) {
+            //    if (agencyName.Contains(agencyNameArr[i]) && !overseaNumber.StartsWith(customerNumberArr[i])) {
+            //        return "外销单【" + agencyName + "】的海外客户必须是【" + customerNumberArr[i] + "】开头的";
+            //    }
+            //}
+            if (!overseaNumber.StartsWith("05.") && !overseaNumber.StartsWith("02.S00")) {
+                return "外销单的海外客户代码必须为05开头的";
             }
             return "";
         }
@@ -2474,14 +2578,14 @@ namespace Sale_Order.Utils
         {
             var bill = db.ReturnBill.Where(r => r.sys_no == sys_no).First();
             var hasInvoice = (bool)bill.has_invoice;
-            var entryFlag=false;
+            var entryFlag = false;
             foreach (var entry in bill.ReturnBillDetail)
             {
                 var entrys = db.VWBlueStockBill.Where(v => v.FInterID == entry.stock_inter_id && v.FEntryID == entry.stock_entry_id);
                 if(entrys.Count()<1){
                     return "行号是【" + entry.entry_no + "】的蓝字出库单已经推过红字单，操作失败！";
                 }else{
-                    entryFlag=entrys.First().FHookStatus == 2 ? true : false;
+                    entryFlag = entrys.First().FHookStatus == 2 ? true : false;
                 }
                 if (entryFlag != hasInvoice)
                 {

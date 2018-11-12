@@ -2111,6 +2111,8 @@ namespace Sale_Order.Models {
             
             private global::System.Data.DataColumn columnceo_auditor;
             
+            private global::System.Data.DataColumn columnmarketManager;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public ModelContract_auditorDataTable() {
@@ -2210,6 +2212,14 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn marketManagerColumn {
+                get {
+                    return this.columnmarketManager;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -2245,7 +2255,7 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
-            public ModelContract_auditorRow AddModelContract_auditorRow(string agency_auditor, string yf_manager, string yf_admin, string yfTopLevel, string quotation_auditor, string bus_auditor, string maket_auditor, string ceo_auditor) {
+            public ModelContract_auditorRow AddModelContract_auditorRow(string agency_auditor, string yf_manager, string yf_admin, string yfTopLevel, string quotation_auditor, string bus_auditor, string maket_auditor, string ceo_auditor, string marketManager) {
                 ModelContract_auditorRow rowModelContract_auditorRow = ((ModelContract_auditorRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         agency_auditor,
@@ -2255,7 +2265,8 @@ namespace Sale_Order.Models {
                         quotation_auditor,
                         bus_auditor,
                         maket_auditor,
-                        ceo_auditor};
+                        ceo_auditor,
+                        marketManager};
                 rowModelContract_auditorRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowModelContract_auditorRow);
                 return rowModelContract_auditorRow;
@@ -2286,6 +2297,7 @@ namespace Sale_Order.Models {
                 this.columnbus_auditor = base.Columns["bus_auditor"];
                 this.columnmaket_auditor = base.Columns["maket_auditor"];
                 this.columnceo_auditor = base.Columns["ceo_auditor"];
+                this.columnmarketManager = base.Columns["marketManager"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -2307,6 +2319,8 @@ namespace Sale_Order.Models {
                 base.Columns.Add(this.columnmaket_auditor);
                 this.columnceo_auditor = new global::System.Data.DataColumn("ceo_auditor", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnceo_auditor);
+                this.columnmarketManager = new global::System.Data.DataColumn("marketManager", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnmarketManager);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -5291,6 +5305,22 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string marketManager {
+                get {
+                    try {
+                        return ((string)(this[this.tableModelContract_auditor.marketManagerColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("表“ModelContract_auditor”中列“marketManager”的值为 DBNull。", e);
+                    }
+                }
+                set {
+                    this[this.tableModelContract_auditor.marketManagerColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool Isagency_auditorNull() {
                 return this.IsNull(this.tableModelContract_auditor.agency_auditorColumn);
             }
@@ -5383,6 +5413,18 @@ namespace Sale_Order.Models {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public void Setceo_auditorNull() {
                 this[this.tableModelContract_auditor.ceo_auditorColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsmarketManagerNull() {
+                return this.IsNull(this.tableModelContract_auditor.marketManagerColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetmarketManagerNull() {
+                this[this.tableModelContract_auditor.marketManagerColumn] = global::System.Convert.DBNull;
             }
         }
         

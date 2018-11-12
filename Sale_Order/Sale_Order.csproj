@@ -652,6 +652,9 @@
     <Content Include="Views\Authority\ModifyBillNo.cshtml" />
     <Content Include="Views\Authority\CeoBatchAudit.cshtml" />
     <Content Include="Views\Items\ProjectGroupAuditor.cshtml" />
+    <Content Include="Views\Authority\ModualNumberIndex.cshtml" />
+    <Content Include="Views\Authority\FetchModualNumber.cshtml" />
+    <Content Include="Views\Authority\CheckModualNumLog.cshtml" />
     <None Include="Views\Project\NewProject.cshtml.bak" />
     <Content Include="Views\Project\CheckProjectBills.cshtml" />
     <Content Include="Views\Project\CheckSingleProjectBill.cshtml" />

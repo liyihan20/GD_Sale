@@ -1,0 +1,84 @@
+﻿@{
+    ViewBag.Title = "FetchModualNumber";
+}
+
+<script>
+    function getNumber() {
+        var tp = $("#modualType").combobox("getValue");
+        if (tp == "") {
+            alert("必须先选择型号类别");
+            return;
+        }
+        $.messager.confirm('操作确认', '确定要取得新编号吗？', function (r) {
+            if (r) {
+                $.post("@Url.Content("~/Authority/GetNextModualNumber")", { modualType: tp }, function (data) {
+                    if (data.suc) {
+                        $("#modualNumber").val(data.result);
+                        $("#log_dg").datagrid("reload");
+                    } else {
+                        alert(data.msg);
+                    }
+                });
+            }
+        });
+    }
+
+    $(function () {
+        $("#log_dg").datagrid({
+            title: "模单编号获取日志",
+            fit: true,
+            rownumbers: true,
+            fitColumns: true,
+            singleSelect: true,
+            pagination: true,
+            pageSize: 40,
+            url: "GetModualNumLog",
+            queryParams: { self: true },
+            columns: [[
+                { field: 'modual_type', title: '型号类别', width: 120, align: 'center' },
+                { field: 'modual_number', title: '取得序号', width: 80, align: 'center' },
+                { field: 'op_user', title: '获取人', width: 80, align: 'center' },
+                { field: 'op_date', title: '获取时间', width: 120, align: 'center' },
+                { field: 'account', title: '所在帐套', width: 80, align: 'center' },
+            ]]
+        });
+    });
+
+</script>
+
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north'" title="获取样品单序号" style="height:90px; padding: 5px 10px;">
+        <table>
+            <tr>
+                <td>
+                    型号类别:
+                </td>
+                <td>
+                    开模序号：
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-combobox" id="modualType" style="width: 220px" data-options="
+		                valueField: 'value',
+		                textField: 'value',                           
+                        panelWidth: '220',                           
+                        editable:false,
+                        url:'GetModualTypes'" />
+                </td>
+                <td>
+                    <input type="text" readonly="readonly" id="modualNumber" style="width: 120px" />
+                </td>
+                <td>
+                    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="getNumber()">获取序号</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div data-options="region:'center'">
+        <table id="log_dg"></table>
+    </div>
+</div>
