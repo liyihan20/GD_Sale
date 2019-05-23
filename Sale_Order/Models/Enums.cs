@@ -51,5 +51,6 @@ namespace Sale_Order.Models
         modify_bill_no, //后台修改单号
         ceo_batch_audit, //总裁办批量审批单据
         new_BL, //新建备料单
+        new_HC, //华为出货处理单
     }
 }

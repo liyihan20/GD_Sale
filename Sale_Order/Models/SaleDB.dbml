@@ -1810,6 +1810,30 @@
       <Column Name="account" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
     </Type>
   </Table>
+  <Table Name="dbo.Sale_HC" Member="Sale_HC">
+    <Type Name="Sale_HC">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="sys_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="bill_date" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
+      <Column Name="item_no" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="item_model" Type="System.String" DbType="VarChar(200)" CanBeNull="true" />
+      <Column Name="item_name" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+      <Column Name="hw_item_no" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="hw_po_no" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="item_qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="user_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="user_name" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="dep_name" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Sale_HC_fileInfo" Member="Sale_HC_fileInfo">
+    <Type Name="Sale_HC_fileInfo">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="sys_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="file_name" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
+      <Column Name="uploader" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+    </Type>
+  </Table>
   <Function Name="dbo.getGroupBelongToUnit" Method="getGroupBelongToUnit">
     <Parameter Name="unit_id" Type="System.Int32" DbType="Int" />
     <ElementType Name="getGroupBelongToUnitResult">
@@ -2202,6 +2226,12 @@
     <Parameter Name="op_user" Type="System.String" DbType="VarChar(500)" />
     <Parameter Name="account" Type="System.String" DbType="VarChar(20)" />
     <Parameter Name="number" Type="System.String" DbType="VarChar(100)" Direction="InOut" />
+    <Return Type="System.Int32" />
+  </Function>
+  <Function Name="dbo.isContractNoExists" Method="isContractNoExists">
+    <Parameter Name="billType" Type="System.String" DbType="VarChar(20)" />
+    <Parameter Name="contractNo" Type="System.String" DbType="VarChar(200)" />
+    <Parameter Name="sysNum" Type="System.String" DbType="VarChar(20)" />
     <Return Type="System.Int32" />
   </Function>
 </Database>

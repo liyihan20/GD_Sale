@@ -485,11 +485,21 @@
         $.post("@Url.Content("~/Saler/CheckIsBillExist")", { sysNum: $("#sys_no").val() },
         function (data) {
             if (data.success) {
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "正在提交，请等待跳转。。。"
-                });
-                setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyBL?sys_no=")"+$("#sys_no").val();', 2000);
+
+                //判断合同编号是否已存在
+                $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                    { contractNo: $("#bl_contract_no").val(), sysNum: $("#sys_no").val(), billType: "BL" }, function (data) {
+                        if (data.suc) {
+                            beginApply();
+                        } else {
+                            $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                                if (r) {
+                                    beginApply();
+                                }
+                            });
+                        }
+                    });
+                
             } else {
                 $("#submitApply").linkbutton('enable');
                 $('#saveAllBut').linkbutton('enable');
@@ -501,6 +511,14 @@
         }, "json");
     });
     });
+
+        function beginApply() {
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "正在提交，请等待跳转。。。"
+            });
+            setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyBL?sys_no=")"+$("#sys_no").val();', 2000);
+        }
     </script>
 }
 else {
@@ -550,45 +568,22 @@ else {
     });
     function okClick() {
         $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
-            if (r) {
-                $.messager.progress();
-                $('#order_form').form('submit', {
-                    url: '@Url.Content("~/Audit/AuditorSaveBLBill")',
-                    onSubmit: function (param) {
-                        param.step = "@bl.step_version";
-                        if ($("#order_ids").length>0) {
-                            param.order_names = $("#order_ids").combobox("getText");
-                        }
-                        if ("@stepName".indexOf("订料") >= 0) {
-                            param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
-                        }
-                        var marketDatas = $("#market_dep").combobox("getData");
-                        var marketValue = $("#market_dep").combobox("getValue");
-                        if (!marketIsInTheList(marketValue, marketDatas)) {
-                            $.messager.show({
-                                title: '@Html.Lang("tip")',
-                                msg: "市场部字段已更新，请在列表中重新选择"
-                            });
-                            $.messager.progress("close");
-                            return false;
-                        }
-                        
-                        return true;
-                    },
-                    success: function (data) {
-                        var result = eval('(' + data + ')');
-                        if (result.suc) {
-                            $('#okFlag').val('true');
-                            beginAudit();
+            if (r) {                
+                //判断合同编号是否已存在
+                $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                    { contractNo: $("#bl_contract_no").val(), sysNum: $("#sys_no").val(), billType: "BL" }, function (data) {
+                        if (data.suc) {
+                            saveForm();
+                            $.messager.progress();
                         } else {
-                            $.messager.progress("close");
-                            $.messager.show({
-                                title: '@Html.Lang("tip")',
-                                msg: "@Html.Lang("failure_save"):" + result.msg
+                            $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                                if (r) {
+                                    saveForm();
+                                    $.messager.progress();
+                                }
                             });
                         }
-                    }
-                });
+                    });
             }
         });
     }
@@ -597,6 +592,46 @@ else {
             if (r) {
                 $('#okFlag').val('false');
                 beginAudit();
+            }
+        });
+    }
+
+    function saveForm() {
+        $('#order_form').form('submit', {
+            url: '@Url.Content("~/Audit/AuditorSaveBLBill")',
+            onSubmit: function (param) {
+                param.step = "@bl.step_version";
+                if ($("#order_ids").length>0) {
+                    param.order_names = $("#order_ids").combobox("getText");
+                }
+                if ("@stepName".indexOf("订料") >= 0) {
+                    param.Sale_BL_details = JSON.stringify($("#dg_detail").datagrid("getRows"));
+                }
+                var marketDatas = $("#market_dep").combobox("getData");
+                var marketValue = $("#market_dep").combobox("getValue");
+                if (!marketIsInTheList(marketValue, marketDatas)) {
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "市场部字段已更新，请在列表中重新选择"
+                    });
+                    $.messager.progress("close");
+                    return false;
+                }
+
+                return true;
+            },
+            success: function (data) {
+                var result = eval('(' + data + ')');
+                if (result.suc) {
+                    $('#okFlag').val('true');
+                    beginAudit();
+                } else {
+                    $.messager.progress("close");
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: "@Html.Lang("failure_save"):" + result.msg
+                    });
+                }
             }
         });
     }
@@ -659,8 +694,7 @@ else {
     @if (bl.step_version > 0) {
         @*挂起信息*@
         @Html.Partial("_BlockInfoPartial")
-        <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;
-            padding: 8px 10px;">
+        <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa; padding: 8px 10px;">
             <form id="audit_fm" method="post" action="">
                 @Html.Lang("audit_opinion"):
                 <input type="hidden" name="step" value="@bl.step_version" />
@@ -802,12 +836,17 @@ else {
                             </td>
                             <td>
                                 <input class="easyui-validatebox" required="true" name="product_use" id="product_use" style="width:135px" value="@bl.product_use" />
+                                 
                             </td>
                             <td>
                                 产品类别:
                             </td>
                             <td>
-                                <input class="easyui-validatebox" required="true" name="product_type" id="product_type" style="width:135px" value="@bl.product_type" />
+                                @*<input class="easyui-validatebox" required="true" name="product_type" id="product_type" style="width:135px" value="@bl.product_type" />*@
+                                <input class="easyui-combobox" id="product_type" name="product_type" style="width: 140px"
+                                   data-options="textField:'name',valueField:'name', required:true,editable:false,"
+                                   url="@Url.Content("~/Items/getItems?what=product_type")" value="@bl.product_type"
+                                    />
                             </td>
                             <td>
                                 成交价(不含税):

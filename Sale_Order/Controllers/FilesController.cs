@@ -12,6 +12,8 @@ using Sale_Order.Models.CCDTTableAdapters;
 using Sale_Order.Models.CMDTTableAdapters;
 using Sale_Order.Utils;
 using Sale_Order.Models.BLDTTableAdapters;
+using System.Web;
+using System.Collections.Generic;
 
 
 namespace TestCRM.Controllers.Sales
@@ -550,6 +552,64 @@ namespace TestCRM.Controllers.Sales
             }
 
         }
+
+        //使用webuploader上传文件
+        [AcceptVerbs(HttpVerbs.Post)]
+        public JsonResult BeginUpload(HttpPostedFileBase file, string sysNum)
+        {
+            try {
+                string folder = SomeUtils.getOrderPath(sysNum);
+                folder = Path.Combine(folder, sysNum);
+                if (!Directory.Exists(folder)) {
+                    Directory.CreateDirectory(folder);
+                }
+                if (db.Sale_HC_fileInfo.Where(f => f.file_name == file.FileName && f.sys_no == sysNum).Count() > 0) {
+                    return Json(new SimpleResultModel() { suc = false, msg = "上传失败：存在同名文件" });
+                }
+                file.SaveAs(Path.Combine(folder, file.FileName));
+            }
+            catch (Exception ex) {
+                return Json(new SimpleResultModel() { suc = false, msg = ex.Message });
+            }
+            return Json(new SimpleResultModel() { suc = true });
+        }
+
+        //删除文件
+        public JsonResult RemoveUploadedFile(string sysNum, string fileName)
+        {
+            try {
+                var uploadFolder = Path.Combine(SomeUtils.getOrderPath(sysNum), sysNum);
+                string fileDirectory = Path.Combine(uploadFolder, fileName);
+                if (System.IO.File.Exists(fileDirectory)) {
+                    System.IO.File.Delete(fileDirectory);
+                }
+            }
+            catch (Exception ex) {
+                return Json(new SimpleResultModel() { suc = false, msg = ex.Message });
+            }
+            return Json(new SimpleResultModel() { suc = true });
+        }
+
+        //下载附件
+        public FileStreamResult DownLoadFile(string sysNum, string fileName)
+        {
+            try {
+                var uploadFolder = Path.Combine(SomeUtils.getOrderPath(sysNum), sysNum);
+                string fileDirectory = Path.Combine(uploadFolder, fileName);
+                if (System.IO.File.Exists(fileDirectory)) {
+                    return File(new FileStream(fileDirectory, FileMode.Open), "application/octet-stream", Server.UrlEncode(fileName));
+                }
+                else {
+                    return null;
+                }
+            }
+            catch {
+                return null;
+            }
+        }
+
+        
+
     }
 
 }

@@ -331,7 +331,9 @@ namespace Sale_Order.Utils
             }
             else {
                 //2018年为j，2019年为k，以此类推
-                prefix += (char)(((int)'J' + (shortYear - 18)) > 'Z' ? 'A' : ((int)'J' + (shortYear - 18)));
+                //prefix += (char)(((int)'J' + (shortYear - 18)) > 'Z' ? 'A' : ((int)'J' + (shortYear - 18)));
+                //2019-01-07,取消字母，改为年份
+                prefix += shortYear;
             }
             var maxRecord = db.SystemNo.Where(sn => sn.bill_type == "YP" && sn.date_string == prefix);
             if (maxRecord.Count() == 0) {
@@ -421,9 +423,9 @@ namespace Sale_Order.Utils
                 case "6":
                     orderType = "退换货申请";
                     break;
-                case "HH":
+                case "HC":
                 case "7":
-                    orderType = "换货申请";
+                    orderType = "华为出货报告处理申请";
                     break;
                 case "CH":
                 case "8":
@@ -2250,6 +2252,20 @@ namespace Sale_Order.Utils
                 {
                     sb.plan_firm_no = tmpCustomer.First().number;
                 }
+                else {
+                    return "方案公司[" + sb.plan_firm_name + "]不存在，保存失败。";
+                }
+            }
+            else {
+                var tmpCustomer = db.getCostomer(sb.plan_firm_no, 1).ToList();
+                if (tmpCustomer.Count() < 1) {
+                    return "方案公司[" + sb.plan_firm_name + "]不存在，保存失败。";
+                }
+                else {
+                    if (!sb.plan_firm_name.Equals(tmpCustomer.First().name)) {
+                        return "方案公司[" + sb.plan_firm_name + "]名称与代码不匹配，保存失败。";
+                    }
+                }
             }
             if (string.IsNullOrEmpty(sb.zz_customer_no))
             {
@@ -2259,12 +2275,34 @@ namespace Sale_Order.Utils
                     sb.zz_customer_no = tmpCustomer.First().number;
                 }
             }
+            else {
+                var tmpCustomer = db.getCostomer(sb.zz_customer_no, 1).ToList();
+                if (tmpCustomer.Count() < 1) {
+                    return "终端客户[" + sb.zz_customer_name + "]不存在，保存失败。";
+                }
+                else {
+                    if (!sb.zz_customer_name.Equals(tmpCustomer.First().name)) {
+                        return "终端客户[" + sb.zz_customer_name + "]名称与代码不匹配，保存失败。";
+                    }
+                }
+            }
             if (string.IsNullOrEmpty(sb.sea_customer_no))
             {
                 var tmpCustomer = db.getCostomer(sb.sea_customer_name, 1).ToList();
                 if (tmpCustomer.Count() > 0)
                 {
                     sb.sea_customer_no = tmpCustomer.First().number;
+                }
+            }
+            else {
+                var tmpCustomer = db.getCostomer(sb.sea_customer_no, 1).ToList();
+                if (tmpCustomer.Count() < 1) {
+                    return "海外客户[" + sb.sea_customer_name + "]不存在，保存失败。";
+                }
+                else {
+                    if (!sb.sea_customer_name.Equals(tmpCustomer.First().name)) {
+                        return "海外客户[" + sb.sea_customer_name + "]名称与代码不匹配，保存失败。";
+                    }
                 }
             }
             if (sb.is_free.Equals("收费"))
@@ -2303,18 +2341,18 @@ namespace Sale_Order.Utils
             {
                 return "购货单位[" + sb.customer_no + "]不存在，保存失败。";
             }
-            if (string.IsNullOrEmpty(sb.plan_firm_no) || db.getCostomer(sb.plan_firm_no, 1).Count() < 1)
-            {
-                return "方案公司[" + sb.plan_firm_name + "]不存在，保存失败。";
-            }
-            if (string.IsNullOrEmpty(sb.zz_customer_no) || db.getCostomer(sb.zz_customer_no, 1).Count() < 1)
-            {
-                return "终端客户[" + sb.zz_customer_name + "]不存在，保存失败。";
-            }
-            if (string.IsNullOrEmpty(sb.sea_customer_no) || db.getCostomer(sb.sea_customer_no, 1).Count() < 1)
-            {
-                return "海外客户[" + sb.sea_customer_name + "]不存在，保存失败。";
-            }
+            //if (string.IsNullOrEmpty(sb.plan_firm_no) || db.getCostomer(sb.plan_firm_no, 1).Count() < 1)
+            //{
+            //    return "方案公司[" + sb.plan_firm_name + "]不存在，保存失败。";
+            //}
+            //if (string.IsNullOrEmpty(sb.zz_customer_no) || db.getCostomer(sb.zz_customer_no, 1).Count() < 1)
+            //{
+            //    return "终端客户[" + sb.zz_customer_name + "]不存在，保存失败。";
+            //}
+            //if (string.IsNullOrEmpty(sb.sea_customer_no) || db.getCostomer(sb.sea_customer_no, 1).Count() < 1)
+            //{
+            //    return "海外客户[" + sb.sea_customer_name + "]不存在，保存失败。";
+            //}
             if (db.getClerk(sb.clerk_no, 1).Count() < 1)
             {
                 return "业务员[" + sb.clerk_no + "]不存在，保存失败。";
@@ -2338,7 +2376,7 @@ namespace Sale_Order.Utils
                     {
                         return "币别为RMB的[购货单位]必须是01开头的";
                     }
-                    if (!sb.sea_customer_no.StartsWith("01.") && !sb.customer_no.StartsWith("04."))
+                    if (!sb.sea_customer_no.StartsWith("01.") && !sb.sea_customer_no.StartsWith("04."))
                     {
                         return "币别为RMB的[海外客户]必须是01开头的";
                     }
@@ -2548,6 +2586,50 @@ namespace Sale_Order.Utils
             return "";
         }
 
+        //保存华为出货报告
+        public string saveHCBill(FormCollection col, int stepVersion, int userId)
+        {
+            if (stepVersion == 0) {
+                Sale_HC hc = new Sale_HC();
+                SetFieldValueToModel(col, hc);
+                hc.user_id = userId;
+                hc.user_name = db.User.SingleOrDefault(s => s.id == userId).real_name;
+
+                var fileInfo = col.Get("fileInfo");
+                List<Sale_HC_fileInfo> infoList = JsonConvert.DeserializeObject<List<Sale_HC_fileInfo>>(fileInfo);
+                if (infoList.Count() == 0) {
+                    return "必须上传出货文件才能保存";
+                }
+                else if (infoList.Count() > 3) {
+                    return "上传的出货文件数量不能大于3";
+                }
+
+                var existedBill = db.Sale_HC.Where(h => h.sys_no == hc.sys_no).ToList();
+                if (existedBill.Count() > 0) {
+                    db.Sale_HC.DeleteAllOnSubmit(existedBill);
+                    db.Sale_HC_fileInfo.DeleteAllOnSubmit(db.Sale_HC_fileInfo.Where(f => f.sys_no == hc.sys_no).ToList());
+                }
+
+                db.Sale_HC.InsertOnSubmit(hc);
+                db.Sale_HC_fileInfo.InsertAllOnSubmit(infoList);
+            }
+            else {
+                var fileInfo = col.Get("fileInfo");
+                List<Sale_HC_fileInfo> infoList = JsonConvert.DeserializeObject<List<Sale_HC_fileInfo>>(fileInfo);
+                if (infoList.Count() == 0) {
+                    return "必须上传出货报告";
+                }
+                db.Sale_HC_fileInfo.InsertAllOnSubmit(infoList);
+            }
+            try {
+                db.SubmitChanges();
+            }
+            catch (Exception ex) {
+                return "保存失败：" + ex.Message;
+            }
+            return "";
+        }
+
         //外销单验证海外客户与办事处的关系
         public string ValidateOverSearCustomerAndAgency(string agencyName, string overseaNumber) {
             //string[] agencyNameArr = new string[] { "上海", "深圳", "北京", "光能", "厦门", "新加坡", "中国市场部", "汕尾本部", "韩国", "杭州" };
@@ -2606,7 +2688,54 @@ namespace Sale_Order.Utils
         public string MyUrlDecoder(string url)
         {
             return url.Replace("(equal)", "=").Replace("(and)", "&").Replace("(slash)", "/").Replace("(ask)", "?");
-        } 
+        }
 
+
+        //获取文件
+        public List<AttachmentModelNew> GetAttachmentInfo(string sysNum)
+        {
+            var list = new List<AttachmentModelNew>();
+            var folder = Path.Combine(SomeUtils.getOrderPath(sysNum), sysNum);
+
+            DirectoryInfo di = new DirectoryInfo(folder);
+            if (di.Exists) {
+                int idx = 0;
+                foreach (FileInfo fi in di.GetFiles()) {
+                    if (fi.Name.EndsWith(".db")) {
+                        continue; //将目录自动生成的thumb.db文件过滤掉
+                    }
+                    list.Add(new AttachmentModelNew()
+                    {
+                        file_id = "f_" + idx++,
+                        file_name = fi.Name,
+                        file_size = Math.Round((decimal)fi.Length / 1024, 1).ToString()
+                    });
+                }
+            }
+            return list;
+        }
+
+        //复制附件到新的目录        
+        public bool CopyFiles(string oldSysNum, string newSysNum)
+        {
+            var oldPath = Path.Combine(SomeUtils.getOrderPath(oldSysNum), oldSysNum);
+            var newPath = Path.Combine(SomeUtils.getOrderPath(newSysNum), newSysNum);
+
+            if (!Directory.Exists(oldPath)) {
+                return false;
+            }
+
+            if (!Directory.Exists(newPath)) {
+                Directory.CreateDirectory(newPath);
+            }
+
+            var oldFiles = System.IO.Directory.GetFiles(oldPath);
+
+            foreach (var oldFile in oldFiles) {
+                System.IO.File.Copy(Path.Combine(oldPath, oldFile), Path.Combine(newPath, System.IO.Path.GetFileName(oldFile)), true);
+            }
+
+            return true;
+        }
     }
 }

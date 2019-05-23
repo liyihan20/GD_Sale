@@ -188,7 +188,7 @@
 {
     <script type="text/javascript">
     $(function () {
-        //保存订单  
+        //保存订单
         $('#saveAllBut').bind('click', function () {
             ///2018-3-20加入的一些规则
             var currency = $("#currency_no").combobox("getText");
@@ -239,8 +239,8 @@
             $.messager.progress();
             $('#order_form').form('submit', {
                 url: '@Url.Content("~/Saler/SalerSaveCCMModelContract")',
-                onSubmit:function(param){
-                    if(!$('#order_form').form('validate')){
+                onSubmit: function (param) {
+                    if (!$('#order_form').form('validate')) {
                         return false;
                     }
                     //国内贸易的必须填写合同编号，且格式是CM年月流水号，比如CM201801001
@@ -255,15 +255,15 @@
                         }
                     }
 
-                    param.customer_name=$("#customer_no").combogrid("getText");
-                    param.zz_customer_name=$('#zz_customer_no').combogrid('getText');
-                    param.plan_firm_name=$('#plan_firm_no').combogrid('getText');
-                    param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
+                    param.customer_name = $("#customer_no").combogrid("getText");
+                    param.zz_customer_name = $('#zz_customer_no').combogrid('getText');
+                    param.plan_firm_name = $('#plan_firm_no').combogrid('getText');
+                    param.oversea_customer_name = $('#oversea_customer_no').combogrid('getText');
                     return true;
                 },
                 success: function (data) {
-                    var result = eval('('+ data +')');
-                    if(result.suc){
+                    var result = eval('(' + data + ')');
+                    if (result.suc) {
                         $.messager.show({
                             title: '@Html.Lang("tip")',
                             msg: "@Html.Lang("suc_save")"
@@ -287,11 +287,19 @@
             $.post("@Url.Content("~/Saler/CheckIsBillExist")", { sysNum: $("#sys_no").val() },
             function (data) {
                 if (data.success) {
-                    $.messager.show({
-                        title: '@Html.Lang("tip")',
-                        msg: "正在提交，请等待跳转。。。"
-                    });
-                    setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyCM?sys_no=")"+$("#sys_no").val();', 2000);
+                    //判断合同编号是否已存在
+                    $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                        { contractNo: $("#contract_po_no").val(), sysNum: $("#sys_no").val(), billType: "CM" }, function (data) {
+                            if (data.suc) {
+                                beginApply();
+                            } else {
+                                $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                                    if (r) {
+                                        beginApply();
+                                    }
+                                });
+                            }
+                        });
                 } else {
                     $("#submitApply").linkbutton('enable');
                     $('#saveAllBut').linkbutton('enable');
@@ -303,6 +311,15 @@
             }, "json");
         });
     });
+
+    function beginApply() {
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在提交，请等待跳转。。。"
+        });
+        setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplyCM?sys_no=")"+$("#sys_no").val();', 2000);
+    }
+
     </script>
 }
 else
@@ -310,31 +327,22 @@ else
     <script type="text/javascript">
         function okClick(){        
             $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
-	            if (r){
-                    $.messager.progress(); 
-                    $('#order_form').form('submit',{
-                        url: '@Url.Content("~/Audit/AuditorSaveCCMModelContract")',
-                        onSubmit: function(param){
-                            param.step="@cmc.step_version";
-                            param.customer_name=$("#customer_no").combogrid("getText");
-                            param.zz_customer_name=$('#zz_customer_no').combogrid('getText');
-                            param.plan_firm_name=$('#plan_firm_no').combogrid('getText');
-                            param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
-                        },
-                        success: function (data) {
-                            var result = eval('('+ data +')');
-                            if(result.suc){
-                                $('#okFlag').val('true');
-                                beginAudit();
-                            }else{
-                                $.messager.progress("close");
-                                $.messager.show({
-                                    title: '@Html.Lang("tip")',
-                                    msg: "@Html.Lang("failure_save"):"+result.msg
+	            if (r){                    
+	                //判断合同编号是否已存在
+                    $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                        { contractNo: $("#contract_po_no").val(), sysNum: $("#sys_no").val(), billType: "CM" }, function (data) {
+                            if (data.suc) {
+                                saveForm();
+                                $.messager.progress();
+                            } else {
+                                $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                                    if (r) {
+                                        saveForm();
+                                        $.messager.progress();
+                                    }
                                 });
-                            }                        
-                        }
-                    }); 
+                            }
+                        });
 	            }
             });
         }
@@ -346,6 +354,32 @@ else
             }
         });
     }
+
+        function saveForm() {
+            $('#order_form').form('submit',{
+                url: '@Url.Content("~/Audit/AuditorSaveCCMModelContract")',
+                onSubmit: function(param){
+                    param.step="@cmc.step_version";
+                    param.customer_name=$("#customer_no").combogrid("getText");
+                    param.zz_customer_name=$('#zz_customer_no').combogrid('getText');
+                    param.plan_firm_name=$('#plan_firm_no').combogrid('getText');
+                    param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
+                },
+                success: function (data) {
+                    var result = eval('('+ data +')');
+                    if(result.suc){
+                        $('#okFlag').val('true');
+                        beginAudit();
+                    }else{
+                        $.messager.progress("close");
+                        $.messager.show({
+                            title: '@Html.Lang("tip")',
+                            msg: "@Html.Lang("failure_save"):"+result.msg
+                        });
+                }                        
+            }
+            }); 
+        }
    
    function beginAudit(){        
         $("#audit_fm").form("submit",{
@@ -496,7 +530,12 @@ else
                                 @Html.Lang("pro_type"):
                             </td>
                             <td>
-                                <input type="text" name="product_type" style="width: 115px" value="@cmc.product_type" readonly="readonly" />
+                                @*<input type="text" name="product_type" style="width: 115px" value="@cmc.product_type" readonly="readonly" />*@
+
+                                <input class="easyui-combobox" id="product_type" name="product_type" style="width: 120px"
+                               data-options="textField:'name',valueField:'name', required:true,editable:false,"
+                               url="@Url.Content("~/Items/getItems?what=product_type")" value="@cmc.product_type"
+                                />
                             </td>
                             <td>
                                 @Html.Lang("model_type"):

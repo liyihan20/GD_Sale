@@ -111,7 +111,16 @@
                     }
                 </ul>
             </li>
-            }            
+            }     
+            @if (Array.IndexOf(powers, Powers.new_HC.ToString()) != -1) {
+                <li>
+                    <span>华为出货报告单</span>
+                    <ul>
+                        <li id="~/Saler/CreateHCBill"><span>新建华为出货报告单</span></li>
+                        <li id="~/Saler/CheckAllOrders?bill_type=7"><span>@Html.Lang("check_add_apply")</span> </li>
+                    </ul>
+                </li>
+            }       
             <li id="~/Audit/CheckAuditList"><span>@Html.Lang("audit_add_apply")</span> </li>
             @if (Array.IndexOf(powers, Powers.ceo_batch_audit.ToString()) != -1) {
                 <li id="~/Authority/CeoBatchAudit"><span>总裁办批量审批</span></li>

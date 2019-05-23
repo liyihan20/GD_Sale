@@ -1,4 +1,4 @@
-﻿<script type="text/javascript">    
+﻿<script type="text/javascript">
     var orderType="@ViewData["orderType"]";
     var orderId = "@ViewData["order_id"]";
     var canCheckBLFile = false;//2018年开始限制只有市场部的人才能查看备料单附件
@@ -9,18 +9,19 @@
                 canCheckBLFile = true;
             }
         }
-        
+
         var url = "@Url.Content("~/Saler/CheckOrderDetail")" + "?id=@ViewData["order_id"]" + "&billType=" + orderType + "&canCheckBLFile="+canCheckBLFile;
 
-        $("#agency_div").layout("panel","center").panel({
-            href:url,
-            onLoad:function(){
-                //加载完之后将生产部门赋值给运作中心的生产部门
-                if($("#new_dep")){
-                    $("#new_dep").combobox("setValue",$("#proc_dep_id").val());
-                }
-            }
-        });
+        $("#billContent").attr("src", url);
+        //$("#agency_div").layout("panel","center").panel({
+        //    href:url,
+        //    onLoad:function(){
+        //        //加载完之后将生产部门赋值给运作中心的生产部门
+        //        if($("#new_dep")){
+        //            $("#new_dep").combobox("setValue",$("#proc_dep_id").val());
+        //        }
+        //    }
+        //});
         getAuditResult();
 
         $('#dlg_selectNext').dialog({
@@ -169,7 +170,7 @@
                 }
             });
         } else {
-                beginAudit(false);
+            beginAudit(false);
         }
     }
 
@@ -184,23 +185,23 @@
         $("#audit_fm").form("submit",{
             url:"@Url.Content("~/Audit/HandleAgencyAudit")",
             success:function(data){
-            $.messager.progress('close');
-            var result=eval("("+data+")");
-            if(result.success){
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: result.msg + ",正在跳转..."
-                });
-                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-            }else{
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: result.msg
-                });
-                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
+                $.messager.progress('close');
+                var result=eval("("+data+")");
+                if(result.success){
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg + ",正在跳转..."
+                    });
+                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                }else{
+                    $.messager.show({
+                        title: '@Html.Lang("tip")',
+                        msg: result.msg
+                    });
+                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
+                }
             }
-        }
-    });
+        });
     }
     //获取审批信息
     function getAuditResult(){
@@ -242,6 +243,8 @@
         </form>
     </div>
     <div data-options="region:'center'">
+        <iframe id="billContent" frameborder="0" style="width:100%;height:100%;padding:0;margin:0;">
+        </iframe>
     </div>
 </div>
 <div id="dlg_No" class="easyui-dialog" style="width: 340px; height: 80px; padding: 10px 5px;" closed="true" title="确认拒绝方式">

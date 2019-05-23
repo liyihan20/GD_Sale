@@ -327,6 +327,9 @@ namespace Sale_Order.Controllers
                 case "PJ":
                     ViewData["order_id"] = db.Project_bills.Where(r => r.sys_no == ap.sys_no).First().id;
                     break;
+                case "HC":
+                    ViewData["order_id"] = db.Sale_HC.SingleOrDefault(h => h.sys_no == ap.sys_no).id;
+                    break;
                 default:
                     return View("Error");
             }
@@ -361,6 +364,8 @@ namespace Sale_Order.Controllers
                     case "PJ":
                         ViewData["bill"] = db.Project_bills.Single(r => r.sys_no == ap.sys_no);
                         return View("ProjectBillEdit");
+                    case "HC":
+                        return RedirectToAction("AuditorModifyHCBill", "Saler", new { apply_id = ap.id, sys_no = ap.sys_no, step = currentStep });
                     default:
                         return View("Error");
                 }
@@ -1549,6 +1554,24 @@ namespace Sale_Order.Controllers
             }
 
             return Json(new { suc = true }, "text/html");
+        }
+
+        //审核人保存华为出货报告
+        public JsonResult AuditorSaveHCBill(FormCollection fc)
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            int step = -1;
+            if (!Int32.TryParse(fc.Get("step"), out step)) {
+                return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
+            }
+
+            string saveResult = utl.saveHCBill(fc, step, userId);
+            if (string.IsNullOrWhiteSpace(saveResult)) {
+                return Json(new { suc = true }, "text/html");
+            }
+            else {
+                return Json(new { suc = false, msg = saveResult }, "text/html");
+            }
         }
 
         public string test()

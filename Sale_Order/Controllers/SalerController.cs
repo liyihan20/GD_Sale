@@ -9,6 +9,7 @@ using Sale_Order.Models;
 using System.Configuration;
 using Sale_Order.Filter;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace Sale_Order.Controllers
 {
@@ -21,6 +22,7 @@ namespace Sale_Order.Controllers
         const string CREATEMODEL = "开模改模单";
         const string SAMPLEBILL = "样品单";
         const string BLBILL = "备料单";
+        const string HCBILL = "华为出货报告";
 
         //uploadify 上传附件
         [AcceptVerbs(HttpVerbs.Post)]
@@ -167,6 +169,8 @@ namespace Sale_Order.Controllers
                     return RedirectToAction("SalerModifyModelContract", new { id = id });
                 case "BL":
                     return RedirectToAction("SalerModifyBLBill", new { id = id });
+                case "HC":
+                    return RedirectToAction("SalerModifyHCBill", new { id = id });
                 default:
                     return View("Error");
 
@@ -219,6 +223,33 @@ namespace Sale_Order.Controllers
                     bl.bill_no = "";
                     ViewData["BL"] = bl;
                     return View("CreateBLBill");
+                case "HC":
+                    Sale_HC hc = db.Sale_HC.Single(h => h.sys_no == sys_no);
+                    hc.bill_date = DateTime.Now;
+                    hc.sys_no = newSysNo;
+                    ViewData["hc"] = hc;
+                    ViewData["step"] = 0;
+                    ViewData["userName"] = hc.user_name;
+
+                    if (utl.CopyFiles(sys_no, newSysNo)) {
+                        var fileInfo = db.Sale_HC_fileInfo.Where(h => h.sys_no == sys_no).ToList();
+                        var fileResult = (from fi in fileInfo
+                                          join at in utl.GetAttachmentInfo(hc.sys_no) on fi.file_name equals at.file_name
+                                          select new AttachmentModelNew()
+                                          {
+                                              file_name = fi.file_name,
+                                              file_id = at.file_id,
+                                              file_size = at.file_size,
+                                              uploader = fi.uploader,
+                                              file_status = "已上传",
+                                          }).Distinct().ToList();
+                        ViewData["fileResult"] = JsonConvert.SerializeObject(fileResult);
+                    }
+                    else {
+                        ViewData["fileResult"] = "[]";
+                    }
+
+                    return View("CreateHCBill");
                 default:
                     return View("Error");
             }
@@ -245,6 +276,9 @@ namespace Sale_Order.Controllers
                     break;
                 case "BL":
                     hasSaved = db.Sale_BL.Where(s => s.sys_no == sysNum).Count() > 0;
+                    break;
+                case "HC":
+                    hasSaved = db.Sale_HC.Where(h => h.sys_no == sysNum).Count() > 0;
                     break;
             }
             return Json(new { success = hasSaved });
@@ -319,10 +353,32 @@ namespace Sale_Order.Controllers
                 case 5:
                     utl.writeEventLog(BLBILL, "查询单据，条件：" + fromDate.ToShortDateString() + "~" + toDate.ToShortDateString() + ";scope:" + result.ToString(), sysNo, Request);
                     return CheckOwnBLBills(sysNo, fromDate, toDate, result);
+                case 7:
+                    utl.writeEventLog(HCBILL, "查询单据，条件：" + fromDate.ToShortDateString() + "~" + toDate.ToShortDateString() + ";scope:" + result.ToString(), sysNo, Request);
+                    return CheckOwnHCBills(sysNo, fromDate, toDate, result);
                 default:
                     return null;
             }
         }
+
+        /// <summary>
+        /// 合同编号是否已使用
+        /// </summary>
+        /// <param name="contractNo">合同号</param>
+        /// <param name="sysNum">流水号</param>
+        /// <param name="billType">单据类型</param>
+        /// <returns></returns>
+        public JsonResult IsContractNoExists(string contractNo, string sysNum, string billType)
+        {
+            try {
+                db.isContractNoExists(billType, contractNo, sysNum);
+            }
+            catch (Exception ex) {
+                return Json(new { suc = false, msg = ex.Message });
+            }
+            return Json(new { suc = true });
+        }
+
 
         #region 销售订单
 
@@ -382,9 +438,9 @@ namespace Sale_Order.Controllers
             getCostomerByIdResult overseaclient = db.getCostomerById(oversea_client_id).First();
             string trade_type = col.Get("trade_type");
             int tradeType = Int32.Parse(trade_type);
-            if (currencyID == 1 && !customer.number.StartsWith("01") && !customer.number.StartsWith("04"))
+            if (currencyID == 1 && customer.number.StartsWith("05"))
             {
-                return Json(new { success = false, msg = "现在的购货单位编号是：" + customer.number + ";内销单的购货客户代码必须是01开头" }, "text/html");
+                return Json(new { success = false, msg = "现在的购货单位编号是：" + customer.number + ";内销单的购货客户代码不能是05开头" }, "text/html");
             }
             if (currencyID != 1 && !customer.name.Contains("香港信利光电有限公司") && customer.number!="02.S001" && customer.number!="02.S002" )
             {
@@ -392,9 +448,9 @@ namespace Sale_Order.Controllers
             }
 
             //验证海外客户 
-            if (currencyID == 1 && !overseaclient.number.StartsWith("01") && !customer.number.StartsWith("04"))
+            if (currencyID == 1 && overseaclient.number.StartsWith("05"))
             {
-                return Json(new { success = false, msg = "现在的海外客户编号是：" + overseaclient.number + ";内销单的海外客户代码必须是01开头" }, "text/html");
+                return Json(new { success = false, msg = "现在的海外客户编号是：" + overseaclient.number + ";内销单的海外客户代码不能是05开头" }, "text/html");
             }
             if (DateTime.Now <= DateTime.Parse("2017-01-01"))
             {
@@ -713,7 +769,9 @@ namespace Sale_Order.Controllers
         public string saveOrderDetails(FormCollection col, Order order, string pro_type)
         {
             int taxRateNum = 17;
-            if (DateTime.Now > DateTime.Parse("2018-05-01")) {
+            if (DateTime.Now > DateTime.Parse("2019-04-01")) {
+                taxRateNum = 13;
+            }else if (DateTime.Now > DateTime.Parse("2018-05-01")) {
                 taxRateNum = 16;
             }
 
@@ -955,11 +1013,14 @@ namespace Sale_Order.Controllers
             var result = (from v in db.VwOrder
                          where v.user_id == userId
                          && v.step_version == 0
-                         && (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
+                         //&& (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
                          && v.sys_no.StartsWith(billType)
                          && v.order_date >= fromDate
                          && v.order_date <= toDate
                          select v).ToList();
+            if (!string.IsNullOrEmpty(sysNo)) {
+                result = result.Where(r => r.sys_no.Contains(sysNo) || r.product_model.Contains(sysNo)).ToList();
+            }
             List<OrderModel> omList = new List<OrderModel>();
             foreach (var res in result.OrderByDescending(r => r.sys_no))
             {
@@ -1207,7 +1268,7 @@ namespace Sale_Order.Controllers
             cmc.User = user;
             cmc.step_version = 0;
             cmc.bill_date = DateTime.Now;
-            cmc.product_type = "CCM";
+            //cmc.product_type = "CCM";
             ViewData["cmc"] = cmc;
 
             utl.writeEventLog(CREATEMODEL, "新建一张CCM开改模单", sys_no, Request);
@@ -1980,6 +2041,216 @@ namespace Sale_Order.Controllers
 
         #endregion
 
+
+        #region 华为出货报告
+
+        [SessionTimeOutFilter()]
+        public ActionResult CreateHCBill()
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            User user = db.User.Single(u => u.id == userId);
+            string sys_no = utl.getSystemNo("HC");
+            var hc = new Sale_HC();
+            hc.sys_no = sys_no;            
+            hc.user_name = user.real_name;
+            hc.bill_date = DateTime.Now;
+
+            ViewData["HC"] = hc;
+            ViewData["step"] = 0;
+            ViewData["userName"] = user.real_name;
+            ViewData["fileResult"] = "[]";
+            utl.writeEventLog(BLBILL, "新建一张华为出货报告", sys_no, Request);
+            return View();
+        }
+
+        public JsonResult SalerSaveHCBill(FormCollection fc)
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+
+            var result = utl.saveHCBill(fc, 0, userId);
+            if (!string.IsNullOrEmpty(result)) {
+                return Json(new SimpleResultModel() { suc = false, msg = result });
+            }
+
+            return Json(new SimpleResultModel() { suc = true });
+        }
+
+        public JsonResult CheckOwnHCBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult)
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            var result = from v in db.Sale_HC
+                         where v.user_id == userId
+                         && (v.sys_no.Contains(sysNo) || v.item_model.Contains(sysNo))
+                         && v.bill_date >= fromDate
+                         && v.bill_date <= toDate
+                         select new
+                         {
+                             id = v.id,
+                             sys_no = v.sys_no,
+                             customer_name = "华为",
+                             product_model = v.item_model,
+                             product_name = v.item_name,
+                             qty = v.item_qty,
+                             deal_price = 0
+                         };
+            List<OrderModel> omList = new List<OrderModel>();
+            foreach (var res in result.OrderByDescending(r => r.sys_no)) {
+                string status = "";
+                var app = db.Apply.Where(a => a.sys_no == res.sys_no);
+                if (app.Count() < 1) {
+                    status = "未开始申请";
+                }
+                else {
+                    var sucFlag = app.First().success;
+                    if (sucFlag == true) {
+                        status = "成功申请";
+                    }
+                    else if (sucFlag == false) {
+                        status = "申请失败";
+                    }
+                    else {
+                        status = "审批当中";
+                    }
+                }
+                omList.Add(new OrderModel()
+                {
+                    bill_id = res.id,
+                    apply_status = status,
+                    buy_unit = res.customer_name,
+                    product_model = res.product_model,
+                    product_name = res.product_name,
+                    qty = (decimal)res.qty,
+                    sys_no = res.sys_no,
+                    deal_price = res.deal_price,
+                    apply_date = app.Count() >= 1 ? ((DateTime)app.First().start_date).ToString("yyyy-MM-dd HH:mm") : ""
+                });
+
+            }
+            if (auditResult == 0) {
+                omList = omList.Where(o => o.apply_status == "审批当中" || o.apply_status == "未开始申请").ToList();
+            }
+            else if (auditResult == 1) {
+                omList = omList.Where(o => o.apply_status == "成功申请").ToList();
+            }
+            else if (auditResult == -1) {
+                omList = omList.Where(o => o.apply_status == "申请失败").ToList();
+            }
+            return Json(omList, "text/html");
+        }
+
+        public ActionResult SalerModifyHCBill(int id)
+        {
+            var hc = db.Sale_HC.Single(s => s.id == id);
+            var fileInfo = db.Sale_HC_fileInfo.Where(h => h.sys_no == hc.sys_no).ToList();
+            var fileResult = (from fi in fileInfo
+                              join at in utl.GetAttachmentInfo(hc.sys_no) on fi.file_name equals at.file_name
+                              select new AttachmentModelNew()
+                              {
+                                  file_name = fi.file_name,
+                                  file_id = at.file_id,
+                                  file_size = at.file_size,
+                                  uploader = fi.uploader,
+                                  file_status = "已上传",
+                              }).Distinct().ToList();
+
+            ViewData["hc"] = hc;
+            ViewData["step"] = 0;
+            ViewData["userName"] = hc.user_name;
+            ViewData["fileResult"] = JsonConvert.SerializeObject(fileResult);
+
+            return View("CreateHCBill");
+        }
+
+        [SessionTimeOutFilter()]
+        public ActionResult BeginApplyHC(string sys_no)
+        {
+            string pre = sys_no.Substring(0, 2);
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            Sale_HC bl = db.Sale_HC.Single(s => s.sys_no == sys_no);
+            string processType = pre;                       
+
+            Apply apply = new Apply();
+            apply.user_id = userId;
+            apply.sys_no = sys_no;
+            apply.start_date = DateTime.Now;
+            apply.ip = Request.UserHostAddress;
+            apply.order_type = pre;
+            apply.p_model = bl.item_model;
+            db.Apply.InsertOnSubmit(apply);
+
+            //2013-7-18:新增一个测试标志，TestFlag为true表示为测试状态，所有审核人都是自己
+            //2013-9-17:新增can_modify字段到ApplyDetails表，表示该审核环节能否修改订单
+            bool testFlag = Boolean.Parse(ConfigurationManager.AppSettings["TestFlag"]);
+            List<ApplyDetails> ads = new List<ApplyDetails>();
+
+            try {
+                if (!testFlag) {
+                    //获取部门id，事业部id，项目组id，报价员id
+                    Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
+                    auditorsDic.Add("华为出货事业部ID", db.Department.Single(d => d.name == bl.dep_name && d.dep_type == "华为出货事业部").dep_no);
+                    ads = utl.getApplySequence(apply, processType, userId, auditorsDic);
+                }
+                else {
+                    ads = utl.getTestApplySequence(apply, processType, userId);
+                }
+            }
+            catch (Exception ex) {
+                ViewBag.tip = ex.Message;
+                utl.writeEventLog("提交申请", "提交失败:" + ex.Message, sys_no, Request, 100);
+                return View("tip");
+            }
+            db.ApplyDetails.InsertAllOnSubmit(ads);
+
+            try {
+                db.SubmitChanges();
+            }
+            catch (Exception e) {
+                utl.writeEventLog("提交申请", "不能重复提交申请", sys_no, Request, 100);
+                ViewBag.tip = e.Message;
+                return View("tip");
+            }
+
+            utl.writeEventLog("提交申请", "成功提交", sys_no, Request);
+            //发送邮件通知下一步的人员
+
+            if (utl.emailToNextAuditor(apply.id)) {
+                return RedirectToAction("CheckAllOrders", new { bill_type = 7 });
+            }
+            else {
+                ViewBag.tip = "订单提交成功，但邮件服务器故障或暂时繁忙，通知邮件发送失败。如果紧急，可以手动发邮件或电话通知下一审核人。";
+                return View("tip");
+            }
+        }
+
+        //审核人进入审核编辑界面
+        public ActionResult AuditorModifyHCBill(int apply_id, string sys_no, int step)
+        {
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            User user = db.User.Single(u => u.id == userId);
+            var hc = db.Sale_HC.Single(s => s.sys_no == sys_no);
+            var fileInfo = db.Sale_HC_fileInfo.Where(h => h.sys_no == hc.sys_no).ToList();
+            var fileResult = (from fi in fileInfo
+                              join at in utl.GetAttachmentInfo(hc.sys_no) on fi.file_name equals at.file_name
+                              select new AttachmentModelNew()
+                              {
+                                  file_name = fi.file_name,
+                                  file_id = at.file_id,
+                                  file_size = at.file_size,
+                                  uploader = fi.uploader,
+                                  file_status = "已上传",
+                              }).Distinct().ToList();
+            
+            ViewData["hc"] = hc;
+            ViewData["applyId"] = apply_id;
+            ViewData["step"] = step;
+            ViewData["userName"] = user.real_name;
+            ViewData["fileResult"] = JsonConvert.SerializeObject(fileResult);
+
+            return View("CreateHCBill");
+        }
+
+        #endregion
+
         //查看所有类型单据详细信息
         [SessionTimeOutFilter()]
         public ActionResult CheckOrderDetail(int id, string billType, bool canCheckBLFile=false)
@@ -2054,6 +2325,24 @@ namespace Sale_Order.Controllers
                     return RedirectToAction("CheckFetchBill", "BadProduct", new { id = id });
                 case "PJ":
                     return RedirectToAction("CheckSingleProjectBill", "Project", new { id = id });
+                case "7":
+                case "HC":
+                    Sale_HC hc = db.Sale_HC.Single(h => h.id == id);
+                    var fileInfo = db.Sale_HC_fileInfo.Where(h => h.sys_no == hc.sys_no).ToList();
+                    var fileResult = (from fi in fileInfo
+                              join at in utl.GetAttachmentInfo(hc.sys_no) on fi.file_name equals at.file_name
+                              select new AttachmentModelNew()
+                              {
+                                  file_name = fi.file_name,
+                                  file_id = at.file_id,
+                                  file_size = at.file_size,
+                                  uploader = fi.uploader,
+                                  file_status = "已上传",
+                              }).Distinct().ToList();
+                    ViewData["hc"] = hc;
+                    ViewData["fileResult"] = JsonConvert.SerializeObject(fileResult);
+                    utl.writeEventLog(HCBILL, "查看华为出货单", hc.sys_no, Request);
+                    return View("CheckHCBill");
             }
             return View("error");
         }
@@ -2091,6 +2380,9 @@ namespace Sale_Order.Controllers
                     break;
                 case "BL":
                     id = db.Sale_BL.Where(s => s.sys_no == ap.sys_no).First().id;
+                    break;
+                case "HC":
+                    id = db.Sale_HC.Where(s => s.sys_no == ap.sys_no).First().id;
                     break;
             }
             if (id == 0)

@@ -342,6 +342,9 @@ namespace Sale_Order.Controllers
                 }
                 user.is_forbit = is_forbit;
                 user.can_check_deps = canCheckDeps;
+                if (is_forbit) {
+                    user.last_login = DateTime.Now;
+                }
                 db.SubmitChanges();
             }
             catch
@@ -843,30 +846,7 @@ namespace Sale_Order.Controllers
             {
                 //通过存储过程获取订单类型，目前只有销售订单，以后有其它单据直接修改存储过程即可
                 string orderType = "";
-                //string model = "";
-
-                //switch (a.order_type)
-                //{
-                //    case "SO":
-                //        //model = db.Order.Where(o => o.sys_no == sys_no).OrderByDescending(o => o.id).First().group1;
-                //        model = db.vwProductInfo.Where(v => v.item_id == db.Order.Where(o => o.sys_no == a.sys_no).OrderByDescending(o => o.id).First().OrderDetail.First().product_id).First().item_model;
-                //        break;
-                //    case "TH":
-                //        model = db.VwReturnBill.Where(v => v.sys_no == a.sys_no).First().product_model;
-                //        break;
-                //    case "SB":
-                //        model = db.SampleBill.Where(s => s.sys_no == a.sys_no).First().product_model;
-                //        break;
-                //    case "CC":
-                //        model = db.CcmModelContract.Where(c => c.sys_no == a.sys_no).First().product_model;
-                //        break;
-                //    case "CM":
-                //        //model = db.ModelContract.Where(m => m.sys_no == a.sys_no).First().product_model;
-                //        break;
-                //    default:
-                //        model = "";
-                //        break;
-                //}
+                
                 db.getOrderTypeBySysNo(a.sys_no, ref orderType);
                 list.Add(new backBills()
                 {

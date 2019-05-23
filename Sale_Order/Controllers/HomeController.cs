@@ -88,12 +88,8 @@ namespace Sale_Order.Controllers
         //    return View("tip");
         //}
 
-        public ActionResult testEmail() {
-            if (MyEmail.SendEmail("This is a test", "liyihan.ic@truly.com.cn"))
-                ViewBag.tip = "ok";
-            else
-                ViewBag.tip = "no...";
-            return View("tip");
+        public bool testEmail(int applyId) {
+            return utl.emailToNextAuditor(applyId);
         }
 
         //删除测试数据

@@ -56,6 +56,11 @@ namespace Sale_Order.Controllers
                     utl.writeEventLog("导出Excel", "BL:" + fromDateStr + "~" + toDatestr, sysNo, Request);
                     exportBLExcel(sysNo, fromDate, toDate, userId);
                     break;
+                case "7":
+                case "HC":
+                    utl.writeEventLog("导出Excel", "HC:" + fromDateStr + "~" + toDatestr, sysNo, Request);
+                    exportHCExcel(sysNo, fromDate, toDate, userId);
+                    break;
             }
 
         }
@@ -443,6 +448,72 @@ namespace Sale_Order.Controllers
                     cells.Add(rowIndex, ++colIndex, d.bd.comment);
                     cells.Add(rowIndex, ++colIndex, d.bd.source);
                 }
+            }
+
+            xls.Send();
+        }
+
+        public void exportHCExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
+        {
+            var myData = (from hc in db.Sale_HC
+                          where (hc.sys_no.Contains(sysNo) || hc.item_model.Contains(sysNo))
+                          && hc.bill_date >= fromDate
+                          && hc.bill_date <= toDate
+                          && hc.user_id == userId
+                          select hc).ToList();
+
+            //列宽：
+            ushort[] colWidth = new ushort[] { 12, 12, 16, 24, 24, 36, 24, 24, 12, 12 };
+
+            //列名：
+            string[] colName = new string[] { "日期", "流水号", "事业部", "信利物料编码", "信利物料名称", "信利物料型号", "华为物料编码", "华为PO单号", "出货数量", "制单人" };
+
+            //設置excel文件名和sheet名
+            XlsDocument xls = new XlsDocument();
+            xls.FileName = string.Format("华为出货报告处理单_{0}.xls", DateTime.Now.ToShortDateString());
+            Worksheet sheet = xls.Workbook.Worksheets.Add("单据信息列表");
+
+            //设置各种样式
+
+            //标题样式
+            XF boldXF = xls.NewXF();
+            boldXF.HorizontalAlignment = HorizontalAlignments.Centered;
+            boldXF.Font.Height = 12 * 20;
+            boldXF.Font.FontName = "宋体";
+            boldXF.Font.Bold = true;
+
+            //设置列宽
+            ColumnInfo col;
+            for (ushort i = 0; i < colWidth.Length; i++) {
+                col = new ColumnInfo(xls, sheet);
+                col.ColumnIndexStart = i;
+                col.ColumnIndexEnd = i;
+                col.Width = (ushort)(colWidth[i] * 256);
+                sheet.AddColumnInfo(col);
+            }
+
+            Cells cells = sheet.Cells;
+            int rowIndex = 1;
+            int colIndex = 1;
+
+            //设置标题
+            foreach (var name in colName) {
+                cells.Add(rowIndex, colIndex++, name, boldXF);
+            }
+            //"日期", "流水号", "事业部", "信利物料编码", "信利物料名称", "信利物料型号", "华为物料编码", "华为PO单号", "出货数量", "制单人"
+            foreach (var d in myData) {
+                colIndex = 1;
+
+                cells.Add(++rowIndex, colIndex, ((DateTime)d.bill_date).ToString("yyyy-MM-dd"));
+                cells.Add(rowIndex, ++colIndex, d.sys_no);
+                cells.Add(rowIndex, ++colIndex, d.dep_name);
+                cells.Add(rowIndex, ++colIndex, d.item_no);
+                cells.Add(rowIndex, ++colIndex, d.item_name);
+                cells.Add(rowIndex, ++colIndex, d.item_model);
+                cells.Add(rowIndex, ++colIndex, d.hw_item_no);
+                cells.Add(rowIndex, ++colIndex, d.hw_po_no);
+                cells.Add(rowIndex, ++colIndex, d.item_qty);
+                cells.Add(rowIndex, ++colIndex, d.user_name);
             }
 
             xls.Send();
@@ -1555,12 +1626,12 @@ namespace Sale_Order.Controllers
             var myData = db.getAuditorBLExcels(ids);
 
             //列宽：
-            ushort[] colWidth = new ushort[] { 16, 12, 16, 32, 12, 24, 18, 16,32,
+            ushort[] colWidth = new ushort[] { 12, 16, 12, 16, 32, 12, 24, 18, 16,32,
                     16, 18,18,18,32,32,28,16,18,18,
                     18,18,16,18};
 
             //列名：
-            string[] colName = new string[] { "流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员","备料项目",
+            string[] colName = new string[] { "审核结果", "流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员","备料项目",
                 "成交价（不含税）","事业部","产品用途","办事处","摘要","物料型号","物料名称","单位","单位用量","标准数量",
                 "订料数量","K3数量","来源","订料员"};
 
@@ -1602,7 +1673,9 @@ namespace Sale_Order.Controllers
                 //"流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员",
                 //"成交价（不含税）","事业部","产品用途","办事处","摘要","物料型号","物料名称","单位","单位用量","标准数量",
                 //"订料数量","K3数量","来源","订料员"
-                cells.Add(++rowIndex, colIndex, d.sys_no);
+
+                cells.Add(++rowIndex, colIndex, d.audit_result == null ? "未提交" : (d.audit_result == 0 ? "审核中" : (d.audit_result == 1 ? "成功" : "失败")));
+                cells.Add(rowIndex, ++colIndex, d.sys_no);
                 cells.Add(rowIndex, ++colIndex, d.bl_date);
                 cells.Add(rowIndex, ++colIndex, d.bill_no);
                 cells.Add(rowIndex, ++colIndex, d.product_model);

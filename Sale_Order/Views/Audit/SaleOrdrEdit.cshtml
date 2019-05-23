@@ -351,8 +351,22 @@
             if(!$('#order_form').form('validate')){
                 return;
             }
-            var customerId = $("#buy_unit").combogrid("getValue");
+            //判断合同编号是否已存在
+            $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                { contractNo: $("#contract_no").val(), sysNum: $("#sys_no").val(), billType: "SO" }, function (data) {
+                    if (data.suc) {
+                        saveOrder(false);
+                    } else {
+                        $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                            if (r) {
+                                saveOrder(false);
+                            }
+                        });
+                    }
+                });
+            @*var customerId = $("#buy_unit").combogrid("getValue");
             var currencyId = $("#currency").combobox("getValue");
+
             $.post("@Url.Content("~/Items/GetCustomerCreditInfo")", { customerId: customerId, currencyId: currencyId }, function (data) {
                 if (data.suc) {
                     saveOrder(false);
@@ -363,7 +377,7 @@
                         }
                     });
                 }
-            });
+            });*@
         });
 
         //不含税单价，含税单价
@@ -372,8 +386,8 @@
                 var tax_rate=$('#tax_rate').numberbox('getValue');
                  $("#unit_price").numberbox({
                     onChange:function(newValue, oldValue){
-                        if(newValue!=""){
-                            $("#Aux_tax_price").numberbox("setValue",newValue * (1+tax_rate/100));
+                        if (newValue != "") {
+                            $("#Aux_tax_price").numberbox("setValue", newValue * (1 + tax_rate / 100));
                         }
                     }
                 });
@@ -552,7 +566,7 @@
                     $.ajax({
                         type: "POST",
                         url: "@Url.Content("~/Items/verifyCostomer2")",
-                        data: "q=" + text.replace(/\&/g,"%26") + "&currency="+currency + "&customer_id="+customer_id,
+                        data: "q=" + encodeURIComponent(text) + "&currency=" + currency + "&customer_id=" + customer_id,
                         async: false,
                         success: function (data) {
                             if (data.success) {

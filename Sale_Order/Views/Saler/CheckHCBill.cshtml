@@ -1,0 +1,132 @@
+﻿@using Sale_Order.Models
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    var hc = ViewData["HC"] as Sale_HC;
+}
+
+<script>
+    $(function () {
+        $("#file_tb").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            idField: 'file_id',
+            data:@Html.Raw(ViewData["fileResult"]),
+            columns: [[
+                        { field: 'file_id', hidden: true },
+                        { field: 'file_name', title: '文件名', width: 320 },
+                        { field: 'file_size', title: '大小(KB)', width: 70 },
+                        { field: 'uploader', title: '上传人', width: 80 },
+                        {
+                            field: 'file_status', title: '状态', width: 160, styler: function (value, row, index) {
+                                if (value == "已上传") {
+                                    return 'color:green;';
+                                } else if (value != "上传中...") {
+                                    return 'color:red;';
+                                }
+
+                            }
+                        }
+            ]],
+            toolbar: [{
+                text: "下载选定文件",
+                iconCls: 'icon-download',
+                handler: function () {
+                    var row = $('#file_tb').datagrid('getSelected');
+                    if (!row) {
+                        tip("请先选择一行再操作");
+                        return;
+                    }
+                    window.open("@Url.Content("~/Files/DownLoadFile?sysNum=")" + "@hc.sys_no" + "&fileName=" + row.file_name);
+                }
+            }]
+        });
+
+        $("#order_div .easyui-textbox").textbox("readonly",true);
+
+    });
+</script>
+
+<div data-options="region:'center'">        
+        <div id="order_div" class="easyui-panel" title="查看华为出货报告处理单" style="width: 840px; padding: 10px;background: #fafafa;">            
+                <div>
+                    @*表头*@
+                    <table border="0" cellpadding="1" cellspacing="3" width="800">            
+                        <tr>
+                            <td>
+                                日期:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@(((DateTime)hc.bill_date).ToString("yyyy-MM-dd"))"/>
+                            </td>
+                            <td>
+                                事业部:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@hc.dep_name" />
+                            </td>
+                            <td>
+                                系统流水号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width:160px" value="@hc.sys_no"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                信利物料编码:
+                            </td>
+                            <td>
+                                <input  class="easyui-textbox" style="width: 160px" value="@hc.item_no" />
+                            </td>
+                            <td>
+                                信利物料名称:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@hc.item_name" />
+                            </td>
+                            <td>
+                                信利物料型号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@hc.item_model" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                华为物料编码:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@hc.hw_item_no" />
+                            </td>
+                            <td>
+                                华为PO单号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@hc.hw_po_no" />
+                            </td>
+                            <td>
+                                出货数量:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width: 160px" value="@hc.item_qty" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                制单人:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" style="width:160px" value="@hc.user_name"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            <br />
+            <div id="detail_div" class="easyui-panel" title="出货文件管理" style="width:800px;height:250px">
+                <table id="file_tb"></table>
+            </div>
+            <br />
+        </div>        
+    </div>

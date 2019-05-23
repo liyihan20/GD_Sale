@@ -1,7 +1,10 @@
 ﻿<script type="text/javascript">
 
     var TAXRATENUM = 17;
-    if (new Date() > new Date(2018, 4, 1)) {
+    if (new Date() > new Date(2019, 3, 1)) {
+        //2019年4月1号开始，将税率由16改为13
+        TAXRATENUM = 13;
+    }else if (new Date() > new Date(2018, 4, 1)) {
         //2018年5月1号开始，将税率由17改为16
         TAXRATENUM = 16;
     }
@@ -200,12 +203,12 @@
                             qty: (detail.qty).toFixed(detail.qty_decimal),
                             quote_no: detail.quote_no,
                             cost: (detail.cost).toFixed(3),
-                            deal_price: (detail.deal_price).toFixed(detail.price_decimal),
+                            deal_price: (detail.unit_price * (1+tax_rate/100)).toFixed(detail.price_decimal),
                             unit_price: (detail.unit_price).toFixed(detail.price_decimal),
                             tax_rate: tax_rate,
                             fee_rate: detail.fee_rate == null ? "" : (detail.fee_rate).toFixed(2),
                             discount_rate: detail.discount_rate == null ? "" : (detail.discount_rate).toFixed(2),
-                            Aux_tax_price: (detail.aux_tax_price).toFixed(detail.price_decimal),
+                            Aux_tax_price: (detail.unit_price * (1 + tax_rate / 100)).toFixed(detail.price_decimal),
                             MU: detail.MU == null ? "" : (detail.MU).toFixed(2),
                             commission: detail.commission == null ? "" : (detail.commission).toFixed(2),
                             commission_rate: detail.commission_rate == null ? "" : (detail.commission_rate).toFixed(2),
@@ -321,7 +324,7 @@
             });
         });
         $("#product_number").combogrid({
-            idField:"id",
+            idField: "id",
             valueField: "id",
             textField: "name",
             panelWidth: 470,
@@ -331,19 +334,19 @@
                     { field: 'name', title: '@Html.Lang("pro_name")', width: 120 },
                     { field: 'model', title: '@Html.Lang("pro_model")', width: 150 },
                     { field: 'unit_name', title: '@Html.Lang("unit")', width: 50 }
-        ]],
-        keyHandler: {
-            query: function () { },
-            enter: function () {
-                var q = $("#product_number").combogrid('getText');
-                if (q != "") {
-                    $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
-                            function (data) {
-                                $("#product_number").combogrid('grid').datagrid('loadData', data);
-                                $("#product_number").combogrid('setText', q);
-                            },
-                            "json"
-                            );
+            ]],
+            keyHandler: {
+                query: function () { },
+                enter: function () {
+                    var q = $("#product_number").combogrid('getText');
+                    if (q != "") {
+                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
+                                function (data) {
+                                    $("#product_number").combogrid('grid').datagrid('loadData', data);
+                                    $("#product_number").combogrid('setText', q);
+                                },
+                                "json"
+                                );
                     }
                 }
             }
@@ -557,11 +560,19 @@
         $.post("@Url.Content("~/Saler/CheckIsBillExist")", { sysNum: $("#sys_no").val() },
         function (data) {
             if (data.success) {
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "正在提交，请等待跳转。。。"
-                });
-                setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplySO?sys_no=")"+$("#sys_no").val();', 2000);
+                //判断合同编号是否已存在
+                $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                    { contractNo: $("#contract_no").val(), sysNum: $("#sys_no").val(), billType: "SO" }, function (data) {
+                        if (data.suc) {
+                            nowApply();
+                        } else {
+                            $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                                if (r) {
+                                    nowApply();
+                                }
+                            });
+                        }
+                    });
             } else {
                 $("#submitApply").linkbutton('enable');
                 $('#saveAllBut').linkbutton('enable');
@@ -571,6 +582,14 @@
                 });
             }
         });
+    }
+
+    function nowApply() {
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在提交，请等待跳转。。。"
+        });
+        setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplySO?sys_no=")"+$("#sys_no").val();', 2000);
     }
 
     //保存订单时各种验证
@@ -610,7 +629,7 @@
                 return false;
             }
         } else {
-            //2018-10-11 05.43.0011  TIANJIN SAMSUNG TELECOM TECHNOLOGY CO LTD  
+            //2018-10-11 05.43.0011  TIANJIN SAMSUNG TELECOM TECHNOLOGY CO LTD
             //这个设置异地报关销售方式不限定为分期收款
 
             if (tradeType.indexOf("异地报关") >= 0 && saleWay != "分期收款销售" && overSeaClient.indexOf("TIANJIN SAMSUNG") < 0) {
@@ -673,10 +692,11 @@
                         $("#" + id).combogrid("setValue", "");
                         return true;
                     }
+                    //text=text.replace(/\&/g, "%26");
                     $.ajax({
                         type: "POST",
                         url: "@Url.Content("~/Items/verifyCostomer2")",
-                        data: "q=" + text.replace(/\&/g, "%26") + "&currency=" + currency + "&customer_id=" + customer_id,
+                        data: "q=" + encodeURIComponent(text) + "&currency=" + currency + "&customer_id=" + customer_id,
                         async: false,
                         success: function (data) {
                             if (data.success) {
