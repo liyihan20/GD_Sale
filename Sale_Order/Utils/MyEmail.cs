@@ -69,7 +69,7 @@ namespace Sale_Order.Utils
             }
             table += string.Format("<tr><td>申请操作:</td><td>{0}</td></tr>", operateType);
             table += string.Format("<tr><td>申请结果:</td><td>{0}</td></tr>", isSuc ? "申请成功" : "申请失败");
-            if (orderType.Equals("开模改模单"))
+            if (orderType.Equals("开改模单"))
             {
                 string url = sys_no.StartsWith("CM") ? utl.MyUrlEncoder("Files/printCMYFReport?sysNo=" + sys_no) : utl.MyUrlEncoder("Files/printCCYFReport?sysNo=" + sys_no);
                 table += string.Format("<tr><td>PDF:</td><td><a href='{0}{1}{2}{3}{4}'>内网点此</a> <a href='{5}{1}{2}{3}{4}'>外网点此</a></td></tr>", webAddress, urlPrefix, url, accountParam, notInnerFrame, outAddress);

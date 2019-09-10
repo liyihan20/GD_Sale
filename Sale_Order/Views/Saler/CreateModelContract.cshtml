@@ -1164,10 +1164,10 @@ else
                 {
                     <br />
                     @*上传文件的*@
-                    @Html.Partial("_UploadFilePartial")
+                    <input type="hidden" value="@cmc.sys_no" id="wu_sysNum" />
+                    @Html.Partial("_UploadFilePartial_wu")
                 }
-                else
-                {
+                else {
                     <div id="downloadPanel">
                         <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
                     title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + cmc.sys_no)">

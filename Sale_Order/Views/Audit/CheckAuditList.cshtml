@@ -87,7 +87,7 @@
         $("#contDiv").css("visibility","visible");
     });
 
-    function ExportSOExcel() {
+    @*function ExportSOExcel() {
         var rows = $("#AuditList").datagrid("getRows");
         if(rows.length==0){
             $.messager.show({
@@ -115,7 +115,7 @@
             }
             //window.location.href="@Url.Content("~/Excels/exportAuditorSOExcel")"+"?ids="+ids;
         }
-    }
+    }*@
 
     function EditOrder() {
         var row = $("#AuditList").datagrid("getSelected");
@@ -325,7 +325,7 @@
         <a href="#" onclick="PrintTHQS()" class="easyui-linkbutton" data-options="iconCls:'icon-document',plain:true"> @Html.Lang("print_returned_report") </a>
     </div>
     <div id="xls_mm" style="width:150px;">
-        <div onclick="ExportSOExcel()" data-options="iconCls:'icon-xls'">@Html.Lang("export_so_excel")</div>
+        <div onclick="ExportAuditorExcel('销售', 'exportAuditorSOExcel')" data-options="iconCls:'icon-xls'">@Html.Lang("export_so_excel")</div>
         <div class="menu-sep"></div>
         <div onclick="ExportAuditorExcel('退换货', 'BeginExportTHExcelByAuditor')" data-options="iconCls:'icon-xls'">@Html.Lang("export_th_excel")</div>
         <div class="menu-sep"></div>
@@ -338,6 +338,6 @@
 </div>
     @Html.Partial("_CheckAuditStatus")
 
-    @Html.Partial("_DownloadAuditorExcelPartial")
+    @*@Html.Partial("_DownloadAuditorExcelPartial")*@
 
     @*@Html.Partial("_DownloadAuditorBLExcelPartial")*@

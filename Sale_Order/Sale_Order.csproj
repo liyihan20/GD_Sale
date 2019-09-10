@@ -46,7 +46,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -255,24 +255,28 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>BL_A4_Report.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Reports\CCYF_A4_Report.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CCYF_A4_Report.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Reports\SBYF_A4_Report.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SBYF_A4_Report.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Reports\SO_A5_Report.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SO_A5_Report.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Reports\SO_free_A5_Report.cs">
       <DependentUpon>SO_free_A5_Report.rpt</DependentUpon>
@@ -291,18 +295,21 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>THQS_A4_Report.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Reports\TH_A4_Report.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TH_A4_Report.rpt</DependentUpon>
       <SubType>Component</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Reports\CMYF_A4_Report.cs">
       <DependentUpon>CMYF_A4_Report.rpt</DependentUpon>
       <AutoGen>True</AutoGen>
       <SubType>Component</SubType>
       <DesignTime>True</DesignTime>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="Utils\MyEmail.cs" />
     <Compile Include="Utils\Utils.cs" />
@@ -455,6 +462,7 @@
     <Content Include="Content\themes\default\images\truly_logo.jpg" />
     <Content Include="Content\themes\default\images\people_base.jpg" />
     <Content Include="Content\themes\icons\pdf.png" />
+    <Content Include="Content\themes\icons\upload.png" />
     <Content Include="Images\tt.jpg" />
     <Content Include="Content\themes\default\images\validatebox_arrows.png" />
     <Content Include="Content\themes\default\images\validatebox_warning.png" />
@@ -651,7 +659,7 @@
     <Content Include="Views\Authority\Users.cshtml" />
     <Content Include="Views\Authority\Groups.cshtml" />
     <Content Include="Views\Shared\_UserTreePartial.cshtml" />
-    <Content Include="Views\Saler\CreateSaleOrder.cshtml" />
+    <Content Include="Views\Saler\CreateSaleOrder_old.cshtml" />
     <Content Include="Views\Shared\Main.cshtml" />
     <Content Include="Views\Saler\CheckAllOrders.cshtml" />
     <Content Include="Views\Saler\CheckSaleOrder.cshtml" />
@@ -757,6 +765,7 @@
     <Content Include="Views\Audit\EditReturnBillQty.cshtml" />
     <Content Include="Views\Authority\UploadQualityReport.cshtml" />
     <Content Include="Views\Shared\Redirect.cshtml" />
+    <None Include="Properties\PublishProfiles\90.77.pubxml" />
     <None Include="Properties\PublishProfiles\配置文件1.pubxml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Authority\ModifyBillNo.cshtml" />
@@ -788,6 +797,8 @@
     <Content Include="Views\Saler\CreateHCBill.cshtml" />
     <Content Include="Views\Shared\_LayoutNew.cshtml" />
     <Content Include="Views\Saler\CheckHCBill.cshtml" />
+    <Content Include="Views\Saler\CreateSaleOrder.cshtml" />
+    <Content Include="Views\Saler\CheckSaleOrder_old.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">
@@ -797,26 +808,32 @@
     <Content Include="Reports\THQS_A4_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>THQS_A4_Report.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Reports\TH_A4_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>TH_A4_Report.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Reports\CCYF_A4_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>CCYF_A4_Report.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Reports\BL_A4_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>BL_A4_Report.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="Reports\SBYF_A4_Report.rpt">
+    <Content Include="Reports\SBYF_A4_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>SBYF_A4_Report.cs</LastGenOutput>
-    </EmbeddedResource>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Reports\CMYF_A4_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>CMYF_A4_Report.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="Models\SaleDB.dbml.layout">
       <DependentUpon>SaleDB.dbml</DependentUpon>
@@ -832,6 +849,7 @@
     <Content Include="Reports\SO_A5_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>SO_A5_Report.cs</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Reports\SO_free_A5_Report.rpt">
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>

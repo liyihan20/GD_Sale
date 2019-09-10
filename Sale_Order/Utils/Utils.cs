@@ -222,9 +222,9 @@ namespace Sale_Order.Utils
             string marketValue = "/";
             string agencyName = db.User.Single(u => u.id == userId).Department1.name;
             string[] marketNameArr = new string[] { "中国市场部一部", "中国市场部二部", "中国市场部三部", "中国市场部四部", "中国市场部五部", "中国市场部六部",
-                "中国市场部七部","中国市场部八部","中国市场部九部","中国市场部十部", "LCD Panle市场部A组", "LCD Panle市场部B组", "LCD Panle市场部C组", "新加坡", "华诚创", "光能", "杭州" };
+                "中国市场部七部","中国市场部八部","中国市场部九部","中国市场部十部", "中国市场部十一部", "中国市场部十二部", "新加坡", "华诚创", "光能", "杭州" };
             string[] marketValueArr = new string[] { "1","2","3","4","5","6",
-                "7","8","9","10","PA","PB","PC","XJP","HCC","GN","HZ" };
+                "7","8","9","10","11","12","XJP","HCC","GN","HZ" };
 
             for (var i = 0; i < marketNameArr.Length; i++) {
                 if (agencyName.Contains(marketNameArr[i])) {
@@ -264,14 +264,11 @@ namespace Sale_Order.Utils
                     case "中国市场部十部":
                         marketValue = "10";
                         break;
-                    case "LCD Panle市场部A组":
-                        marketValue = "PA";
+                    case "中国市场部十一部":
+                        marketValue = "11";
                         break;
-                    case "LCD Panle市场部B组":
-                        marketValue = "PB";
-                        break;
-                    case "LCD Panle市场部C组":
-                        marketValue = "PC";
+                    case "中国市场部十二部":
+                        marketValue = "12";
                         break;
                     case "新加坡市场部":
                         marketValue = "XJP";
@@ -307,7 +304,6 @@ namespace Sale_Order.Utils
                 prefix += string.Format("{0:0000}", firstRecord.max_num);
             }
             db.SubmitChanges();
-
 
             return busDepName.Contains("客服") ? prefix + "KF" : prefix;
         }
@@ -390,54 +386,6 @@ namespace Sale_Order.Utils
             }
             return pro.First().ProcessDetail.Where(pd => pd.step == step).First().step_name;
         }
-        
-        public string getOrderType(int? typ) {            
-            return getBillType(typ.ToString());
-        }
-        public string getBillType(string typ)
-        {
-            string orderType = "";
-            if (typ.Length < 2) return "";
-            switch (typ.Substring(0,2))
-            {
-                case "SO":
-                case "1":
-                    orderType = "销售订单";
-                    break;
-                case "CC":
-                    orderType = "CCM开改模单";
-                    break;
-                case "CM":
-                case "3":
-                    orderType = "开模改模单";
-                    break;
-                case "SB":
-                case "4":
-                    orderType = "样品单";
-                    break;
-                case "BL":
-                case "5":
-                    orderType = "备料单";
-                    break;
-                case "TH":
-                case "6":
-                    orderType = "退换货申请";
-                    break;
-                case "HC":
-                case "7":
-                    orderType = "华为出货报告处理申请";
-                    break;
-                case "CH":
-                case "8":
-                    orderType = "出货申请";
-                    break;
-                case "PJ":
-                case "9":
-                    orderType = "客户立项";
-                    break;
-            }
-            return orderType;
-        }
 
         //获取佣金率
         public double? GetCommissionRate(string proType, double? MU)
@@ -508,10 +456,11 @@ namespace Sale_Order.Utils
                 return true;
 
             Apply app = db.Apply.Single(ap => ap.id == applyId);
+            var billType = db.Sale_BillTypeName.Where(t => t.p_type == app.order_type).FirstOrDefault();
             User saler = app.User;
             string sysNo = app.sys_no;
             string operateType = "新增";
-            string orderType = getBillType(app.order_type);
+            string orderType = billType == null ? "" : billType.p_name;
             string orderNo = null;
 
             if (app.success != null)
@@ -582,123 +531,17 @@ namespace Sale_Order.Utils
                 return MyEmail.SendToNext(sysNo, saler.real_name,saler.Department1.name, nextEmails, orderType, operateType, stepName,returnUrl);
             }
         }
-        //public bool EmailToNextPeople(int applyId) {
-        //    Apply app = db.Apply.Single(ap => ap.id == applyId);
-        //    User saler = app.User;
-        //    string sysNo = "";
-        //    string orderType = "";
-        //    string operateType = "新增";
-        //    switch (app.order_type) { 
-        //        case "SO": //销售订单 OrderTp->Order
-        //            sysNo = app.Order.sys_no;
-        //            orderType = "销售订单";
-        //            break;
-        //        case "CS": //收费样品单
-        //            sysNo = app.Order.sys_no;
-        //            orderType = "收费样品单";
-        //            break;
-        //        case "MB": //维修单
-        //            sysNo = app.ContractTp.sys_no;
-        //            orderType = "维修单";
-        //            break;
-        //        case "CM": //开模改模单
-        //            sysNo = app.ModelContract.sys_no;
-        //            orderType = "开模改模单";
-        //            break;
-        //        case "FS": //免费样品单
-        //            sysNo = app.ModelContract.sys_no;
-        //            orderType = "免费样品单";
-        //            break;
-        //    }
-        //    if (app.success == false)
-        //    {
-        //        return MyEmail.SendBackToSaler(false, sysNo, saler.email,orderType,operateType);
-        //    }
-        //    else if (app.success == true) {
-        //        return MyEmail.SendBackToSaler(true, sysNo, saler.email, orderType, operateType);
-        //    }
-        //    else
-        //    {
-        //        int detailCount = app.ApplyDetails.Count();
-        //        int step = detailCount;
-        //        if (step > 4)
-        //            return false;
-        //        var chars = saler.Department1.Charger.Where(c => c.step == step);
-        //        if (chars.Count() < 1)
-        //            return false;
-        //        string nextEmails = "";
-        //        foreach (Charger ch in chars) {
-        //            if (!string.IsNullOrEmpty(nextEmails))
-        //                nextEmails += ",";//多收件人要用逗号隔开，MSDN的文档写的是分号...
-        //            nextEmails += ch.User.email;
-        //        }
-        //        return MyEmail.SendToNext(sysNo, saler.real_name,"", nextEmails,orderType,operateType,"","");
-        //    }
-        //}
-
-        //发送邮件通知下一审批环节负责人
-        //public bool EmailToNextPeopleUpdate(int updateId,string operate_type)
-        //{
-        //    SaleUpdateApply app = db.SaleUpdateApply.Single(s => s.id == updateId);
-        //    string billNo = app.bill_no;
-        //    User saler = app.User;
-        //    string orderType="";
-        //    string operateType = operate_type.Equals("M") ? "变更" : "取消";
-        //    switch (app.bill_type) { 
-        //        case "SO":
-        //            orderType = "销售订单";
-        //            break;
-        //        case "MB":
-        //            orderType = "维修单";
-        //            break;
-        //        case "CM":
-        //            orderType = "开模改模单";
-        //            break;
-        //        case "FS":
-        //            orderType = "免费样品单";
-        //            break;
-        //        case "CS":
-        //            orderType = "收费样品单";
-        //            break;
-        //    }
-        //    if (app.UpdateAudit.Where(ad => ad.pass == false).Count() > 0)
-        //    {
-        //        return MyEmail.SendBackToSaler(false, billNo, saler.email, orderType, operateType);
-        //    }
-        //    else if (app.success == true)
-        //    {
-        //        return MyEmail.SendBackToSaler(true, billNo, saler.email, orderType, operateType);
-        //    }
-        //    else
-        //    {
-        //        int detailCount = app.UpdateAudit.Count();
-        //        int step = detailCount;
-        //        if (step > 4)
-        //            return false;
-        //        var chars = saler.Department1.Charger.Where(c => c.step == step);
-        //        if (chars.Count() < 1)
-        //            return false;
-        //        string nextEmails = "";
-        //        foreach (Charger ch in chars)
-        //        {
-        //            if (!string.IsNullOrEmpty(nextEmails))
-        //                nextEmails += ",";//多收件人要用逗号隔开，MSDN的文档写的是分号...
-        //            nextEmails += ch.User.email;
-        //        }
-        //        return MyEmail.SendToNextUpdate(billNo, saler.real_name, nextEmails,orderType,operateType);
-        //    }
-        //}
-
-        //发送挂起的通知邮件
+        
         public bool emailForBlock(int applyId, int auditor_id, string reason) {
             bool sendEmail = bool.Parse(ConfigurationManager.AppSettings["SendEmail"]);
             if (!sendEmail)
                 return true;
             Apply app = db.Apply.Single(ap => ap.id == applyId);
+            var billType = db.Sale_BillTypeName.Where(t => t.p_type == app.order_type).FirstOrDefault();
             User saler = app.User;
             string sysNo = app.sys_no;
             string operateType = "新增";
-            string orderType = getBillType(app.order_type);
+            string orderType = billType == null ? "" : billType.p_name;
             User auditor = db.User.Single(a => a.id == auditor_id);
             return MyEmail.SendBackToSalerForBlock(sysNo, saler.email, orderType, operateType, auditor.real_name, reason,app.p_model);
         }
@@ -712,11 +555,12 @@ namespace Sale_Order.Utils
 
 
             Apply app = db.Apply.Single(ap => ap.id == applyId);
+            var billType = db.Sale_BillTypeName.Where(t => t.p_type == app.order_type).FirstOrDefault();
 
             var previousAuditors = app.ApplyDetails.Where(p => p.step == previousStep);
             string sysNo = app.sys_no;
             string operateType = "新增";
-            string orderType = getBillType(app.order_type);
+            string orderType = billType == null ? "" : billType.p_name;
 
             string nextEmails = "";
             foreach (ApplyDetails ad in previousAuditors)
@@ -792,8 +636,8 @@ namespace Sale_Order.Utils
         public string CreateValidateNumber(int length)
         {
             //去掉数字0和字母o，因为不容易区分
-            string Vchar = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p" +
-            ",q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q" +
+            string Vchar = "2,3,4,5,6,7,8,9,a,b,c,d,e,f,g,h,j,k,m,n,p" +
+            ",q,r,s,t,u,v,w,x,y,z,A,B,C,D,E,F,G,H,J,K,L,M,N,P,Q" +
             ",R,S,T,U,V,W,X,Y,Z";
 
             string[] VcArray = Vchar.Split(new Char[] { ',' });//拆分成数组
@@ -810,7 +654,7 @@ namespace Sale_Order.Utils
                     rand = new Random(i * temp * unchecked((int)DateTime.Now.Ticks));
                 }
 
-                int t = rand.Next(61);
+                int t = rand.Next(VcArray.Count());
                 if (temp != -1 && temp == t)
                 {
                     return CreateValidateNumber(length);
@@ -874,59 +718,59 @@ namespace Sale_Order.Utils
         }
 
         //update so 订单，字段名称转化方法，返回字符串
-        public string parseSoSegment(List<UpdateInfos> uis,string bill_no) {
-            string result = "";
-            StringBuilder sb = null;
-            var uis_0 = uis.Where(u => u.entry_id == null).ToList();
-            var uis_1 = uis.Where(u => u.entry_id != null).ToList();
-            //var exchange_rate = db.vwK3SaleOrder.Where(v => v.bill_no == bill_no).First().exchange_rate;
-            //表体拼凑语句
-            if (uis_1.Count() > 0)
-            {
-                sb = new StringBuilder("update ");
-                sb.Append(ConfigurationManager.AppSettings["DbPath"]);
-                sb.Append("SEOrderEntry set ");
-                for (var i = 0; i < uis_1.Count(); i++)
-                {
-                    if (i == 0)
-                    {
-                        sb.Append(translateSoValue(uis_1[i].ename, uis_1[i].after_value));
-                    }
-                    else
-                    {
-                        sb.Append("," + translateSoValue(uis_1[i].ename, uis_1[i].after_value));
-                    }
-                }
-                sb.Append(" where FEntryId =" + uis_1.First().entry_id
-                    + " and FInterId in (select FInterId from " + ConfigurationManager.AppSettings["DbPath"]
-                    + "SEOrder where FBIllNo='" + bill_no + "');");
+        //public string parseSoSegment(List<UpdateInfos> uis,string bill_no) {
+        //    string result = "";
+        //    StringBuilder sb = null;
+        //    var uis_0 = uis.Where(u => u.entry_id == null).ToList();
+        //    var uis_1 = uis.Where(u => u.entry_id != null).ToList();
+        //    //var exchange_rate = db.vwK3SaleOrder.Where(v => v.bill_no == bill_no).First().exchange_rate;
+        //    //表体拼凑语句
+        //    if (uis_1.Count() > 0)
+        //    {
+        //        sb = new StringBuilder("update ");
+        //        sb.Append(ConfigurationManager.AppSettings["DbPath"]);
+        //        sb.Append("SEOrderEntry set ");
+        //        for (var i = 0; i < uis_1.Count(); i++)
+        //        {
+        //            if (i == 0)
+        //            {
+        //                sb.Append(translateSoValue(uis_1[i].ename, uis_1[i].after_value));
+        //            }
+        //            else
+        //            {
+        //                sb.Append("," + translateSoValue(uis_1[i].ename, uis_1[i].after_value));
+        //            }
+        //        }
+        //        sb.Append(" where FEntryId =" + uis_1.First().entry_id
+        //            + " and FInterId in (select FInterId from " + ConfigurationManager.AppSettings["DbPath"]
+        //            + "SEOrder where FBIllNo='" + bill_no + "');");
 
-                result += sb.ToString();
-                sb = null;
-            }
-            //表头update拼凑语句            
-            if (uis_0.Count() > 0)
-            {
-                sb = new StringBuilder("update ");
-                sb.Append(ConfigurationManager.AppSettings["DbPath"]);
-                sb.Append("SEOrder set ");
-                for (var i = 0; i < uis_0.Count(); i++)
-                {
-                    if (i == 0)
-                    {
-                        sb.Append(translateSoValue(uis_0[i].ename, uis_0[i].after_value));
-                    }
-                    else
-                    {
-                        sb.Append("," + translateSoValue(uis_0[i].ename, uis_0[i].after_value));
-                    }
-                }
-                sb.Append(" where FBillNo = '" + bill_no + "';");
-                result += sb.ToString();
-                sb = null;
-            }
-            return result;
-        }
+        //        result += sb.ToString();
+        //        sb = null;
+        //    }
+        //    //表头update拼凑语句            
+        //    if (uis_0.Count() > 0)
+        //    {
+        //        sb = new StringBuilder("update ");
+        //        sb.Append(ConfigurationManager.AppSettings["DbPath"]);
+        //        sb.Append("SEOrder set ");
+        //        for (var i = 0; i < uis_0.Count(); i++)
+        //        {
+        //            if (i == 0)
+        //            {
+        //                sb.Append(translateSoValue(uis_0[i].ename, uis_0[i].after_value));
+        //            }
+        //            else
+        //            {
+        //                sb.Append("," + translateSoValue(uis_0[i].ename, uis_0[i].after_value));
+        //            }
+        //        }
+        //        sb.Append(" where FBillNo = '" + bill_no + "';");
+        //        result += sb.ToString();
+        //        sb = null;
+        //    }
+        //    return result;
+        //}
 
         //转换so字段的值
         public string translateSoValue(string key,string value) {
@@ -976,123 +820,123 @@ namespace Sale_Order.Utils
         }
 
         //update 修理单，字段名称转化方法，返回字符串
-        public string parseMBSegment(List<UpdateInfos> uis, string bill_no)
-        {
-            string result = "";
-            string dbName = ConfigurationManager.AppSettings["DbPath"];
-            StringBuilder sb = null;
-            var uis_0 = uis.Where(u => u.entry_id == null).ToList();
-            var uis_1 = uis.Where(u => u.entry_id != null).ToList();
-            //var exchange_rate = db.vwK3SaleOrder.Where(v => v.bill_no == bill_no).First().exchange_rate;
-            //表头update拼凑语句            
-            if (uis_0.Count() > 0)
-            {
-                sb = new StringBuilder("update ");
-                sb.Append(dbName);
-                sb.Append("t_RPContract set ");
-                for (var i = 0; i < uis_0.Count(); i++)
-                {
-                    if (i == 0)
-                    {
-                        sb.Append(translateMBValue(uis_0[i].ename, uis_0[i].after_value));
-                    }
-                    else
-                    {
-                        sb.Append("," + translateMBValue(uis_0[i].ename, uis_0[i].after_value));
-                    }
-                }
-                sb.Append(" where FContractNo = '" + bill_no + "';");
-                result += sb.ToString();
-                sb = null;
-            }
-            //表体拼凑语句
-            if (uis_1.Count() > 0)
-            {
-                result += "update t1 set t1.FAmount = t2.FTotalAmount,t1.FAmountFor = t2.FTotalAmountFor from " +
-                    dbName + "t_RPContractScheme t1 left join " + dbName +
-                    "t_RPContract t2 on t1.FContractID = t2.FContractID where t2.FContractNo = '" + bill_no + "'; ";
-                sb = new StringBuilder("update ");
-                sb.Append(dbName);
-                sb.Append("t_RPContractEntry set ");
-                for (var i = 0; i < uis_1.Count(); i++)
-                {
-                    if (i == 0)
-                    {
-                        sb.Append(translateMBValue(uis_1[i].ename, uis_1[i].after_value));
-                    }
-                    else
-                    {
-                        sb.Append("," + translateMBValue(uis_1[i].ename, uis_1[i].after_value));
-                    }
-                }
-                sb.Append(" where FIndex = " + uis_1.First().entry_id
-                    + " and FContractID in (select FContractID from " + dbName
-                    + "t_RPContract where FContractNo='" + bill_no + "');");
+        //public string parseMBSegment(List<UpdateInfos> uis, string bill_no)
+        //{
+        //    string result = "";
+        //    string dbName = ConfigurationManager.AppSettings["DbPath"];
+        //    StringBuilder sb = null;
+        //    var uis_0 = uis.Where(u => u.entry_id == null).ToList();
+        //    var uis_1 = uis.Where(u => u.entry_id != null).ToList();
+        //    //var exchange_rate = db.vwK3SaleOrder.Where(v => v.bill_no == bill_no).First().exchange_rate;
+        //    //表头update拼凑语句            
+        //    if (uis_0.Count() > 0)
+        //    {
+        //        sb = new StringBuilder("update ");
+        //        sb.Append(dbName);
+        //        sb.Append("t_RPContract set ");
+        //        for (var i = 0; i < uis_0.Count(); i++)
+        //        {
+        //            if (i == 0)
+        //            {
+        //                sb.Append(translateMBValue(uis_0[i].ename, uis_0[i].after_value));
+        //            }
+        //            else
+        //            {
+        //                sb.Append("," + translateMBValue(uis_0[i].ename, uis_0[i].after_value));
+        //            }
+        //        }
+        //        sb.Append(" where FContractNo = '" + bill_no + "';");
+        //        result += sb.ToString();
+        //        sb = null;
+        //    }
+        //    //表体拼凑语句
+        //    if (uis_1.Count() > 0)
+        //    {
+        //        result += "update t1 set t1.FAmount = t2.FTotalAmount,t1.FAmountFor = t2.FTotalAmountFor from " +
+        //            dbName + "t_RPContractScheme t1 left join " + dbName +
+        //            "t_RPContract t2 on t1.FContractID = t2.FContractID where t2.FContractNo = '" + bill_no + "'; ";
+        //        sb = new StringBuilder("update ");
+        //        sb.Append(dbName);
+        //        sb.Append("t_RPContractEntry set ");
+        //        for (var i = 0; i < uis_1.Count(); i++)
+        //        {
+        //            if (i == 0)
+        //            {
+        //                sb.Append(translateMBValue(uis_1[i].ename, uis_1[i].after_value));
+        //            }
+        //            else
+        //            {
+        //                sb.Append("," + translateMBValue(uis_1[i].ename, uis_1[i].after_value));
+        //            }
+        //        }
+        //        sb.Append(" where FIndex = " + uis_1.First().entry_id
+        //            + " and FContractID in (select FContractID from " + dbName
+        //            + "t_RPContract where FContractNo='" + bill_no + "');");
 
-                result += sb.ToString();
-                sb = null;
-            }
+        //        result += sb.ToString();
+        //        sb = null;
+        //    }
             
-            return result;
-        }
+        //    return result;
+        //}
 
         //update 开模改模单，字段名称转化方法，返回字符串
-        public string parseCMSegment(List<UpdateInfos> uis, string bill_no)
-        {
-            string result = "";
-            string dbName = ConfigurationManager.AppSettings["DbPath"];
-            StringBuilder sb = null;
-            var uis_0 = uis.Where(u => u.entry_id == null).ToList();
-            var uis_1 = uis.Where(u => u.entry_id != null).ToList();
-            //var exchange_rate = db.vwK3SaleOrder.Where(v => v.bill_no == bill_no).First().exchange_rate;
-            //表头update拼凑语句            
-            if (uis_0.Count() > 0)
-            {
-                sb = new StringBuilder("update ");
-                sb.Append(dbName);
-                sb.Append("t_BOSContract set ");
-                for (var i = 0; i < uis_0.Count(); i++)
-                {
-                    if (i == 0)
-                    {
-                        sb.Append(translateCMValue(uis_0[i].ename, uis_0[i].after_value));
-                    }
-                    else
-                    {
-                        sb.Append("," + translateCMValue(uis_0[i].ename, uis_0[i].after_value));
-                    }
-                }
-                sb.Append(" where FContractNo = '" + bill_no + "';");
-                result += sb.ToString();
-                sb = null;
-            }
-            //表体拼凑语句
-            if (uis_1.Count() > 0)
-            {
-                sb = new StringBuilder("update ");
-                sb.Append(dbName);
-                sb.Append("t_BOSContractEntry1 set ");
-                for (var i = 0; i < uis_1.Count(); i++)
-                {
-                    if (i == 0)
-                    {
-                        sb.Append(translateCMValue(uis_1[i].ename, uis_1[i].after_value));
-                    }
-                    else
-                    {
-                        sb.Append("," + translateCMValue(uis_1[i].ename, uis_1[i].after_value));
-                    }
-                }
-                sb.Append(" where FIndex = " + uis_1.First().entry_id
-                    + " and FID in (select FID from " + dbName
-                    + "t_BOSContract where FContractNo='" + bill_no + "');");
+        //public string parseCMSegment(List<UpdateInfos> uis, string bill_no)
+        //{
+        //    string result = "";
+        //    string dbName = ConfigurationManager.AppSettings["DbPath"];
+        //    StringBuilder sb = null;
+        //    var uis_0 = uis.Where(u => u.entry_id == null).ToList();
+        //    var uis_1 = uis.Where(u => u.entry_id != null).ToList();
+        //    //var exchange_rate = db.vwK3SaleOrder.Where(v => v.bill_no == bill_no).First().exchange_rate;
+        //    //表头update拼凑语句            
+        //    if (uis_0.Count() > 0)
+        //    {
+        //        sb = new StringBuilder("update ");
+        //        sb.Append(dbName);
+        //        sb.Append("t_BOSContract set ");
+        //        for (var i = 0; i < uis_0.Count(); i++)
+        //        {
+        //            if (i == 0)
+        //            {
+        //                sb.Append(translateCMValue(uis_0[i].ename, uis_0[i].after_value));
+        //            }
+        //            else
+        //            {
+        //                sb.Append("," + translateCMValue(uis_0[i].ename, uis_0[i].after_value));
+        //            }
+        //        }
+        //        sb.Append(" where FContractNo = '" + bill_no + "';");
+        //        result += sb.ToString();
+        //        sb = null;
+        //    }
+        //    //表体拼凑语句
+        //    if (uis_1.Count() > 0)
+        //    {
+        //        sb = new StringBuilder("update ");
+        //        sb.Append(dbName);
+        //        sb.Append("t_BOSContractEntry1 set ");
+        //        for (var i = 0; i < uis_1.Count(); i++)
+        //        {
+        //            if (i == 0)
+        //            {
+        //                sb.Append(translateCMValue(uis_1[i].ename, uis_1[i].after_value));
+        //            }
+        //            else
+        //            {
+        //                sb.Append("," + translateCMValue(uis_1[i].ename, uis_1[i].after_value));
+        //            }
+        //        }
+        //        sb.Append(" where FIndex = " + uis_1.First().entry_id
+        //            + " and FID in (select FID from " + dbName
+        //            + "t_BOSContract where FContractNo='" + bill_no + "');");
 
-                result += sb.ToString();
-                sb = null;
-            }
+        //        result += sb.ToString();
+        //        sb = null;
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         //转换修理单字段的值
         public string translateMBValue(string key, string value)
@@ -1356,13 +1200,7 @@ namespace Sale_Order.Utils
             }
             return resultStr;
         }
-
-        //获取订单的内容类型
-        public string getContantType(string sysNo) {
-            string result = "";
-            db.getOrderTypeBySysNo(sysNo, ref result);
-            return result;
-        }
+        
 
         //根据流程代码以及其他信息获得审核序列
         public List<ApplyDetails> getApplySequence(Apply ap, string processType, int? applierId = null, int? departmentId = null, int? produceDepartmentId = null) {

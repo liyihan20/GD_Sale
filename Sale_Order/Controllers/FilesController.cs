@@ -229,8 +229,8 @@ namespace TestCRM.Controllers.Sales
 
             utl.writeEventLog(model, "导出样品单报表", sysNo, Request, 0);
 
-            try
-            {
+            //try
+            //{
                 //int id = db.SampleBill.Single(s => s.sys_no == sysNo).id;
                 Stream stream = null;
                 using (ReportClass rptH = new ReportClass())
@@ -286,13 +286,13 @@ namespace TestCRM.Controllers.Sales
                 }
                 return File(stream, "application/pdf");
                 //return File(stream, "application/word");
-            }
-            catch (Exception ex)
-            {
-                utl.writeEventLog(model, "导出开改模报表出错", sysNo, Request, 0);
-                ViewBag.tip = "打印出错：" + ex.Message;
-                return View("Tip");
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    utl.writeEventLog(model, "导出开改模报表出错", sysNo, Request, 0);
+            //    ViewBag.tip = "打印出错：" + ex.Message;
+            //    return View("Tip");
+            //}
 
         }
 

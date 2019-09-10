@@ -1537,11 +1537,11 @@
     <comment>使用有否不足之处</comment>
   </data>
   <data name="clerk3" xml:space="preserve">
-    <value>业务员三</value>
+    <value>业务员3</value>
     <comment>业务员三</comment>
   </data>
   <data name="percent3" xml:space="preserve">
-    <value>比例三</value>
+    <value>比例3</value>
     <comment>比例三</comment>
   </data>
   <data name="create_sample_bill" xml:space="preserve">

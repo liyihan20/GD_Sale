@@ -156,7 +156,7 @@
     }
 
     function submitForm(){
-        if (orderType == "SO") {
+        @*if (orderType == "SO") {
             //验证客户信用额度 2018-2-27
             $.post("@Url.Content("~/Items/GetCustomerCreditInfo2")", { orderId: orderId }, function (data) {
                 if (data.suc) {
@@ -169,9 +169,9 @@
                     });
                 }
             });
-        } else {
+        } else {*@
             beginAudit(false);
-        }
+        //}
     }
 
     function beginAudit(needOption) {

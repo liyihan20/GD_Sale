@@ -67,21 +67,22 @@ namespace Sale_Order.Controllers
 
         public void exportSOExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
         {
-            var myData = (from o in db.vwExcelSaleOrder
+            var myData = (from o in db.Sale_SO
+                          join e in db.Sale_SO_details on o.id equals e.order_id
                           where
                            o.user_id == userId &&
-                          (o.sys_no.Contains(sysNo) || o.product_model.Contains(sysNo))
+                          (o.sys_no.Contains(sysNo) || e.item_modual.Contains(sysNo))
                           && o.order_date >= fromDate && o.order_date <= toDate
                           orderby o.order_date
-                          select o).ToList();
+                          select new { o, e }).ToList();
 
             ushort[] colWidth = new ushort[] {16,16,14,18,28,28,28,28,20,28,
                                             14,14,14,14,14,14,14,14,14,10,
-                                            12,20,14,14,14,14,14,14,60,60};
+                                            12,20,14,14,14,14,60,60};
 
             string[] colName = new string[] { "流水号","订单号","下单日期","办事处","购货单位","海外客户","终极客户","方案公司","产品名称","型号规格",
                                             "数量","成交价","成交金额","不含税单价","合同价","合同金额","成本RMB","MU","佣金RMB","币别",
-                                            "汇率","结算方式","营业员1","组别1","比例1","营业员2","组别2","比例2","说明","摘要"};
+                                            "汇率","结算方式","营业员1","比例1","营业员2","比例2","说明","摘要"};
 
             //設置excel文件名和sheet名
             XlsDocument xls = new XlsDocument();
@@ -122,38 +123,36 @@ namespace Sale_Order.Controllers
             {
                 colIndex = 1;
 
-                cells.Add(++rowIndex, colIndex, d.sys_no);
-                cells.Add(rowIndex, ++colIndex, d.order_no);
-                cells.Add(rowIndex, ++colIndex, ((DateTime)d.order_date).ToShortDateString());
-                cells.Add(rowIndex, ++colIndex, d.department_name);
-                cells.Add(rowIndex, ++colIndex, d.buy_unit_name);
-                cells.Add(rowIndex, ++colIndex, d.oversea_client_name);
-                cells.Add(rowIndex, ++colIndex, d.final_client_name);
-                cells.Add(rowIndex, ++colIndex, d.plan_firm_name);
-                cells.Add(rowIndex, ++colIndex, d.product_name);
-                cells.Add(rowIndex, ++colIndex, d.product_model);
+                cells.Add(++rowIndex, colIndex, d.o.sys_no);
+                cells.Add(rowIndex, ++colIndex, d.o.order_no);
+                cells.Add(rowIndex, ++colIndex, ((DateTime)d.o.order_date).ToShortDateString());
+                cells.Add(rowIndex, ++colIndex, d.o.department_name);
+                cells.Add(rowIndex, ++colIndex, d.o.buy_unit_name);
+                cells.Add(rowIndex, ++colIndex, d.o.oversea_client_name);
+                cells.Add(rowIndex, ++colIndex, d.o.final_client_name);
+                cells.Add(rowIndex, ++colIndex, d.o.plan_firm_name);
+                cells.Add(rowIndex, ++colIndex, d.e.item_name);
+                cells.Add(rowIndex, ++colIndex, d.e.item_modual);
 
-                cells.Add(rowIndex, ++colIndex, d.qty);
-                cells.Add(rowIndex, ++colIndex, d.deal_price);
-                cells.Add(rowIndex, ++colIndex, d.deal_sum);
-                cells.Add(rowIndex, ++colIndex, d.unit_price);
-                cells.Add(rowIndex, ++colIndex, d.aux_tax_price);
-                cells.Add(rowIndex, ++colIndex, d.aux_sum);
-                cells.Add(rowIndex, ++colIndex, d.cost);
-                cells.Add(rowIndex, ++colIndex, d.MU);
-                cells.Add(rowIndex, ++colIndex, d.commission);
-                cells.Add(rowIndex, ++colIndex, d.currency_name);
+                cells.Add(rowIndex, ++colIndex, d.e.qty);
+                cells.Add(rowIndex, ++colIndex, d.e.deal_price);
+                cells.Add(rowIndex, ++colIndex, d.e.deal_price * d.e.qty);
+                cells.Add(rowIndex, ++colIndex, d.e.unit_price);
+                cells.Add(rowIndex, ++colIndex, d.e.aux_tax_price);
+                cells.Add(rowIndex, ++colIndex, d.e.aux_tax_price * d.e.qty);
+                cells.Add(rowIndex, ++colIndex, d.e.cost);
+                cells.Add(rowIndex, ++colIndex, d.e.MU);
+                cells.Add(rowIndex, ++colIndex, d.e.commission);
+                cells.Add(rowIndex, ++colIndex, d.o.currency_name);
 
-                cells.Add(rowIndex, ++colIndex, d.exchange_rate);
-                cells.Add(rowIndex, ++colIndex, d.clearing_way_name);
-                cells.Add(rowIndex, ++colIndex, d.clerk_name);
-                cells.Add(rowIndex, ++colIndex, d.group1);
-                cells.Add(rowIndex, ++colIndex, d.percent1);
-                cells.Add(rowIndex, ++colIndex, d.clerk2_name);
-                cells.Add(rowIndex, ++colIndex, d.group2);
-                cells.Add(rowIndex, ++colIndex, d.percent2);
-                cells.Add(rowIndex, ++colIndex, d.description);
-                cells.Add(rowIndex, ++colIndex, d.summary);
+                cells.Add(rowIndex, ++colIndex, d.o.exchange_rate);
+                cells.Add(rowIndex, ++colIndex, d.o.clearing_way_name);
+                cells.Add(rowIndex, ++colIndex, d.o.clerk_name);
+                cells.Add(rowIndex, ++colIndex, d.o.percent1);
+                cells.Add(rowIndex, ++colIndex, d.o.clerk2_name);
+                cells.Add(rowIndex, ++colIndex, d.o.percent2);
+                cells.Add(rowIndex, ++colIndex, d.o.description);
+                cells.Add(rowIndex, ++colIndex, d.o.salePs);
             }
 
             xls.Send();
@@ -553,11 +552,16 @@ namespace Sale_Order.Controllers
 
         public void BeginExportCeoExcel(DateTime fromDate, DateTime toDate)
         {
-            var myData = (from v in db.VWCeoExcel
-                          where v.order_date >= fromDate
-                          && v.order_date <= toDate
-                          orderby v.order_date
-                          select v).ToList();
+            var myData = (from o in db.Sale_SO
+                          join e in db.Sale_SO_details on o.id equals e.order_id
+                          join a in db.Apply on o.sys_no equals a.sys_no
+                          where o.order_date >= fromDate
+                          && o.order_date <= toDate
+                          && o.order_no != null
+                          && a.success == true
+                          && o.order_type_name == "生产单"
+                          orderby o.order_date
+                          select new { o, e }).ToList();
 
             ushort[] colWidth = new ushort[] { 12, 12, 20, 18, 18, 18, 28, 18, 14, 100 };
 
@@ -604,16 +608,16 @@ namespace Sale_Order.Controllers
                 colIndex = 1;
 
                 //下单日期，交货日期，办事处，产品类别，订单号，规格型号，成交金额，币别，说明
-                cells.Add(++rowIndex, colIndex, ((DateTime)d.order_date).ToShortDateString());
-                cells.Add(rowIndex, ++colIndex, ((DateTime)d.delivery_date).ToShortDateString());
-                cells.Add(rowIndex, ++colIndex, d.department_name);                
-                cells.Add(rowIndex, ++colIndex, d.product_type_name);
-                cells.Add(rowIndex, ++colIndex, d.product_use);
-                cells.Add(rowIndex, ++colIndex, d.order_no);
-                cells.Add(rowIndex, ++colIndex, d.product_model);
-                cells.Add(rowIndex, ++colIndex, d.deal_sum);
-                cells.Add(rowIndex, ++colIndex, d.currency_name);
-                cells.Add(rowIndex, ++colIndex, d.description);
+                cells.Add(++rowIndex, colIndex, ((DateTime)d.o.order_date).ToShortDateString());
+                cells.Add(rowIndex, ++colIndex, ((DateTime)d.e.delivery_date).ToShortDateString());
+                cells.Add(rowIndex, ++colIndex, d.o.department_name);
+                cells.Add(rowIndex, ++colIndex, d.o.product_type_name);
+                cells.Add(rowIndex, ++colIndex, d.o.product_use);
+                cells.Add(rowIndex, ++colIndex, d.o.order_no);
+                cells.Add(rowIndex, ++colIndex, d.e.item_modual);
+                cells.Add(rowIndex, ++colIndex, d.e.deal_price * d.e.qty);
+                cells.Add(rowIndex, ++colIndex, d.o.currency_name);
+                cells.Add(rowIndex, ++colIndex, d.o.description);
             }
 
             xls.Send();
@@ -733,32 +737,40 @@ namespace Sale_Order.Controllers
 
         //审核人导出的excel,templateID=2是默认模板
         [SessionTimeOutFilter()]
-        public void exportAuditorSOExcel(string ids, int templateId = 2)
+        public void exportAuditorSOExcel(string ids)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            //将id列的最后一个逗号去掉
-            if (ids.LastIndexOf(',') == ids.Length - 1)
-            {
-                ids = ids.Substring(0, ids.Length - 1);
-            }
+            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);            
             bool canSeePrice = true;
             if (utl.hasGotPower(userId, Powers.not_all_price.ToString()))
             {
-                utl.writeEventLog("导出无价格报表Excel", "成功导出记录数:" + ids.Split(',').Count(), "模板ID:" + templateId, Request, 0);
+                utl.writeEventLog("导出无价格报表Excel", "成功导出记录数:" + ids.Split(',').Count(), "", Request, 0);
                 canSeePrice = false;
             }
             else
             {
-                utl.writeEventLog("导出有价格报表Excel", "成功导出记录数:" + ids.Split(',').Count(), "模板ID:" + templateId, Request, 0);
+                utl.writeEventLog("导出有价格报表Excel", "成功导出记录数:" + ids.Split(',').Count(), "", Request, 0);
             }
 
-            BeginExportAuditorSOExcel(ids, canSeePrice, templateId);
+            BeginExportAuditorSOExcel(ids, canSeePrice);
         }
 
         public void BeginExportAuditorSOExcel(string ids, bool canSeePrice)
         {
 
-            var datas = db.getAuditorSOExcels(ids, canSeePrice);
+            int[] idIntArr = ids.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(i => Int32.Parse(i)).ToArray();
+
+            var datas = from ap in db.Apply
+                         join o in db.Sale_SO on ap.sys_no equals o.sys_no
+                         join e in db.Sale_SO_details on o.id equals e.order_id
+                         where idIntArr.Contains(ap.id)
+                         select new
+                         {
+                             o = o,
+                             e = e,
+                             status = ap.success == true ? "Y" : (ap.success == false ? "N" : "-")
+                         };
+
+            //var datas = db.getAuditorSOExcels(ids, canSeePrice);
             ushort[] colWidth = new ushort[] {12,14,16,16,16,16,16,16,18,18,
                                             18,16,28,28,28,28,18,18,18,18,
                                             18,20,28,14,14,14,14,14,14,14,
@@ -813,150 +825,150 @@ namespace Sale_Order.Controllers
             {
                 colIndex = 1;
                 //"审核状态","下单日期","流水号","订单号","贸易类型","订单类型","产品类型","产品用途","结算方式","办事处",                
-                cells.Add(++rowIndex, colIndex, d.audit_status, dataXF);
-                cells.Add(rowIndex, ++colIndex, ((DateTime)d.order_date).ToShortDateString(), dataXF);
-                cells.Add(rowIndex, ++colIndex, d.sys_no, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.order_no, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.trade_type, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.order_type, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.product_type, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.product_use, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.clear_way, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.department, dataXF);
+                cells.Add(++rowIndex, colIndex, d.status, dataXF);
+                cells.Add(rowIndex, ++colIndex, ((DateTime)d.o.order_date).ToShortDateString(), dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.sys_no, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.order_no, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.trade_type_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.order_type_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.product_type_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.product_use, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.clearing_way_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.department_name, dataXF);
 
                 //"对应项目组","业务员","购货单位","海外客户","终极客户","方案公司","回头纸是否确认","生产方式(冒险做货)", "外包装印TRULY", "是否印有客户LOGO",                
-                cells.Add(rowIndex, ++colIndex, d.project_team, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.employee, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.customer, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.oversea_customer, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.final_customer, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.plan_customer, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.back_paper, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.produce_way, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.print_truly, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.client_logo, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.project_group_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.clerk_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.buy_unit_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.oversea_client_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.final_client_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.plan_firm_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.backpaper_confirm_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.produce_way_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.print_truly_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.client_logo_name, dataXF);
 
                 //交货地点","产品名称","型号规格","数量","成交价","成交金额","成本RMB","税率","折扣率(%)","币别",                
-                cells.Add(rowIndex, ++colIndex, d.delivery_place, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.mat_name, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.mat_model, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.qty, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.deal_price, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.deal_sum, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.cost, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.tax_rate, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.discount_rate, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.currency, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.delivery_place_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.item_name, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.item_modual, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.qty, dataXF);
+                cells.Add(rowIndex, ++colIndex, canSeePrice ? d.e.deal_price : 0, dataXF);
+                cells.Add(rowIndex, ++colIndex, canSeePrice ? d.e.deal_price * d.e.qty : 0, dataXF);
+                cells.Add(rowIndex, ++colIndex, canSeePrice ? d.e.cost : 0, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.tax_rate, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.discount_rate, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.o.currency_name, dataXF);
 
                 // "汇率","交货日期", "报价编号","摘要","说明","补充说明"
-                cells.Add(rowIndex, ++colIndex, d.exchange_rate, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.delivery_date, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.quote_no, dataXF);
-                cells.Add(rowIndex, ++colIndex, d.comment);
-                cells.Add(rowIndex, ++colIndex, d.description);
-                cells.Add(rowIndex, ++colIndex, d.further_info);
+                cells.Add(rowIndex, ++colIndex, d.o.exchange_rate, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.delivery_date, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.quote_no, dataXF);
+                cells.Add(rowIndex, ++colIndex, d.e.comment);
+                cells.Add(rowIndex, ++colIndex, d.o.description);
+                cells.Add(rowIndex, ++colIndex, d.o.further_info);
             }
 
             xls.Send();
         }
 
-        public void BeginExportAuditorSOExcel(string ids, bool canSeePrice, int tempalteId)
-        {
-            //根据用户模板获取需要导出的字段
-            string segments = db.UserExcelTemplate.Single(u => u.id == tempalteId).seg_info;
-            string[] segmentsArr = segments.Split(',');
+        //public void BeginExportAuditorSOExcel(string ids, bool canSeePrice, int tempalteId)
+        //{
+        //    //根据用户模板获取需要导出的字段
+        //    string segments = db.UserExcelTemplate.Single(u => u.id == tempalteId).seg_info;
+        //    string[] segmentsArr = segments.Split(',');
 
-            //不能看价格的字段
-            string[] priceSegs = new string[] { "deal_price", "deal_sum", "cost", };
+        //    //不能看价格的字段
+        //    string[] priceSegs = new string[] { "deal_price", "deal_sum", "cost", };
 
-            //缓存各个字段的中文、英文名和列宽
-            var segInfoList = db.ExcelSegments.Where(s => s.excel_type == "auditor_SO").ToList();
+        //    //缓存各个字段的中文、英文名和列宽
+        //    var segInfoList = db.ExcelSegments.Where(s => s.excel_type == "auditor_SO").ToList();
 
-            SqlConnection conn = null;
-            SqlDataAdapter adap = null;
-            DataSet ds = null;
-            string contentSql = @"select * from vw_auditor_excel where id in(" + ids + ") order by id";
-            string connectionStr = ConfigurationManager.ConnectionStrings["SaleOrder_platformConnectionString"].ConnectionString;
-            using (conn = new SqlConnection(connectionStr))
-            {
-                try
-                {
-                    conn.Open();
-                    ds = new DataSet();
-                    using (adap = new SqlDataAdapter(contentSql, conn))
-                    {
-                        adap.Fill(ds, "contentInfo");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    utl.writeEventLog("导出Excel", "出现异常：" + ex.Message, "", Request, 1000);
-                    return;
-                }
-            }
+        //    SqlConnection conn = null;
+        //    SqlDataAdapter adap = null;
+        //    DataSet ds = null;
+        //    string contentSql = @"select * from vw_auditor_excel where id in(" + ids + ") order by id";
+        //    string connectionStr = ConfigurationManager.ConnectionStrings["SaleOrder_platformConnectionString"].ConnectionString;
+        //    using (conn = new SqlConnection(connectionStr))
+        //    {
+        //        try
+        //        {
+        //            conn.Open();
+        //            ds = new DataSet();
+        //            using (adap = new SqlDataAdapter(contentSql, conn))
+        //            {
+        //                adap.Fill(ds, "contentInfo");
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            utl.writeEventLog("导出Excel", "出现异常：" + ex.Message, "", Request, 1000);
+        //            return;
+        //        }
+        //    }
 
-            //設置excel文件名和sheet名
-            XlsDocument xls = new XlsDocument();
-            xls.FileName = string.Format("销售订单_{0}.xls", DateTime.Now.ToShortDateString());
-            Worksheet sheet = xls.Workbook.Worksheets.Add("订单信息列表");
+        //    //設置excel文件名和sheet名
+        //    XlsDocument xls = new XlsDocument();
+        //    xls.FileName = string.Format("销售订单_{0}.xls", DateTime.Now.ToShortDateString());
+        //    Worksheet sheet = xls.Workbook.Worksheets.Add("订单信息列表");
 
-            //设置各种样式
+        //    //设置各种样式
 
-            //标题样式
-            XF boldXF = xls.NewXF();
-            boldXF.HorizontalAlignment = HorizontalAlignments.Centered;
-            boldXF.Font.Height = 12 * 20;
-            boldXF.Font.FontName = "宋体";
-            boldXF.Font.Bold = true;
+        //    //标题样式
+        //    XF boldXF = xls.NewXF();
+        //    boldXF.HorizontalAlignment = HorizontalAlignments.Centered;
+        //    boldXF.Font.Height = 12 * 20;
+        //    boldXF.Font.FontName = "宋体";
+        //    boldXF.Font.Bold = true;
 
-            Cells cells = sheet.Cells;
-            int rowIndex = 1;
-            int colIndex = 0;
-            string enName = "";
+        //    Cells cells = sheet.Cells;
+        //    int rowIndex = 1;
+        //    int colIndex = 0;
+        //    string enName = "";
 
-            //设置列宽
-            ColumnInfo col;
-            foreach (var colName in segmentsArr)
-            {
-                col = new ColumnInfo(xls, sheet);
-                col.ColumnIndexStart = (ushort)colIndex;
-                col.ColumnIndexEnd = (ushort)colIndex;
-                col.Width = (ushort)(segInfoList.Where(s => s.cn_name == colName).First().col_width * 256);
-                sheet.AddColumnInfo(col);
-                colIndex++;
-            }
+        //    //设置列宽
+        //    ColumnInfo col;
+        //    foreach (var colName in segmentsArr)
+        //    {
+        //        col = new ColumnInfo(xls, sheet);
+        //        col.ColumnIndexStart = (ushort)colIndex;
+        //        col.ColumnIndexEnd = (ushort)colIndex;
+        //        col.Width = (ushort)(segInfoList.Where(s => s.cn_name == colName).First().col_width * 256);
+        //        sheet.AddColumnInfo(col);
+        //        colIndex++;
+        //    }
 
-            colIndex = 1;
+        //    colIndex = 1;
 
-            //设置标题
-            foreach (var colName in segmentsArr)
-            {
-                cells.Add(rowIndex, colIndex++, colName, boldXF);
-            }
+        //    //设置标题
+        //    foreach (var colName in segmentsArr)
+        //    {
+        //        cells.Add(rowIndex, colIndex++, colName, boldXF);
+        //    }
             
-            //设置内容
-            foreach (DataRow contentR in ds.Tables["contentInfo"].Rows)
-            {
-                rowIndex++;
-                colIndex = 1;
-                foreach (var colName in segmentsArr)
-                {
-                    enName = segInfoList.Where(s => s.cn_name == colName).First().en_name;
-                    if (!canSeePrice && priceSegs.Contains(enName))
-                    {
-                        cells.Add(rowIndex, colIndex++, ""); //不能看价格
-                    }
-                    else
-                    {
-                        cells.Add(rowIndex, colIndex++, contentR[enName] == DBNull.Value ? "" : contentR[enName]);
-                    }
-                }
-            }
+        //    //设置内容
+        //    foreach (DataRow contentR in ds.Tables["contentInfo"].Rows)
+        //    {
+        //        rowIndex++;
+        //        colIndex = 1;
+        //        foreach (var colName in segmentsArr)
+        //        {
+        //            enName = segInfoList.Where(s => s.cn_name == colName).First().en_name;
+        //            if (!canSeePrice && priceSegs.Contains(enName))
+        //            {
+        //                cells.Add(rowIndex, colIndex++, ""); //不能看价格
+        //            }
+        //            else
+        //            {
+        //                cells.Add(rowIndex, colIndex++, contentR[enName] == DBNull.Value ? "" : contentR[enName]);
+        //            }
+        //        }
+        //    }
 
-            //释放资源            
-            ds.Dispose();
-            xls.Send();
-        }
+        //    //释放资源            
+        //    ds.Dispose();
+        //    xls.Send();
+        //}
 
         public void exportAuditorSBExcel(string ids)
         {

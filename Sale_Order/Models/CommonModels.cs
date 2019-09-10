@@ -9,6 +9,24 @@ namespace Sale_Order.Models
     {
         public bool suc { get; set; }
         public string msg { get; set; }
+        public string extra { get; set; }
+
+        public SimpleResultModel()
+        {
+            this.suc = true;
+        }
+        public SimpleResultModel(bool _suc, string _msg = "", string _extra = "")
+        {
+            this.suc = _suc;
+            this.msg = _msg;
+            this.extra = _extra;
+        }
+
+        public SimpleResultModel(Exception ex)
+        {
+            this.suc = false;
+            this.msg = ex.Message;
+        }
     }
 
     public class AttachmentModelNew

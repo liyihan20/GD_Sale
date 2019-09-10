@@ -47,7 +47,7 @@ namespace Sale_Order.Controllers
                     return Redirect("../" + utl.MyUrlDecoder(url));
                 }
             }
-            else if (("ele").Equals(accountset) && Request.Cookies["order_ele_cookie"] != null) {
+            else if ((new string[] { "ele", "eqm" }).Contains(accountset) && Request.Cookies["order_ele_cookie"] != null) {
                 utl.writeEventLog("登录系统", "从邮件直接跳转到：电子:" + url, "", Request);
                 if ((bool)isInnerFrame) {
                     return Redirect("../../SaleOrder_ele/Home/Main?url=" + url);
@@ -112,10 +112,10 @@ namespace Sale_Order.Controllers
             else if ("semi".Equals(cop)) {
                 cookie = new HttpCookie("order_semi_cookie");
             }
-            else if("ele".Equals(cop)){
+            else if((new string[]{"ele","eqm"}).Contains(cop)){
                 cookie = new HttpCookie("order_ele_cookie");
             }
-            cookie.Expires = DateTime.Now.AddHours(8);
+            cookie.Expires = DateTime.Now.AddHours(12);
             cookie.Values.Add("userid", id.ToString());
             cookie.Values.Add("code", utl.getMD5(id.ToString()));
             cookie.Values.Add("username", utl.EncodeToUTF8(username));//用于记录日志

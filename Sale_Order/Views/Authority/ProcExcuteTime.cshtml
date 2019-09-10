@@ -1,9 +1,7 @@
 ﻿@using Sale_Order.Models;
-@using Sale_Order.Utils;
 @{    
     List<ProcTimeModel> list = (List<ProcTimeModel>)ViewData["result"];
     int maxStep = (int)ViewData["maxStep"];
-    SomeUtils utl = new SomeUtils();
     }
 <script type="text/javascript">
     
@@ -91,7 +89,7 @@
                 {
                 <tr>                    
                     <td>@li.applyId</td>
-                    <td>@utl.getBillType(li.orderType) <br /> @li.sysNo <br /> @li.ProduceDep</td>
+                    <td>@li.orderType <br /> @li.sysNo <br /> @li.ProduceDep</td>
                     <td>@li.agency<br /> @li.applier<br />@li.applyDate @li.applyTime</td>
                     @foreach (var aud in li.auditList)
                     {

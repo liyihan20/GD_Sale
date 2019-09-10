@@ -189,22 +189,12 @@ namespace Sale_Order.Controllers
         //buy_unit:供货客户（用于国内单）；oversea_client：海外客户（用于国外单）
         public JsonResult getProjectNumbers(string buy_unit = null, string oversea_client = null)
         {
-            string buy_unit_number = null, oversea_client_number = null;
-            if (!string.IsNullOrEmpty(buy_unit))
-            {
-                buy_unit_number = db.getCostomerById(Int32.Parse(buy_unit)).First().number;
-            }
-            if (!string.IsNullOrEmpty(oversea_client))
-            {
-                oversea_client_number = db.getCostomerById(Int32.Parse(oversea_client)).First().number;
-            }
-
             //id为467的表示无指定编号，number为无客户机型
             var result = from v in db.VwProjectNumber
                          where v.id == 467
-                         || v.client_number == buy_unit_number
-                         || v.client_number == oversea_client_number
-                         orderby v.client_number
+                         || v.client_number == buy_unit
+                         || v.client_number == oversea_client
+                         orderby v.id
                          select new
                          {
                              id = v.id,
@@ -699,20 +689,7 @@ namespace Sale_Order.Controllers
                 return Json(new { suc = false });
             }
         }
-
-        //获取客户信用是否超过额度
-        public JsonResult GetCustomerCreditInfo(int? customerId, int? currencyId)
-        {
-            //return Json(new { suc = false, msg = "信用额度：<span style='color:green'>8000</span>；已用额度：9000；超出额度：<span style='color:red'>1000</span>" });
-            var result = db.getCustomerCreditInfo(customerId, currencyId).First();
-            return Json(new { suc = (result.suc == 1 ? true : false), msg = result.msg });
-        }
-        public JsonResult GetCustomerCreditInfo2(int orderId)
-        {
-            var param = db.Order.Where(o => o.id == orderId).Select(o => new { customerId = o.buy_unit, currencyId = o.currency }).First();
-            return GetCustomerCreditInfo(param.customerId, param.currencyId);
-        }
-
+        
         public ActionResult ProjectGroupAuditor()
         {
             ViewData["list"] = db.vw_project_group_auditor.ToList();

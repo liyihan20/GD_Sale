@@ -583,13 +583,14 @@ namespace Sale_Order.Controllers
         {
             
             var result = (from p in db.Process
+                          join t in db.Sale_BillTypeName on p.bill_type.Substring(0,2) equals t.p_type
                           orderby p.is_finish, p.bill_type
                           select new
                           {
                               id = p.id,
                               order_type = p.bill_type,
                               info = p.info,
-                              order_type_name = utl.getBillType(p.bill_type),
+                              order_type_name = t.p_name,
                               modify_time = DateTime.Parse(p.modify_time.ToString()).ToString("yyyy-MM-dd HH:mm"),
                               is_finish = p.is_finish == true ? "已启用" : "未启用",
                               begin_time = DateTime.Parse(p.begin_time.ToString()).ToString("yyyy-MM-dd"),
@@ -727,7 +728,7 @@ namespace Sale_Order.Controllers
                          {
                              id = c.id,
                              currency = c.currency,
-                             exchange = decimal.Round((decimal)c.exchange, 4),
+                             exchange = decimal.Round((decimal)c.exchange, 6),
                              begin_date = ((DateTime)c.begin_date).ToShortDateString(),
                              end_date = ((DateTime)c.end_date).ToShortDateString()
                          };
@@ -822,43 +823,57 @@ namespace Sale_Order.Controllers
             var billTypeArr = db.ProcessAuthority.Where(p => p.user_id == userId).Select(p => p.bill_type).Distinct().ToArray();
 
             var res = from ap in db.Apply
-                      where ap.sys_no.Contains(sys_no)
-                      && ap.User.real_name.Contains(saler)
-                      && billTypeArr.Contains(ap.order_type)
-                      && ap.p_model.Contains(proModel)
+                      join u in db.User on ap.user_id equals u.id
+                      join d in db.Department on u.department equals d.id
+                      join t in db.Sale_BillTypeName on ap.order_type equals t.p_type
+                      where 
+                      //ap.sys_no.Contains(sys_no)
+                      //&& ap.User.real_name.Contains(saler)
+                      billTypeArr.Contains(ap.order_type)
+                      //&& ap.p_model.Contains(proModel)
                       && ap.start_date >= DateTime.Parse(fromDate)
                       && ap.start_date <= DateTime.Parse(toDate)
-                      select ap;
+                      select new{
+                          ap,
+                          name=u.real_name,
+                          agency=d.name,
+                          ordertype=t.p_name
+                      };
+            if (!string.IsNullOrEmpty(sys_no)) {
+                res = res.Where(r => r.ap.sys_no.Contains(sys_no));
+            }
+            if (!string.IsNullOrEmpty(saler)) {
+                res = res.Where(r => r.name.Contains(saler));
+            }
+            if (!string.IsNullOrEmpty(proModel)) {
+                res = res.Where(r => r.ap.p_model.Contains(proModel));
+            }
             switch (auditResult)
             {
                 case "1":
-                    res = res.Where(r => r.success == true);
+                    res = res.Where(r => r.ap.success == true);
                     break;
                 case "0":
-                    res = res.Where(r => r.success == null);
+                    res = res.Where(r => r.ap.success == null);
                     break;
                 case "-1":
-                    res = res.Where(r => r.success == false);
+                    res = res.Where(r => r.ap.success == false);
                     break;
             }
             List<backBills> list = new List<backBills>();
-            foreach (var a in res.OrderByDescending(r => r.id).Take(200).ToList())
-            {
-                //通过存储过程获取订单类型，目前只有销售订单，以后有其它单据直接修改存储过程即可
-                string orderType = "";
-                
-                db.getOrderTypeBySysNo(a.sys_no, ref orderType);
+            foreach (var a in res.OrderByDescending(r => r.ap.id).Take(200).ToList())
+            {                
                 list.Add(new backBills()
                 {
-                    applyId = a.id,
-                    apply_date = a.start_date.ToString(),
-                    depName = a.User.Department1.name,
-                    orderType = orderType,
-                    salerName = a.User.real_name,
-                    status = a.success == true ? "PASS" : (a.success == false ? "NG" : "----"),
-                    sysNum = a.sys_no,
-                    encryptNo = utl.myEncript(a.sys_no),
-                    model = a.p_model
+                    applyId = a.ap.id,
+                    apply_date = a.ap.start_date.ToString(),
+                    depName = a.agency,
+                    orderType = a.ordertype,
+                    salerName = a.name,
+                    status = a.ap.success == true ? "PASS" : (a.ap.success == false ? "NG" : "----"),
+                    sysNum = a.ap.sys_no,
+                    encryptNo = utl.myEncript(a.ap.sys_no),
+                    model = a.ap.p_model
                 });
             }
             ViewData["result"] = list;
@@ -1040,6 +1055,7 @@ namespace Sale_Order.Controllers
                                  join ad in db.ApplyDetails on re.id equals ad.apply_id
                                  select ad.step).Max()) + 1;
             }
+            var billTypes = db.Sale_BillTypeName.ToList();
             //只取前200条记录
             foreach (var a in res.Take(200))
             {
@@ -1051,7 +1067,7 @@ namespace Sale_Order.Controllers
                 proc.agency = a.User.Department1.name;
                 proc.applyDate = ((DateTime)a.start_date).ToString("yyyy-MM-dd");
                 proc.applyTime = ((DateTime)a.start_date).ToString("HH:mm");
-                proc.orderType = a.order_type;
+                proc.orderType = billTypes.Where(b => b.p_type == a.order_type).Select(b => b.p_name).FirstOrDefault();
                 List<AuditTimeModel> atmList = new List<AuditTimeModel>();
                 DateTime previous_time = (DateTime)a.start_date;
                 string nextAuditors = "";
@@ -1301,16 +1317,25 @@ namespace Sale_Order.Controllers
 
             if (string.IsNullOrWhiteSpace(fromDate)) fromDate = "2000-1-1";
             if (string.IsNullOrWhiteSpace(toDate)) toDate = "2099-9-9";
+            var user = db.User.Single(u => u.id == userId);
+            string[] depArr;
             if ("all".Equals(procDep))
             {
-                procDep = db.User.Single(u => u.id == userId).can_check_deps;
+                if (user.can_check_deps.Equals("*")) {
+                    depArr = db.Department.Where(d => d.dep_type == "销售事业部").Select(d => d.name).ToArray();
+                }
+                else {
+                    depArr = user.can_check_deps.Split(new Char[] { ',', '，' });
+                }
+            }
+            else {
+                depArr = new string[] { procDep };
             }
 
-            var depArr = procDep.Split(new Char[] { ',', '，' });
-
-            var result = (from so in db.Order
+            var result = (from so in db.Sale_SO
                           join ap in db.Apply on so.sys_no equals ap.sys_no
-                          join pd in db.Department.Where(d => d.dep_type == "销售事业部") on so.proc_dep_id equals pd.dep_no
+                          join t in db.Sale_BillTypeName on ap.order_type equals t.p_type
+                          //join pd in db.Department.Where(d => d.dep_type == "销售事业部") on so equals pd.dep_no
                           join h in db.HasAttachment on so.sys_no equals h.sys_no into X
                           from Y in X.DefaultIfEmpty()
                           where so.sys_no.Contains(sysNo)
@@ -1318,7 +1343,7 @@ namespace Sale_Order.Controllers
                           && so.order_no.Contains(billNo)
                           && ap.User.real_name.Contains(saler)
                           && ap.success == true
-                          && depArr.Contains(pd.name)
+                          && depArr.Contains(so.produce_dep_name)
                           && so.order_date >= DateTime.Parse(fromDate)
                           && so.order_date <= DateTime.Parse(toDate)
                           orderby ap.start_date descending
@@ -1328,8 +1353,8 @@ namespace Sale_Order.Controllers
                               encryptNo = utl.myEncript(ap.sys_no),
                               orderDate = so.order_date,
                               finishDate = ap.finish_date,
-                              orderType = utl.getContantType(ap.sys_no),
-                              procDep = pd.name,
+                              orderType = t.p_name,
+                              procDep = so.produce_dep_name,
                               billNo = so.order_no,
                               sysNum = ap.sys_no,
                               depName = ap.User.Department1.name,
@@ -1598,7 +1623,7 @@ namespace Sale_Order.Controllers
         {
             switch (billType) {
                 case "SO":
-                    var sos = db.Order.Where(o => o.order_no == oldBillNo);
+                    var sos = db.Sale_SO.Where(o => o.order_no == oldBillNo);
                     if (sos.Count() < 1) {
                         return Json(new { suc = false, msg = "此销售订单不存在" });
                     }
@@ -1653,9 +1678,11 @@ namespace Sale_Order.Controllers
         {
             var apps = (from a in db.Apply
                         from ad in a.ApplyDetails
+                        from bt in db.Sale_BillTypeName
                         where a.success == null
                         && ad.step_name.Contains("总裁办")
                         && ad.pass == null
+                        && a.order_type == bt.p_type
                         && a.ApplyDetails.Where(d => d.step == ad.step - 1 && d.pass == true).Count() > 0
                         orderby a.start_date
                         select new CeoAuditListModel()
@@ -1668,13 +1695,11 @@ namespace Sale_Order.Controllers
                             model = a.p_model,
                             applyTime = a.start_date,
                             step = ad.step,
-                            stepName = ad.step_name
+                            stepName = ad.step_name,
+                            orderType=bt.p_name
                         }).ToList();
             apps.ForEach(a =>
-            {
-                string orderType = "";
-                db.getOrderTypeBySysNo(a.sysNum, ref orderType);
-                a.orderType = orderType;
+            {                
                 a.applyTimeStr = ((DateTime)a.applyTime).ToString("yyyy-MM-dd HH:mm");
             });
             return Json(apps);

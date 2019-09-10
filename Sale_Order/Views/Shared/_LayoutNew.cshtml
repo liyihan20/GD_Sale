@@ -6,6 +6,13 @@
     <title>CRM客户关系管理系统</title>
     <link href="@Url.Content("~/Content/easyui1-8/default/easyui.css")" rel="stylesheet" type="text/css" />  
     <link href="@Url.Content("~/Content/easyui1-8/icon.css")" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        textarea{
+            font-family:Arial;
+        }
+    </style>
+
     <script src="@Url.Content("~/Scripts/jquery.min.1.12.4.js")" type="text/javascript"></script>   
     <script src="@Url.Content("~/Scripts/jquery.easyui.min.1.8.1.js")" type="text/javascript"></script> 
     <script src="@Url.Content("~/Scripts/easyui-lang-zh_CN.js")" type="text/javascript"></script>   
@@ -16,6 +23,52 @@
                 msg: msg
             });
         }
+
+        function getFormJson($form) {
+            var array = $form.serializeArray();
+            var json = {};
+            for (var i = 0; i < array.length; i++) {
+                json[array[i].name] = array[i].value;
+            }
+            return json;
+        }
+
+        //获取表单里面的combobox中的text，保存到一个对象中。这些combobox必须name和id相同，且name和id的值后面必须有"_no"或"_id",然后获取到的text将放到"_name"里面
+        //比如这样<input type='easyui-combobox' name='item_no' id='item_no'......，获取到的此combo 的text将放入到item_name里面
+        function getFormComboboxText($form) {
+            var obj = {};
+            $form.find(".combobox-f,.combogrid-f").each(function (i, n) {
+                obj[$(n).attr("id").replace(/_no$|_id$/, "_name")] = $(n).combobox("getText");
+            });
+            return obj;
+        }
+
+        function countCharNum(str) {
+            return str.replace(/[^\u0000-\u00ff]/g, "aa").length;
+        }
+
+        //后台日期转为日期字符串
+        function toDateStr(value, hasHour) {
+            if (value == "" || value == null) return "";
+           
+            // 2018-10-15T16:00:00Z 格式：
+            if (value.indexOf("T") > 0) {
+                return value.split("T")[0];
+            }
+
+            // /Date(1539532800000)/格式：
+            if (value.indexOf("Date") >= 0) {
+                var date = eval('new ' + eval(value).source)
+                var date_str = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() + " ";
+                if (hasHour) {
+                    date_str += (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
+                }
+                return date_str;
+            }
+
+            return value;
+        }
+
     </script>  
 </head>
 <body style="padding:0;margin:0">

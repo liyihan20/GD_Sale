@@ -91,38 +91,7 @@ namespace Sale_Order.Controllers
         public bool testEmail(int applyId) {
             return utl.emailToNextAuditor(applyId);
         }
-
-        //删除测试数据
-        [SessionTimeOutFilter()]
-        public ActionResult deleteMyTest() {
-            var me = db.User.Single(u => u.id == 1);
-            int i = 0;
-            foreach (var order in me.Order) {
-                i++;
-                if (db.Apply.Where(a => a.sys_no == order.sys_no).Count() > 0)
-                {
-                    var ap = db.Apply.Where(a => a.sys_no == order.sys_no).First();
-                    db.ApplyDetails.DeleteAllOnSubmit(ap.ApplyDetails);
-                    db.Apply.DeleteOnSubmit(ap);
-                }
-                db.SalerPercentage.DeleteAllOnSubmit(order.SalerPercentage);
-                db.OrderDetail.DeleteAllOnSubmit(order.OrderDetail);
-                db.Order.DeleteOnSubmit(order);
-            }
-            db.SubmitChanges();
-
-            ViewBag.tip = "成功删除的记录数为："+i.ToString();
-            return View("tip");
-        }
-
-        public ActionResult ps() {
-            foreach (var or in db.Order.Where(o => o.salePs == "")) {                
-                or.salePs = db.Order.Where(o=>o.sys_no==or.sys_no && o.step_version==0).First().salePs;
-            }
-            db.SubmitChanges();
-            ViewBag.tip = "ok";
-            return View("tip");
-        }
+        
 
         //保存错误信息
         [SessionTimeOutFilter()]

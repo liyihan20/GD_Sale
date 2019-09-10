@@ -20,6 +20,13 @@
                 return y + '-' + (m < 10 ? ('0' + m) : m) + '-' + (d < 10 ? ('0' + d) : d);
             };
         }
+
+        function tip(msg) {
+            $.messager.show({
+                title: '操作提示',
+                msg: msg
+            });
+        }
     </script>
 
 </head>

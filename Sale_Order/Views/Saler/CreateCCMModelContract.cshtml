@@ -876,7 +876,8 @@ else
                     @if (0 == cmc.step_version) {
                         <br />
                         @*上传文件的*@
-                        @Html.Partial("_UploadFilePartial")
+                        <input type="hidden" value="@cmc.sys_no" id="wu_sysNum" />
+                        @Html.Partial("_UploadFilePartial_wu")
                     }
                     else {
                         <div id="downloadPanel">
