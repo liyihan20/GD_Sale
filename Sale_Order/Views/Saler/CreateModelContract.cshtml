@@ -18,16 +18,6 @@
         $("#env_special_span").hide();
         $("#modify_model_tr").hide();
 
-        $("#currency").combobox({
-            onSelect: function (record) {
-                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
-                    function (data) {
-                        $('#exchange').numberbox('setValue', data);
-                    }, "json"
-                );
-            }
-        });
-
         $("#model_type").combobox({
             onChange: function (newValue, oldValue) {
                 if (newValue == "改模") {
@@ -875,7 +865,7 @@ else
                             制单人:
                         </td>
                         <td>
-                            <input class="easyui-textbox" id="create_user" name="create_user"  value="@cmc.User.real_name" readonly="readonly" style="width: 115px" />
+                            <input class="easyui-textbox" id="create_user" name="create_user"  value="@ViewData["username"]" readonly="readonly" style="width: 115px" />
                         </td>
                     </tr>
                     <tr>

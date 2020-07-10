@@ -1,4 +1,4 @@
-﻿<script type="text/javascript">   
+﻿<script type="text/javascript">
 
     document.onkeydown = function (event) {
         var e = event || window.event || arguments.callee.caller.arguments[0];
@@ -6,39 +6,42 @@
             $("#checkBt").click();
         }
     };
-    $(function () {        
+    $(function () {
         $("#orderList").datagrid({
             fit: true,
-//            url:"@Url.Content("~/Saler/GetDefaultOrders")",
-            fitColumns: true,
+            //            url:"@Url.Content("~/Saler/GetDefaultOrders")",
+            //fitColumns: true,
             rownumbers: true,
             singleSelect: true,
-            onRowContextMenu:function(e, rowIndex, rowData){
+            onRowContextMenu: function (e, rowIndex, rowData) {
                 e.preventDefault();
-                $("#orderList").datagrid("selectRow",rowIndex);
+                $("#orderList").datagrid("selectRow", rowIndex);
                 $('#mm').menu('show', {
-                    left:e.pageX,
-                    top:e.pageY
-                }); 
+                    left: e.pageX,
+                    top: e.pageY
+                });
             },
             columns: [[
                         { field: 'bill_id', title: 'ID', width: 10, hidden: true },
-                        { field: 'apply_date', title: '@Html.Lang("apply_date")', width: 70 },
-                        { field: 'sys_no', title: '@Html.Lang("sys_num")', width: 100 },
-    					{ field: 'buy_unit', title: '@Html.Lang("customer_name")', width: 120 },
-    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 100 },
-                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 160 },
-    					{ field: 'qty', title: '@Html.Lang("qty")', width: 70, align: 'right' },
-                        { field: 'deal_price', title: '@Html.Lang("deal_price")', width: 70, align: 'right' },
-                        { field: 'apply_status', title: '@Html.Lang("apply_status")', width: 60, align: 'center',
-                        styler: function(value,row,index){
-				            if (value == '申请失败'){
-					            return 'color:red;';
-				            }else if(value == '成功申请'){
-					            return 'color:green;';
-				            }
-			            }}
-    				]],
+                        { field: 'apply_date', title: '@Html.Lang("apply_date")', width: 120 },
+                        { field: 'account', title: '公司', width: 80 },
+                        { field: 'sys_no', title: '@Html.Lang("sys_num")', width: 120 },
+    					{ field: 'buy_unit', title: '@Html.Lang("customer_name")', width: 180 },
+    					{ field: 'product_name', title: '@Html.Lang("pro_name")', width: 180 },
+                        { field: 'product_model', title: '@Html.Lang("pro_model")', width: 220 },
+    					{ field: 'qty', title: '@Html.Lang("qty")', width: 80, align: 'right' },
+                        { field: 'deal_price', title: '@Html.Lang("deal_price")', width: 80, align: 'right' },
+                        {
+                            field: 'apply_status', title: '@Html.Lang("apply_status")', width: 60, align: 'center',
+                            styler: function (value, row, index) {
+                                if (value == '申请失败') {
+                                    return 'color:red;';
+                                } else if (value == '成功申请') {
+                                    return 'color:green;';
+                                }
+                            }
+                        }
+            ]],
             toolbar: [{
                 text: "@Html.Lang("check_detail")",
                 iconCls: 'icon-search',
@@ -65,7 +68,7 @@
                     $.messager.show({
                         title: '@Html.Lang("tip")',
                         msg: "正在导出符合查询条件且已审核的数据，请稍等..."
-                    }); 
+                    });
                     $("#fm").form("submit", {
                         url: "@Url.Content("~/Excels/exportExcel")",
                         success: function (data) {
@@ -73,62 +76,62 @@
                     });
                 }
             }],
-            onDblClickRow:CheckDetail
+            onDblClickRow: CheckDetail
         });
 
         $("#checkBt").click(function () {
-            $.messager.progress(); 
+            $.messager.progress();
             $("#fm").form("submit", {
                 url: "../Saler/CheckOwnOrders",
                 success: function (data) {
                     var result = eval("(" + data + ")");
                     $("#orderList").datagrid("loadData", result);
-                    $.messager.progress("close"); 
+                    $.messager.progress("close");
                 }
             });
 
         });
     });
 
-    function ApplierCheckStatus(){
+    function ApplierCheckStatus() {
         var row = $("#orderList").datagrid("getSelected");
-        if(row){
+        if (row) {
             CheckStatus(row.sys_no);
         }
     }
 
-    function CheckDetail(){
-        var row=$("#orderList").datagrid("getSelected");
-        if(row){ 
-            var suff=row.sys_no.substring(0,2);
+    function CheckDetail() {
+        var row = $("#orderList").datagrid("getSelected");
+        if (row) {
+            var suff = row.sys_no.substring(0, 2);
             window.location.href = "@Url.Content("~/Saler/CheckOrderDetail")" + "?id=" + row.bill_id + "&billType=" + suff + "&canCheckBLFile=true";
         }
     }
 
-    function EditOrder(){        
+    function EditOrder() {
         var row = $("#orderList").datagrid("getSelected");
         if (row) {
             //编辑之前检测是否已开始申请
-            $.post("@Url.Content("~/Saler/IsBeginApply")",{sys_no: row.sys_no},
-            function(data){
-                if(!data.success){
-                        window.location.href = "@Url.Content("~/Saler/EditOrderNew?id=")" + row.bill_id +"&sys_no="+row.sys_no;
+            $.post("@Url.Content("~/Saler/IsBeginApply")", { sys_no: row.sys_no },
+            function (data) {
+                if (!data.success) {
+                    window.location.href = "@Url.Content("~/Saler/EditOrderNew?id=")" + row.bill_id + "&sys_no=" + row.sys_no;
 
-                }else{
-                        $.messager.show({
+                } else {
+                    $.messager.show({
                         title: '@Html.Lang("tip")',
                         msg: "@Html.Lang("order_cannot_edit")"
-                        });
+                    });
                 }
-            },"json");
-        } 
+            }, "json");
+        }
     }
-    
+
     function AddNewFromOld() {
         var row = $("#orderList").datagrid("getSelected");
-        if (row) {                        
-            window.location.href = "@Url.Content("~/Saler/NewOrderFromOld?id=")" + row.bill_id +"&sys_no="+row.sys_no;
-        }                    
+        if (row) {
+            window.location.href = "@Url.Content("~/Saler/NewOrderFromOld?id=")" + row.bill_id + "&sys_no=" + row.sys_no;
+        }
     }
 
 </script>

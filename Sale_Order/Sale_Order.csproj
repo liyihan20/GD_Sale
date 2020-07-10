@@ -181,15 +181,13 @@
     <Compile Include="Controllers\AuditController.cs" />
     <Compile Include="Controllers\AuthorityController.cs" />
     <Compile Include="Controllers\BadProductController.cs" />
+    <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\ExcelsController.cs" />
     <Compile Include="Controllers\FilesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ItemsController.cs" />
-    <Compile Include="Controllers\K3AuditController.cs" />
-    <Compile Include="Controllers\K3SalerController.cs" />
     <Compile Include="Controllers\LocalizationHelpers.cs" />
     <Compile Include="Controllers\MyHelpers.cs" />
-    <Compile Include="Controllers\ProjectController.cs" />
     <Compile Include="Controllers\SalerController.cs" />
     <Compile Include="Filter\SessionFilter.cs" />
     <Compile Include="Global.asax.cs">
@@ -214,6 +212,7 @@
     </Compile>
     <Compile Include="Models\CommonModels.cs" />
     <Compile Include="Models\Enums.cs" />
+    <Compile Include="Models\K3ItemModels.cs" />
     <Compile Include="Models\ManagementModels.cs" />
     <Compile Include="Models\OrderModels.cs" />
     <Compile Include="Models\ProcModel.cs" />
@@ -244,6 +243,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>THDT.xsd</DependentUpon>
     </Compile>
+    <Compile Include="Models\UserModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="App_GlobalResources\SO_Segement.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -311,10 +311,13 @@
       <DesignTime>True</DesignTime>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="Services\BaseSv.cs" />
+    <Compile Include="Services\K3ItemSv.cs" />
     <Compile Include="Utils\MyEmail.cs" />
     <Compile Include="Utils\Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\Sale_Order.dll" />
     <Content Include="bin\TrulyEmail.dll" />
     <Content Include="Content\easyui1-8\default\accordion.css" />
     <Content Include="Content\easyui1-8\default\calendar.css" />
@@ -458,6 +461,7 @@
     <Content Include="Content\themes\default\images\spinner_arrows.png" />
     <Content Include="Content\themes\default\images\tabs_icons.png" />
     <Content Include="Content\themes\default\images\tree_icons.png" />
+    <Content Include="Content\themes\default\images\trulyopto.png" />
     <Content Include="Content\themes\default\images\truly_logo2.png" />
     <Content Include="Content\themes\default\images\truly_logo.jpg" />
     <Content Include="Content\themes\default\images\people_base.jpg" />
@@ -659,46 +663,15 @@
     <Content Include="Views\Authority\Users.cshtml" />
     <Content Include="Views\Authority\Groups.cshtml" />
     <Content Include="Views\Shared\_UserTreePartial.cshtml" />
-    <Content Include="Views\Saler\CreateSaleOrder_old.cshtml" />
     <Content Include="Views\Shared\Main.cshtml" />
     <Content Include="Views\Saler\CheckAllOrders.cshtml" />
     <Content Include="Views\Saler\CheckSaleOrder.cshtml" />
     <Content Include="Views\Audit\CheckAuditList.cshtml" />
-    <Content Include="Views\Audit\SaleOrdrEdit.cshtml" />
     <Content Include="Views\Audit\MarketAudit.cshtml" />
     <Content Include="Views\Shared\Tip.cshtml" />
-    <Content Include="Views\K3Saler\CheckK3SaleOrder.cshtml" />
-    <Content Include="Views\K3Saler\ModifyK3SaleOrder.cshtml" />
-    <Content Include="Views\K3Saler\CheckUpdateOrders.cshtml" />
-    <Content Include="Views\K3Saler\GetUpdateOrderDetails.cshtml" />
-    <Content Include="Views\K3Audit\CheckOwnUpdateApply.cshtml" />
-    <Content Include="Views\K3Audit\AgencyAuditUpdate.cshtml" />
-    <Content Include="Views\K3Audit\MarketEditUpdate.cshtml" />
-    <Content Include="Views\K3Saler\ModifyK3Contract.cshtml" />
-    <Content Include="Views\K3Saler\SearchK3Contracts.cshtml" />
-    <Content Include="Views\K3Saler\CheckK3Contract.cshtml" />
-    <Content Include="Views\K3Audit\MarketEditContract.cshtml" />
-    <Content Include="Views\K3Saler\CancelK3Bill.cshtml" />
-    <Content Include="Views\K3Audit\BeginAuditCancel.cshtml" />
-    <Content Include="Views\K3Saler\GetCancelOrderDetails.cshtml" />
-    <Content Include="Views\K3Saler\SearchK3Models.cshtml" />
-    <Content Include="Views\K3Saler\CheckK3Model.cshtml" />
-    <Content Include="Views\K3Saler\ModifyK3Model.cshtml" />
-    <Content Include="Views\K3Audit\MarketEditModel.cshtml" />
     <Content Include="Views\Shared\_UploadFilePartial.cshtml" />
-    <Content Include="Views\Shared\_SalerPercentPartial.cshtml" />
     <Content Include="Views\Items\downLoadFile.cshtml" />
     <Content Include="Views\Shared\_ChangeTBPartial.cshtml" />
-    <Content Include="Views\K3Saler\SearchK3FreeSamples.cshtml" />
-    <Content Include="Views\K3Saler\ModifyK3FreeSample.cshtml" />
-    <Content Include="Views\K3Audit\MarketEditFreeSample.cshtml" />
-    <Content Include="Views\K3Saler\ModifyK3ChargeSample.cshtml" />
-    <Content Include="Views\K3Saler\CheckK3FreeSample.cshtml" />
-    <Content Include="Views\K3Saler\SearchK3ChargeSamples.cshtml" />
-    <Content Include="Views\K3Saler\CheckK3ChargeSample.cshtml" />
-    <Content Include="Views\K3Audit\MarketEditChargeSample.cshtml" />
-    <Content Include="Views\K3Saler\SearchK3SaleOrders.cshtml" />
-    <Content Include="Views\K3Audit\MarketAuditUpdate.cshtml" />
     <Content Include="Views\Authority\Processes.cshtml" />
     <Content Include="Views\Authority\Currency.cshtml" />
     <Content Include="Views\Authority\CheckBillsBackground.cshtml" />
@@ -774,14 +747,9 @@
     <Content Include="Views\Authority\ModualNumberIndex.cshtml" />
     <Content Include="Views\Authority\FetchModualNumber.cshtml" />
     <Content Include="Views\Authority\CheckModualNumLog.cshtml" />
-    <None Include="Views\Project\NewProject.cshtml.bak" />
-    <Content Include="Views\Project\CheckProjectBills.cshtml" />
-    <Content Include="Views\Project\CheckSingleProjectBill.cshtml" />
     <Content Include="Views\Audit\ProjectBillEdit.cshtml" />
     <Content Include="Views\Authority\CheckDepHasAuditNotInK3.cshtml" />
-    <Content Include="Views\Project\SearchOldProjectBills.cshtml" />
     <Content Include="Views\Shared\_CheckAuditStatus.cshtml" />
-    <Content Include="Views\Project\NewProject.cshtml" />
     <Content Include="Views\Saler\CheckSampleBill.cshtml" />
     <Content Include="Views\Saler\CreateSampleBill.cshtml" />
     <Content Include="Views\Shared\_BlockInfoPartial.cshtml" />
@@ -799,6 +767,7 @@
     <Content Include="Views\Saler\CheckHCBill.cshtml" />
     <Content Include="Views\Saler\CreateSaleOrder.cshtml" />
     <Content Include="Views\Saler\CheckSaleOrder_old.cshtml" />
+    <Content Include="Views\Saler\ChooseCompany.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">
@@ -855,7 +824,9 @@
       <Generator>CrystalDecisions.VSDesigner.CodeGen.ReportCodeGenerator</Generator>
       <LastGenOutput>SO_free_A5_Report.cs</LastGenOutput>
     </Content>
-    <Content Include="Resources\en-us.resx" />
+    <Content Include="Resources\en-us.resx">
+      <SubType>Designer</SubType>
+    </Content>
     <EmbeddedResource Include="App_GlobalResources\SO_Segement.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SO_Segement.Designer.cs</LastGenOutput>

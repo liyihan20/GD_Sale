@@ -10,10 +10,9 @@ using System.Configuration;
 
 namespace Sale_Order.Controllers
 {
-    public class BadProductController : Controller
+    public class BadProductController : BaseController
     {
         SomeUtils utl = new SomeUtils();
-        SaleDBDataContext db = new SaleDBDataContext();
         string MODELNAME = "退换货";
 
         //查询销售出库单
@@ -22,8 +21,7 @@ namespace Sale_Order.Controllers
         {
             //查询参数保存在Cookie，方便下次继续查询
             var queryData = Request.Cookies["op_qd_th"];
-            if (queryData != null && queryData.Values.Get("sa_cu") != null)
-            {
+            if (queryData != null && queryData.Values.Get("sa_cu") != null) {
                 ViewData["cust_no"] = utl.DecodeToUTF8(queryData.Values.Get("sa_cu"));
                 ViewData["order_no"] = utl.DecodeToUTF8(queryData.Values.Get("sa_so"));
                 ViewData["stock_no"] = utl.DecodeToUTF8(queryData.Values.Get("sa_st"));
@@ -32,8 +30,7 @@ namespace Sale_Order.Controllers
                 ViewData["to_date"] = queryData.Values.Get("sa_td");
                 ViewData["hook_status"] = queryData.Values.Get("sa_hs");
             }
-            else
-            {
+            else {
                 ViewData["from_date"] = DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd");
                 ViewData["to_date"] = DateTime.Now.ToString("yyyy-MM-dd");
                 ViewData["hook_status"] = "A";
@@ -66,16 +63,14 @@ namespace Sale_Order.Controllers
             queryData.Expires = DateTime.Now.AddDays(7);
             Response.AppendCookie(queryData);
 
-            if (db.getCostomer(customerNumber, 1).Count() < 1)
-            {
+            if (db.getCostomer(customerNumber, 1).Count() < 1) {
                 utl.writeEventLog(MODELNAME, "客户编号不存在，请重新输入完整的客户编号。", "", Request, 10);
                 return Json(new { suc = false, msg = "客户编号不存在，请重新输入完整的客户编号。" });
             }
 
             DateTime fromDate = new DateTime();
             DateTime toDate = new DateTime();
-            if (!DateTime.TryParse(fromDateStr, out fromDate) || !DateTime.TryParse(toDateStr, out toDate))
-            {
+            if (!DateTime.TryParse(fromDateStr, out fromDate) || !DateTime.TryParse(toDateStr, out toDate)) {
                 return Json(new { suc = false, msg = "出货日期不合法" });
             }
 
@@ -96,7 +91,8 @@ namespace Sale_Order.Controllers
 
         //在新增页面新增出库单
         [HttpPost]
-        public JsonResult SelectMoreStockBill(FormCollection fc) {
+        public JsonResult SelectMoreStockBill(FormCollection fc)
+        {
 
             string customerNumber = fc.Get("customer_no");
             string stockNo = fc.Get("stock_no");
@@ -108,8 +104,7 @@ namespace Sale_Order.Controllers
 
             DateTime fromDate = new DateTime();
             DateTime toDate = new DateTime();
-            if (!DateTime.TryParse(fromDateStr, out fromDate) || !DateTime.TryParse(toDateStr, out toDate))
-            {
+            if (!DateTime.TryParse(fromDateStr, out fromDate) || !DateTime.TryParse(toDateStr, out toDate)) {
                 return Json(new { suc = false, msg = "出货日期不合法" });
             }
 
@@ -136,8 +131,7 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult CreateReturnBill(string FInterIDS, string FEntryIDS)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            ViewData["userName"] = db.User.Single(u => u.id == userId).real_name;
+            ViewData["userName"] = currentUser.realName;
 
             string[] interIdArr = FInterIDS.Split(',');
             string[] entryIdArr = FEntryIDS.Split(',');
@@ -150,13 +144,11 @@ namespace Sale_Order.Controllers
             DateTime firstDayInMonth = DateTime.Parse(DateTime.Now.Year + "-" + DateTime.Now.Month + "-01");
             int isCurrentMonth = 0;
 
-            for (int i = 0; i < interIdArr.Length; i++)
-            {
+            for (int i = 0; i < interIdArr.Length; i++) {
                 int interId = Int32.Parse(interIdArr[i]);
                 int entryId = Int32.Parse(entryIdArr[i]);
                 var vw = db.VWBlueStockBill.Where(v => v.FInterID == interId && v.FEntryID == entryId).First();
-                if (i == 0)
-                {
+                if (i == 0) {
                     bill.customer_name = vw.FCustomerName;
                     bill.customer_number = vw.FCustomerNumber;
                     bill.sys_no = utl.getReturnSystemNo(vw.FCustomerNumber.Substring(3, 2));
@@ -179,31 +171,30 @@ namespace Sale_Order.Controllers
                 detail.can_apply_qty = vw.FcanApplyQty;
                 billDetails.Add(detail);
             }
-            billDetails = billDetails.OrderBy(b=>b.stock_entry_id).OrderBy(b => b.stock_no).ToList();
+            billDetails = billDetails.OrderBy(b => b.stock_entry_id).OrderBy(b => b.stock_no).ToList();
             ViewData["bill"] = bill;
             ViewData["details"] = billDetails;
             ViewData["isCurrentMonth"] = isCurrentMonth;
 
-            utl.writeEventLog(MODELNAME, "新建一张退换货申请", bill.sys_no, Request);
+            utl.writeEventLog(MODELNAME, "新建一张退换货申请;FInterid:" + FInterIDS + ";FEntryID:" + FEntryIDS, bill.sys_no, Request);
             return View();
         }
 
         //从旧退修单新增
         [SessionTimeOutFilter()]
-        public ActionResult NewOrderFromOld(string sys_no) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            ViewData["userName"] = db.User.Single(u => u.id == userId).real_name;
-
+        public ActionResult NewOrderFromOld(string sys_no)
+        {
+            ViewData["userName"] = currentUser.realName;
             var bill = db.ReturnBill.Where(b => b.sys_no == sys_no).First();
-            ViewData["details"] = bill.ReturnBillDetail.ToList(); 
+            ViewData["details"] = bill.ReturnBillDetail.ToList();
 
             bill.sys_no = utl.getReturnSystemNo(sys_no.Substring(0, 2));
             bill.old_sys_no = sys_no;
             bill.id = 0;
             bill.fdate = DateTime.Now;
             ViewData["bill"] = bill;
-            
-            utl.writeEventLog(MODELNAME, "从旧退修单【"+sys_no+"】新增", bill.sys_no, Request);
+
+            utl.writeEventLog(MODELNAME, "从旧退修单【" + sys_no + "】新增", bill.sys_no, Request);
             return View("CreateReturnBill");
         }
 
@@ -211,8 +202,6 @@ namespace Sale_Order.Controllers
         [HttpPost]
         public JsonResult saveReturnBill(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             //表头
             string fDate = fc.Get("fdate");
             string sysNo = fc.Get("sys_no");
@@ -259,7 +248,7 @@ namespace Sale_Order.Controllers
 
             //表头内容设置
             ReturnBill bill = new ReturnBill();
-            bill.user_id = userId;
+            bill.user_id = currentUser.userId;
             bill.fdate = DateTime.Parse(fDate);
             bill.sys_no = sysNo;
             bill.return_dept = Int32.Parse(returnDep);
@@ -270,8 +259,7 @@ namespace Sale_Order.Controllers
             bill.express_name = expressName;
             bill.express_no = expressNo;
             bill.old_sys_no = oldSysNo;
-            if (!string.IsNullOrEmpty(expressQty))
-            {
+            if (!string.IsNullOrEmpty(expressQty)) {
                 bill.express_qty = Int32.Parse(expressQty);
             }
             //if (!string.IsNullOrEmpty(pmc)) {
@@ -284,8 +272,7 @@ namespace Sale_Order.Controllers
             //表体内容设置
             List<ReturnBillDetail> details = new List<ReturnBillDetail>();
             ReturnBillDetail detail;
-            for (int i = 0; i < tSeorderNo.Length; i++)
-            {
+            for (int i = 0; i < tSeorderNo.Length; i++) {
                 detail = new ReturnBillDetail();
                 detail.ReturnBill = bill;
                 detail.entry_no = i + 1;
@@ -309,12 +296,10 @@ namespace Sale_Order.Controllers
                 details.Add(detail);
             }
 
-            try
-            {
+            try {
                 //如果已存在，则删除
                 var existedBill = db.ReturnBill.Where(r => r.sys_no == sysNo);
-                if (existedBill.Count() > 0)
-                {
+                if (existedBill.Count() > 0) {
                     db.ReturnBillDetail.DeleteAllOnSubmit(existedBill.First().ReturnBillDetail);
                     db.ReturnBill.DeleteOnSubmit(existedBill.First());
                 }
@@ -324,8 +309,7 @@ namespace Sale_Order.Controllers
                 db.ReturnBillDetail.InsertAllOnSubmit(details);
                 db.SubmitChanges();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 return Json(new { suc = false, msg = e.Message }, "text/html");
             }
 
@@ -338,8 +322,7 @@ namespace Sale_Order.Controllers
         public ActionResult CheckAllReturnBill()
         {
             var queryData = Request.Cookies["op_qd_th"];
-            if (queryData != null && queryData.Values.Get("sa_th_cu") != null)
-            {
+            if (queryData != null && queryData.Values.Get("sa_th_cu") != null) {
                 ViewData["cust_no"] = utl.DecodeToUTF8(queryData.Values.Get("sa_th_cu"));
                 ViewData["stock_no"] = utl.DecodeToUTF8(queryData.Values.Get("sa_th_st"));
                 ViewData["pro_model"] = utl.DecodeToUTF8(queryData.Values.Get("sa_th_mo"));
@@ -347,8 +330,7 @@ namespace Sale_Order.Controllers
                 ViewData["to_date"] = queryData.Values.Get("sa_th_td");
                 ViewData["audit_result"] = queryData.Values.Get("sa_th_ar");
             }
-            else
-            {
+            else {
                 ViewData["from_date"] = DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd");
                 ViewData["to_date"] = DateTime.Now.ToString("yyyy-MM-dd");
                 ViewData["audit_result"] = 10;
@@ -359,11 +341,6 @@ namespace Sale_Order.Controllers
         [HttpPost]
         public JsonResult CheckAllReturnBill(FormCollection fc)
         {
-            //db.updateReturnRedQty();
-            //utl.writeEventLog(MODELNAME, "查询退换货申请之前，更新红字与状态", "", Request);
-
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             string customerNumber = fc.Get("cust_no");
             string stockNo = fc.Get("stock_no");
             string model = fc.Get("pro_model");
@@ -389,9 +366,9 @@ namespace Sale_Order.Controllers
             if (!DateTime.TryParse(fromDateStr, out fromDate)) fromDate = DateTime.Parse("1980-1-1");
             if (!DateTime.TryParse(toDateStr, out toDate)) toDate = DateTime.Parse("2099-9-9");
             if (!Int32.TryParse(auditResultStr, out auditResult)) auditResult = 10;
-            
+
             var result = (from v in db.VwReturnBill
-                          where v.user_id == userId
+                          where v.user_id == currentUser.userId
                           && (v.hide_flag == null || v.hide_flag == false)
                           && (v.customer_number.Contains(customerNumber) || v.customer_name.Contains(customerNumber))
                           && (v.stock_no.Contains(stockNo) || v.seorder_no.Contains(stockNo))
@@ -424,8 +401,7 @@ namespace Sale_Order.Controllers
         //修改之前判断是否已提交
         public JsonResult IsBeginApply(string sys_no)
         {
-            if (db.Apply.Where(a => a.sys_no == sys_no).Count() > 0)
-            {
+            if (db.Apply.Where(a => a.sys_no == sys_no).Count() > 0) {
                 utl.writeEventLog(MODELNAME, "已提交不能修改", sys_no, Request, 10);
                 return Json(new { suc = true });
             }
@@ -444,16 +420,15 @@ namespace Sale_Order.Controllers
         }
 
         //隐藏退换货申请
-        public ActionResult HideReturnBill(string sys_no) {
+        public ActionResult HideReturnBill(string sys_no)
+        {
 
-            try
-            {
+            try {
                 var bill = db.ReturnBill.Single(r => r.sys_no == sys_no);
                 bill.hide_flag = true;
                 db.SubmitChanges();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 return Json(new { suc = false, msg = ex.Message });
             }
 
@@ -474,16 +449,14 @@ namespace Sale_Order.Controllers
             var aps = db.Apply.Where(a => a.sys_no == bill.sys_no);
             if (aps.Count() < 1)
                 status = "未提交";
-            else if (aps.Where(a => a.success == true).Count() > 0)
-            {
+            else if (aps.Where(a => a.success == true).Count() > 0) {
                 status = "申请成功";
                 //if (bill.need_resend == true)
                 //    status = "等待换货";
                 //else
                 //    status = "等待退红字";
             }
-            else if (aps.Where(a => a.success == false).Count() > 0)
-            {
+            else if (aps.Where(a => a.success == false).Count() > 0) {
                 status = "申请失败";
             }
             else
@@ -498,32 +471,34 @@ namespace Sale_Order.Controllers
         }
 
         //提交之前验证
-        public JsonResult ValidateBeforApply(string sys_no,string pmc)
+        public JsonResult ValidateBeforApply(string sys_no, string pmc)
         {
             //1. 没有保存不能提交
-            if (db.ReturnBill.Where(r => r.sys_no == sys_no).Count() < 1)
-            {
+            if (db.ReturnBill.Where(r => r.sys_no == sys_no).Count() < 1) {
                 return Json(new { suc = false, msg = "提交之前请先保存单据！" });
             }
 
             //2. 不能重复提交
-            if (db.Apply.Where(a => a.sys_no == sys_no).Count() > 0)
-            {
+            if (db.Apply.Where(a => a.sys_no == sys_no).Count() > 0) {
                 return Json(new { suc = false, msg = "不能重复提交！" });
             }
 
-            //2.1 PMC审核人没有选择不能保存
-            //if (db.ReturnBill.Where(r => r.sys_no == sys_no && r.pmc_id != null).Count() < 1) {
-            //    return Json(new { suc = false, msg = "退货PMC审核人不能为空！" });
-            //}
+            var entrys = db.ReturnBill.Where(r => r.sys_no == sys_no).First().ReturnBillDetail;
+            //2.1 不能同时出现两行相同的出货分录
+            var sameRecord = from e in entrys
+                             group e by new { e.stock_no, e.stock_entry_id } into g
+                             where g.Count() > 1
+                             select g.Key;
+            if (sameRecord.Count() > 0) {
+                return Json(new { suc = false, msg = "存在相同的销售出库单行，单号：" + sameRecord.First().stock_no + ";出库单行号：" + sameRecord.First().stock_entry_id });
+            }
 
             //3. 检查每一条单据分录，如果存在未完成的出库分录，则不能提交,作废
             //3.1. 检查每一条单据分录，如果在申请中的退货数量总量 + 7天内申请完成但未导入K3的数量 > K3中的可提交数量
             //4. 检查每一条出库单据分录，如果销售订单的关联数量小于退货数量，则不能提交
             //5. 检查每一条出库单据分录，如果这条分录是已钩稽，查看是否有未钩稽的数量，如果有，即提示优先选择未钩稽的数量
             int? FInterID, FEntryID, LineNo;
-            foreach (var det in db.ReturnBill.Where(r => r.sys_no == sys_no).First().ReturnBillDetail)
-            {
+            foreach (var det in entrys) {
                 FInterID = det.stock_inter_id;
                 FEntryID = det.stock_entry_id;
                 LineNo = det.entry_no;
@@ -549,16 +524,16 @@ namespace Sale_Order.Controllers
                 if (SEOrder == null) {
                     return Json(new { suc = false, msg = "对应行号：" + LineNo + ";出库单号：" + det.stock_no + ";此出库单的可申请红字数量等于0，提交失败" });
                 }
-                
+
                 //3.1
                 //正在申请中的数量
                 var isAppliedQty = (from r in db.ReturnBillDetail
-                                   join ap in db.Apply on r.ReturnBill.sys_no equals ap.sys_no
-                                   where ap.id != null
-                                   && ap.success == null
-                                   && r.stock_inter_id == FInterID
-                                   && r.stock_entry_id == FEntryID
-                                   select r.real_return_qty==null? r.return_qty:r.real_return_qty).Sum();
+                                    join ap in db.Apply on r.ReturnBill.sys_no equals ap.sys_no
+                                    where ap.id != null
+                                    && ap.success == null
+                                    && r.stock_inter_id == FInterID
+                                    && r.stock_entry_id == FEntryID
+                                    select r.real_return_qty == null ? r.return_qty : r.real_return_qty).Sum();
 
                 //记得添加此处申请的数量
                 isAppliedQty += det.return_qty;
@@ -577,33 +552,27 @@ namespace Sale_Order.Controllers
                                       sysNo = a.sys_no,
                                       returnQty = r.real_return_qty
                                   }).ToList();
-                foreach (var oldApply in oldApplies)
-                {
-                    if (db.ImportSysNoLog.Where(s => s.sys_no == oldApply.sysNo).Count() < 1)
-                    {
+                foreach (var oldApply in oldApplies) {
+                    if (db.ImportSysNoLog.Where(s => s.sys_no == oldApply.sysNo).Count() < 1) {
                         bool? importFlag = null;
                         db.hasImportIntoK3(oldApply.sysNo, "TH", ref importFlag);
-                        if (importFlag == false)
-                        {
+                        if (importFlag == false) {
                             hasAppliedButNotK3Qty += oldApply.returnQty;
                         }
                     }
                 }
 
-                if (isAppliedQty + hasAppliedButNotK3Qty > SEOrder.FcanApplyQty)
-                {
+                if (isAppliedQty + hasAppliedButNotK3Qty > SEOrder.FcanApplyQty) {
                     utl.writeEventLog(MODELNAME, "对应行号：" + LineNo + ";所有申请的退货数量之和：" + isAppliedQty + " 不能大于销售订单的可申请数量：" + SEOrder.FcanApplyQty, sys_no, Request, 10);
                     return Json(new { suc = false, msg = "对应行号：" + LineNo + ";所有申请的退货数量之和：" + isAppliedQty + " 不能大于销售订单的可申请数量：" + SEOrder.FcanApplyQty });
                 }
 
                 //4                
-                if (SEOrder.FCommitQty < det.return_qty)
-                {
+                if (SEOrder.FCommitQty < det.return_qty) {
                     utl.writeEventLog(MODELNAME, "对应行号：" + LineNo + ";申请的退货数量不能大于销售订单的关联数量：" + SEOrder.FCommitQty, sys_no, Request, 10);
                     return Json(new { suc = false, msg = "对应行号：" + LineNo + ";申请的退货数量不能大于销售订单的关联数量：" + SEOrder.FCommitQty });
                 }
-                if (SEOrder.FStockQty < det.return_qty)
-                {
+                if (SEOrder.FStockQty < det.return_qty) {
                     utl.writeEventLog(MODELNAME, "对应行号：" + LineNo + ";申请的退货数量不能大于销售订单的出库数量：" + SEOrder.FStockQty, sys_no, Request, 10);
                     return Json(new { suc = false, msg = "对应行号：" + LineNo + ";申请的退货数量不能大于销售订单的出库数量：" + SEOrder.FStockQty });
                 }
@@ -617,17 +586,16 @@ namespace Sale_Order.Controllers
 
             return Json(new { suc = true });
         }
-        
+
         //提交申请
         public ActionResult BeginApply(string sys_no)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             var rb = db.ReturnBill.Where(r => r.sys_no == sys_no).First();
 
-            string processType = "TH_RED";           
+            string processType = "TH_RED";
 
             Apply apply = new Apply();
-            apply.user_id = userId;
+            apply.user_id = currentUser.userId;
             apply.sys_no = sys_no;
             apply.start_date = DateTime.Now;
             apply.ip = Request.UserHostAddress;
@@ -641,19 +609,15 @@ namespace Sale_Order.Controllers
             //int? aud_id = null;
             int? produceDepId = rb.return_dept;
 
-            try
-            {
-                if (testFlag)
-                {
-                    ads = utl.getTestApplySequence(apply, processType, userId);
+            try {
+                if (testFlag) {
+                    ads = utl.getTestApplySequence(apply, processType, currentUser.userId);
                 }
-                else
-                {
-                    ads = utl.getApplySequence(apply, processType, userId, db.User.Single(u => u.id == userId).Department1.dep_no, produceDepId);
+                else {
+                    ads = utl.getApplySequence(apply, processType, currentUser.userId, db.User.Single(u => u.id == currentUser.userId).Department1.dep_no, produceDepId);
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 ViewBag.tip = ex.Message;
                 return View("tip");
             }
@@ -741,12 +705,10 @@ namespace Sale_Order.Controllers
             //}
             db.ApplyDetails.InsertAllOnSubmit(ads);
 
-            try
-            {
+            try {
                 db.SubmitChanges();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ViewBag.tip = "提交失败，原因：" + e.Message;
                 return View("tip");
             }
@@ -754,13 +716,11 @@ namespace Sale_Order.Controllers
             //发送邮件通知下一步的人员
 
             SomeUtils utis = new SomeUtils();
-            if (utis.emailToNextAuditor(apply.id))
-            {
+            if (utis.emailToNextAuditor(apply.id)) {
                 utl.writeEventLog("提交申请——发送邮件", "发送成功", sys_no, Request);
                 return RedirectToAction("CheckAllReturnBill");
             }
-            else
-            {
+            else {
                 utl.writeEventLog("提交申请——发送邮件", "发送失败", sys_no, Request, -1);
                 ViewBag.tip = "订单提交成功，但邮件服务器故障或暂时繁忙，通知邮件发送失败。如果紧急，可以手动发邮件或电话通知下一审核人。";
                 return View("tip");
@@ -849,7 +809,7 @@ namespace Sale_Order.Controllers
                         return Json(new { suc = true, msg = "此订单此型号存在未钩稽的出货单，请优先选择未钩稽的出库单做红字退货。未钩稽出库单号：【" + bill.FBillNo + "】" });
                     }
                 }
-                
+
             }
             return Json(new { suc = false });
 
@@ -1183,7 +1143,7 @@ namespace Sale_Order.Controllers
         //    return View("CreateResendBill");
         //}
 
-        
+
 
         ////换货提交之前先验证
         //public JsonResult ValidateBeforApplyHH(string sys_no)
@@ -1209,7 +1169,7 @@ namespace Sale_Order.Controllers
         //    int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
 
         //    string processtype;
-            
+
         //    bool? isRed = db.ResendBill.Where(r => r.sys_no == sys_no).First().is_red;
         //    if (isRed == false)
         //    {
@@ -1559,7 +1519,7 @@ namespace Sale_Order.Controllers
         //public ActionResult BeginApplyCH(string sys_no)
         //{
         //    int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-                        
+
 
         //    Apply apply = new Apply();
         //    apply.user_id = userId;
@@ -1618,6 +1578,6 @@ namespace Sale_Order.Controllers
         //    }
         //}
 
-        
+
     }
 }

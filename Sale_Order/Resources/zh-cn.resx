@@ -1620,4 +1620,7 @@
     <value>客户PO</value>
     <comment>客户料号</comment>
   </data>
+  <data name="po_no" xml:space="preserve">
+    <value>采购订单号</value>
+  </data>
 </root>

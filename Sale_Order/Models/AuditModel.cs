@@ -8,6 +8,11 @@ namespace Sale_Order.Models
     //审核人查看自己待审核或审核过的单据列表
     public class AuditListModel
     {
+        public AuditListModel()
+        {
+            this.account = "光电总部";
+        }
+
         public int step { get; set; }
         public string stepName { get; set; }
         public int applyId { get; set; }
@@ -22,6 +27,7 @@ namespace Sale_Order.Models
         public string encryptNo { get; set; }
         public string orderType { get; set; }
         public string model { get; set; }
+        public string account { get; set; }
     }
 
     //审核人查看自己待审核或审核过的变更单据列表

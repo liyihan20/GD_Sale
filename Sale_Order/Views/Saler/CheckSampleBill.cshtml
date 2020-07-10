@@ -240,10 +240,16 @@
                         </td>
                         <td>
                             <input type='text' style="width: 120px" value="@sb.User.real_name" />
-                        </td>                        
-                            @for (var i = 0; i < 6; i++) {
-                                <td></td>
-                            }         
+                        </td>      
+                        <td>
+                            主管:
+                        </td>
+                        <td>
+                            <input type='text' style="width: 120px" value="@sb.charger_name" />
+                        </td>                      
+                        @for (var i = 0; i < 4; i++) {
+                            <td></td>
+                        }         
                     </tr>
                     <tr>
                         <td colspan="8">

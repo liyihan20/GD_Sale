@@ -203,7 +203,7 @@ namespace Sale_Order.Controllers
                           select new
                           {
                               FBillID = p.id,
-                              FUserNumber = p.User.job,
+                              FUserNumber = p.User.card_number,
                               FDate = p.edit_time,
                               FSysNo = p.sys_no,
                               FCustomerName = p.customer_name,
@@ -361,7 +361,7 @@ namespace Sale_Order.Controllers
         //搜索历史数据
         public ActionResult SearchOldProjectBills() {
             int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            ViewData["userNumber"] = db.User.Single(u => u.id == userId).job;
+            ViewData["userNumber"] = db.User.Single(u => u.id == userId).card_number;
             return View();
         }
 
@@ -384,7 +384,7 @@ namespace Sale_Order.Controllers
                        || v.product_serial.Contains(otherKey) || v.sys_no.Contains(otherKey)
                        || v.TP_type.Contains(otherKey) || v.user_name.Contains(otherKey)
                        || v.user_number.Contains(otherKey))
-                       && (user.job.Equals(v.user_number) || user.real_name.Equals(v.user_name) || CanCheckAll)
+                       && (user.card_number.Equals(v.user_number) || user.real_name.Equals(v.user_name) || CanCheckAll)
                        orderby v.id descending 
                        select new
                        {
@@ -426,7 +426,7 @@ namespace Sale_Order.Controllers
                 project_status = bill.project_status,
                 customer_no = bill.customer_no,
                 classification = bill.classification,
-                User = new Models.User() { real_name = bill.user_name, job = bill.user_number },
+                User = new Models.User() { real_name = bill.user_name, card_number = bill.user_number },
                 screen_pixel = bill.screen_pixel,
                 edit_time = bill.edit_time,
                 screen_size = bill.screen_size,

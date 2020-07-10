@@ -20,7 +20,7 @@
                 <ul>
                     @if (Array.IndexOf(powers, Powers.new_order.ToString()) != -1)
                     {
-                        <li id="~/Saler/CreateSaleOrder"><span>@Html.Lang("new_sale_order")</span> </li>   
+                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder"><span>@Html.Lang("new_sale_order")</span> </li>   
                         <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>                
                     }
                     @if (Array.IndexOf(powers, Powers.ceo_excel.ToString()) != -1)

@@ -3,7 +3,7 @@
     $(function () {
         $("#currency").combobox({
             onSelect: function (record) {
-                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
+                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyNo: record.no,currencyName:record.name },
                     function (data) {
                         $('#exchange').numberbox('setValue', data);
                     }, "json"

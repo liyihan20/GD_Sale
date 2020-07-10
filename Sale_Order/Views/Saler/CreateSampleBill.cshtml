@@ -25,12 +25,7 @@
                     query: function () { },
                     enter: function () {
                         var box_id = $(this).attr("id");
-                        var url = "";
-                        switch (box_id) {
-                            case "clerk_no":
-                                url = "@Url.Content("~/Items/getClerks")";
-                                break;
-                        };
+                        var url = "@Url.Content("~/Items/getClerks")";
                         var _this = "#" + box_id;
                         var q = $(_this).combobox('getText');
                         if (q != "") {
@@ -121,7 +116,7 @@
 
         $("#currency_no").combobox({
             onSelect: function (record) {
-                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
+                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyNo: record.no, currencyName: record.name },
                     function (data) {
                         $('#exchange_rate').numberbox('setValue', data);
                     }, "json"
@@ -214,10 +209,10 @@
             textField: "value",
             idField: "value",
             panelWidth: 500,
-            noWap:false,
-            editable:false,
-            required:true,
-            url:'@Url.Content("~/Items/GetProjectItems?what=分类")',
+            noWap: false,
+            editable: false,
+            required: true,
+            url: '@Url.Content("~/Items/GetProjectItems?what=分类")',
             columns: [[
                         {
                             field: 'value', title: '@Html.Lang("classification")', width: 140,
@@ -246,6 +241,7 @@
         //手动设置一下从后台过来的值
         $('#product_model').combogrid('setValue', '@sb.product_model');
         $('#clerk_no').combobox('setText', '@sb.clerk_name');
+        $('#charger_no').combobox('setText', '@sb.charger_name');
         $('#customer_no').combobox('setText', '@Html.Raw(sb.customer_name)');
         $('#zz_customer_no').combobox('setText', '@Html.Raw(sb.zz_customer_name)');
         $('#plan_firm_no').combobox('setText', '@Html.Raw(sb.plan_firm_name)');
@@ -518,23 +514,7 @@
     background: #fafafa;+position: relative;">
     <div>
         @*表头*@
-        <table border="0" cellpadding="0" cellspacing="3" width="800">
-            @*@if (step == 4)
-            {
-                        <tr>
-                            <td>
-                                单据编号:
-                            </td>
-                            <td>
-                                <input type="text" name="bill_no" id="bill_no" style="width:115px" value="@sb.bill_no"/>
-                            </td>
-                            @for (var i = 0; i < 6; i++)
-                            { 
-                                <td>
-                                </td>
-                            }
-                        </tr>
-            }*@
+        <table border="0" cellpadding="0" cellspacing="3" width="800">            
             <tr>
                 <td>
                     下单日期:
@@ -746,7 +726,7 @@
                                         ]" value="@sb.sample_use" />
                 </td>
                 <td>
-                    @Html.Lang("contract_num"):
+                    合同编号P/O:
                 </td>
                 <td>
                     <input id="contract_po_no" class="easyui-validatebox" name="contract_po_no" style="width: 115px" value="@sb.contract_po_no" />
@@ -775,11 +755,14 @@
                     制单人:
                 </td>
                 <td>
-                    <input class="easyui-textbox" id="create_user" name="create_user"  value="@sb.User.real_name" readonly="readonly" style="width: 115px" />
+                    <input class="easyui-textbox" id="create_user" name="create_user"  value="@ViewData["username"]" readonly="readonly" style="width: 115px" />
                 </td> 
-                @for (var i = 0; i < 6; i++) {
-                    <td></td>
-                }           
+            </tr>
+            <tr>
+                <td>主管:</td>
+                <td>   
+                    <input id="charger_no" class="remotebox" name="charger_no" style="width: 120px" value="@sb.charger_no" />
+                </td>
             </tr>
             <tr>
                 <td colspan="8">

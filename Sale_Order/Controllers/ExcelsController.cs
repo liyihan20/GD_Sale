@@ -13,9 +13,8 @@ using System.Data;
 
 namespace Sale_Order.Controllers
 {
-    public class ExcelsController : Controller
-    {
-        SaleDBDataContext db = new SaleDBDataContext();
+    public class ExcelsController : BaseController
+    {        
         SomeUtils utl = new SomeUtils();
         // GET: /Excels/
         //营业员导出数据
@@ -25,8 +24,7 @@ namespace Sale_Order.Controllers
             string sysNo = fcl.Get("sys_no");
             string fromDateStr = fcl.Get("fromDate");
             string toDatestr = fcl.Get("toDate");
-            string billType = fcl.Get("billType");
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+            string billType = fcl.Get("billType");            
             DateTime fromDate = DateTime.Parse("1990-1-1");
             DateTime toDate = DateTime.Parse("2099-9-9");
             if (!string.IsNullOrWhiteSpace(fromDateStr))
@@ -39,38 +37,38 @@ namespace Sale_Order.Controllers
                 case "SO":
                 case "1":
                     utl.writeEventLog("导出Excel", "SO:" + fromDateStr + "~" + toDatestr, sysNo, Request);
-                    exportSOExcel(sysNo, fromDate, toDate, userId);
+                    exportSOExcel(sysNo, fromDate, toDate);
                     break;
                 case "3":
                     //包含CCM开改模和其它开改模
                     utl.writeEventLog("导出Excel", "CM:" + fromDateStr + "~" + toDatestr, sysNo, Request);
-                    exportCMExcel(sysNo, fromDate, toDate, userId);
+                    exportCMExcel(sysNo, fromDate, toDate);
                     break;
                 case "4":
                 case "SB":
                     utl.writeEventLog("导出Excel", "MB:" + fromDateStr + "~" + toDatestr, sysNo, Request);
-                    exportSBExcel(sysNo, fromDate, toDate, userId);
+                    exportSBExcel(sysNo, fromDate, toDate);
                     break;
                 case "5":
                 case "BL":
                     utl.writeEventLog("导出Excel", "BL:" + fromDateStr + "~" + toDatestr, sysNo, Request);
-                    exportBLExcel(sysNo, fromDate, toDate, userId);
+                    exportBLExcel(sysNo, fromDate, toDate);
                     break;
                 case "7":
                 case "HC":
                     utl.writeEventLog("导出Excel", "HC:" + fromDateStr + "~" + toDatestr, sysNo, Request);
-                    exportHCExcel(sysNo, fromDate, toDate, userId);
+                    exportHCExcel(sysNo, fromDate, toDate);
                     break;
             }
 
         }
 
-        public void exportSOExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
+        public void exportSOExcel(string sysNo, DateTime fromDate, DateTime toDate)
         {
             var myData = (from o in db.Sale_SO
                           join e in db.Sale_SO_details on o.id equals e.order_id
                           where
-                           o.user_id == userId &&
+                          o.user_id == currentUser.userId &&
                           (o.sys_no.Contains(sysNo) || e.item_modual.Contains(sysNo))
                           && o.order_date >= fromDate && o.order_date <= toDate
                           orderby o.order_date
@@ -158,13 +156,13 @@ namespace Sale_Order.Controllers
             xls.Send();
         }
 
-        public void exportSBExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
+        public void exportSBExcel(string sysNo, DateTime fromDate, DateTime toDate)
         {
             var myData = (from sb in db.SampleBill
                           where (sb.sys_no.Contains(sysNo) || sb.product_model.Contains(sysNo))
                           && sb.bill_date >= fromDate
                           && sb.bill_date <= toDate
-                          && sb.original_user_id == userId
+                          && sb.original_user_id == currentUser.userId
                           select sb).ToList();
 
             //列宽：
@@ -228,19 +226,19 @@ namespace Sale_Order.Controllers
             xls.Send();
         }
 
-        public void exportCMExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
+        public void exportCMExcel(string sysNo, DateTime fromDate, DateTime toDate)
         {
             var myData = (from mc in db.CcmModelContract
                           where (mc.sys_no.Contains(sysNo) || mc.product_model.Contains(sysNo))
                           && mc.bill_date >= fromDate
                           && mc.bill_date <= toDate
-                          && mc.user_id == userId
+                          && mc.user_id == currentUser.userId
                           select mc).ToList();
             var myData2 = (from mc in db.ModelContract
                           where (mc.sys_no.Contains(sysNo) || mc.product_model.Contains(sysNo))
                           && mc.bill_date >= fromDate
                           && mc.bill_date <= toDate
-                          && mc.original_user_id == userId
+                          && mc.original_user_id == currentUser.userId
                           select mc).ToList();
 
             //列宽：
@@ -360,7 +358,7 @@ namespace Sale_Order.Controllers
             xls.Send();
         }
 
-        public void exportBLExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
+        public void exportBLExcel(string sysNo, DateTime fromDate, DateTime toDate)
         {
             var myData = (from sb in db.Sale_BL
                           join detail in db.Sale_BL_details on sb.id equals detail.bl_id into dtemp
@@ -368,7 +366,7 @@ namespace Sale_Order.Controllers
                           where (sb.sys_no.Contains(sysNo) || sb.product_model.Contains(sysNo))
                           && sb.bl_date >= fromDate
                           && sb.bl_date <= toDate
-                          && sb.original_user_id == userId
+                          && sb.original_user_id == currentUser.userId
                           select new
                           {
                               bl = sb,
@@ -452,13 +450,13 @@ namespace Sale_Order.Controllers
             xls.Send();
         }
 
-        public void exportHCExcel(string sysNo, DateTime fromDate, DateTime toDate, int userId)
+        public void exportHCExcel(string sysNo, DateTime fromDate, DateTime toDate)
         {
             var myData = (from hc in db.Sale_HC
                           where (hc.sys_no.Contains(sysNo) || hc.item_model.Contains(sysNo))
                           && hc.bill_date >= fromDate
                           && hc.bill_date <= toDate
-                          && hc.user_id == userId
+                          && hc.user_id == currentUser.userId
                           select hc).ToList();
 
             //列宽：
@@ -521,9 +519,8 @@ namespace Sale_Order.Controllers
         //总裁办导出数据
         [SessionTimeOutFilter()]
         public ActionResult exportCeoExcel(string beginDate, string toDate)
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            if (!utl.hasGotPower(userId, Powers.ceo_excel.ToString()))
+        {            
+            if (!utl.hasGotPower(currentUser.userId, Powers.ceo_excel.ToString()))
             {
                 utl.writeEventLog("导出总裁办Excel", "没有权限", "", Request, 1000);
                 ViewBag.tip = "没有权限";
@@ -624,9 +621,8 @@ namespace Sale_Order.Controllers
         }
 
         //办事处样品单Excel
-        public ActionResult exportAgencyExcel(string beginDate, string toDate) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            if (!utl.hasGotPower(userId, Powers.agency_sb_excel.ToString()))
+        public ActionResult exportAgencyExcel(string beginDate, string toDate) {            
+            if (!utl.hasGotPower(currentUser.userId, Powers.agency_sb_excel.ToString()))
             {
                 utl.writeEventLog("导出样品单办事处Excel", "没有权限", "", Request, 1000);
                 ViewBag.tip = "没有权限";
@@ -738,10 +734,9 @@ namespace Sale_Order.Controllers
         //审核人导出的excel,templateID=2是默认模板
         [SessionTimeOutFilter()]
         public void exportAuditorSOExcel(string ids)
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);            
+        {            
             bool canSeePrice = true;
-            if (utl.hasGotPower(userId, Powers.not_all_price.ToString()))
+            if (utl.hasGotPower(currentUser.userId, Powers.not_all_price.ToString()))
             {
                 utl.writeEventLog("导出无价格报表Excel", "成功导出记录数:" + ids.Split(',').Count(), "", Request, 0);
                 canSeePrice = false;
@@ -1155,10 +1150,8 @@ namespace Sale_Order.Controllers
 
         public void BeginExportTHExcel(string customerInfo, DateTime fromDate, DateTime toDate, string stockNo, string model, int auditResult)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             var myData = (from v in db.VwReturnBill
-                          where v.user_id == userId
+                          where v.user_id == currentUser.userId
                           && (v.customer_number.Contains(customerInfo) || v.customer_name.Contains(customerInfo))
                           && (v.stock_no.Contains(stockNo) || v.seorder_no.Contains(stockNo))
                           && (v.product_model.Contains(model) || v.sys_no.Contains(model))
@@ -1265,8 +1258,6 @@ namespace Sale_Order.Controllers
         //物控导出红字退货报表
         public void exportTHExcelByCon(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             string customerNumber = fc.Get("cust_no");
             string billNo = fc.Get("bill_no");
             string sysNo = fc.Get("sys_no");
@@ -1279,21 +1270,18 @@ namespace Sale_Order.Controllers
             if (!DateTime.TryParse(fromDateStr, out fromDate)) fromDate = DateTime.Parse("1980-1-1");
             if (!DateTime.TryParse(toDateStr, out toDate)) toDate = DateTime.Parse("2099-9-9");
 
-            string[] depArr;
+            List<string> depArr;
             if ("all".Equals(procDep)) {
-                string userCanCheckDeps = db.User.Single(u => u.id == userId).can_check_deps;
-                if (userCanCheckDeps.Equals("*")) {
-                    depArr = db.Department.Where(d => d.dep_type == "退货事业部").Select(d => d.name).ToArray();
-                }
-                else {
-                    depArr = userCanCheckDeps.Split(new Char[] { ',', '，' });
+                depArr = db.Sale_user_can_check_deps.Where(u => u.bill_type == "TH" && u.username == currentUser.userName).Select(u => u.dep_name).ToList();
+                if (depArr.Contains("*")) {
+                    depArr = db.Department.Where(d => d.dep_type == "退货事业部").Select(d => d.name).ToList();
                 }
             }
             else {
-                depArr = procDep.Split(new Char[] { ',', '，' });
+                depArr = new List<string>() { procDep };
             }
 
-            BeginExportTHExcelByCon(customerNumber, fromDate, toDate, billNo, sysNo, depArr);
+            BeginExportTHExcelByCon(customerNumber, fromDate, toDate, billNo, sysNo, depArr.ToArray());
             utl.writeEventLog("Excel导出", "物控导出退换货列表", "", Request);
         }
 
@@ -1302,7 +1290,7 @@ namespace Sale_Order.Controllers
             var myData = (from v in db.VwReturnBill
                           where (v.customer_number.Contains(customerInfo) || v.customer_name.Contains(customerInfo))
                           && (v.stock_no.Contains(billNo) || v.seorder_no.Contains(billNo))
-                          && v.sys_no.Contains(sysNo)
+                          && (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
                           && v.fdate >= fromDate
                           && v.fdate <= toDate
                           && v.audit_result == 1
@@ -1331,14 +1319,15 @@ namespace Sale_Order.Controllers
                               //FHasReturnQty = v.has_replace_qty,
                               FHasInvoice = v.has_invoice == true ? "已开" : "未开",
                               //FNeedResend = v.need_resend == true ? "换货" : "退红字",
-                              apply_status = v.audit_result == null ? "未提交" : v.audit_result == 1 ? "申请成功" : v.audit_result == -1 ? "申请失败" : "审批中"
+                              apply_status = v.audit_result == null ? "未提交" : v.audit_result == 1 ? "申请成功" : v.audit_result == -1 ? "申请失败" : "审批中",
+                              finish_date = v.finish_date
                           }).ToList();
 
             ushort[] colWidth = new ushort[] { 12, 16,16,16, 20, 20, 12, 28, 18, 24, 
-                                               28, 14, 14, 14, 14, 14, 14, 14, 14 };
+                                               28, 14, 14, 14, 14, 14, 14, 14, 14, 18 };
 
             string[] colName = new string[] { "下单日期", "退货编号","营业员","办事处", "出库单号", "订单单号", "客户代码", "客户名称", "产品编码", "产品名称",
-                                              "规格型号", "已发数量", "退货数量","实退数量", "上线状态","退货部门","出货组", "蓝字发票", "审核状态" };
+                                              "规格型号", "已发数量", "退货数量","实退数量", "上线状态","退货部门","出货组", "蓝字发票", "审核状态", "完成日期" };
 
             //設置excel文件名和sheet名
             XlsDocument xls = new XlsDocument();
@@ -1403,6 +1392,7 @@ namespace Sale_Order.Controllers
                 cells.Add(rowIndex, colIndex++, d.FHasInvoice);
                 //cells.Add(rowIndex, colIndex++, d.FNeedResend);
                 cells.Add(rowIndex, colIndex++, d.apply_status);
+                cells.Add(rowIndex, colIndex++, d.finish_date == null ? "" : ((DateTime)d.finish_date).ToString("yyyy-MM-dd HH:mm"));
             }
 
             xls.Send();
@@ -1643,7 +1633,7 @@ namespace Sale_Order.Controllers
                     18,18,16,18};
 
             //列名：
-            string[] colName = new string[] { "审核结果", "流水号","备料日期", "备料编号", "产品型号", "数量", "客户名称", "计划下订单日期", "营业员","备料项目",
+            string[] colName = new string[] { "审核结果", "流水号","备料日期", "备料编号","备料类型", "产品型号", "数量", "客户名称", "计划下订单日期","计划交货期", "营业员","备料项目",
                 "成交价（不含税）","事业部","产品用途","办事处","摘要","物料型号","物料名称","单位","单位用量","标准数量",
                 "订料数量","K3数量","来源","订料员"};
 
@@ -1690,10 +1680,12 @@ namespace Sale_Order.Controllers
                 cells.Add(rowIndex, ++colIndex, d.sys_no);
                 cells.Add(rowIndex, ++colIndex, d.bl_date);
                 cells.Add(rowIndex, ++colIndex, d.bill_no);
+                cells.Add(rowIndex, ++colIndex, d.bl_type);
                 cells.Add(rowIndex, ++colIndex, d.product_model);
                 cells.Add(rowIndex, ++colIndex, d.qty);
                 cells.Add(rowIndex, ++colIndex, d.customer_name);
                 cells.Add(rowIndex, ++colIndex, d.plan_order_date);
+                cells.Add(rowIndex, ++colIndex, d.fetch_date);
                 cells.Add(rowIndex, ++colIndex, d.real_name);
                 cells.Add(rowIndex, ++colIndex, d.bl_project);
 

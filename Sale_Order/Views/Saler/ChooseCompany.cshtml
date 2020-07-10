@@ -1,0 +1,14 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    
+}
+
+<script>
+    
+</script>
+
+<div style="text-align:center;">
+    <h3>请选择需要下单到哪个公司：</h3>
+     <a href="@string.Format("{0}{1}/{2}?account={3}", Url.Content("~"), ViewData["controllerName"], ViewData["actionName"], "光电总部")" class="easyui-linkbutton" data-options="iconCls:'icon-star'" style="padding:12px;margin-right:12px;"><span style="font-size:18px;">光电总部</span> </a>
+     <a href="@string.Format("{0}{1}/{2}?account={3}", Url.Content("~"), ViewData["controllerName"], ViewData["actionName"], "光电仁寿")" class="easyui-linkbutton" data-options="iconCls:'icon-star'" style="padding:12px;"><span style="font-size:18px;">光电仁寿</span> </a>
+</div>

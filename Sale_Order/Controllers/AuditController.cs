@@ -11,9 +11,8 @@ using Newtonsoft.Json;
 
 namespace Sale_Order.Controllers
 {
-    public class AuditController : Controller
+    public class AuditController : BaseController
     {
-        SaleDBDataContext db = new SaleDBDataContext();
         SomeUtils utl = new SomeUtils();
 
         //审批人查看自己审核的单据
@@ -96,8 +95,6 @@ namespace Sale_Order.Controllers
         {
             DateTime fromDate = string.IsNullOrWhiteSpace(from_date) ? DateTime.Parse("1980-1-1") : DateTime.Parse(from_date);
             DateTime toDate = string.IsNullOrWhiteSpace(to_date) ? DateTime.Parse("2099-9-9") : DateTime.Parse(to_date).AddDays(1);
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            var auditor = db.User.Single(u => u.id == userId);
             List<AuditListModel> list = new List<AuditListModel>();
             int step;
             string status;
@@ -109,7 +106,7 @@ namespace Sale_Order.Controllers
 
             var details = (from ad in db.ApplyDetails
                            join a in db.Apply on ad.apply_id equals a.id
-                          where ad.user_id == userId
+                          where ad.user_id == currentUser.userId
                           && a.sys_no.Contains(sysNo)
                           //&& ad.Apply.User.real_name.Contains(saler)  去掉搜索申请者的过滤条件，大幅优化查询速度
                           && a.start_date >= fromDate
@@ -235,7 +232,6 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult BeginAudit(int step, int applyId)
         {            
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             var apps = db.Apply.Where(a => a.id == applyId);
             if (apps == null || apps.Count() < 1)
             {
@@ -244,7 +240,7 @@ namespace Sale_Order.Controllers
                 return View("Tip");
             }
             Apply ap = apps.First();
-            var ads = ap.ApplyDetails.Where(a => a.step == step && a.user_id == userId);
+            var ads = ap.ApplyDetails.Where(a => a.step == step && a.user_id == currentUser.userId);
             //验证是否有审核权限
             if (ads.Count() < 1)
             {
@@ -316,12 +312,6 @@ namespace Sale_Order.Controllers
                 case "TH":
                     ViewData["order_id"] = db.ReturnBill.Where(r => r.sys_no == ap.sys_no).First().id;
                     break;
-                case "HH":
-                    ViewData["order_id"] = db.ResendBill.Where(r => r.sys_no == ap.sys_no).First().id;
-                    break;
-                case "CH":
-                    ViewData["order_id"] = db.FetchBill.Where(r => r.sys_no == ap.sys_no).First().id;
-                    break;
                 case "PJ":
                     ViewData["order_id"] = db.Project_bills.Where(r => r.sys_no == ap.sys_no).First().id;
                     break;
@@ -378,8 +368,6 @@ namespace Sale_Order.Controllers
         //审核员处理申请
         public JsonResult HandleAgencyAudit(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             int applyId = int.Parse(fc.Get("applyId"));
             Apply ap = db.Apply.Single(a => a.id == applyId);
             int step = int.Parse(fc.Get("step"));
@@ -397,7 +385,7 @@ namespace Sale_Order.Controllers
                 return Json(new { success = false, msg = "此申请已结束" }, "text/html");
             }
             
-            ApplyDetails thisDetail = ap.ApplyDetails.Where(ad => ad.user_id == userId && ad.step == step).OrderBy(ad=>ad.pass).First();
+            ApplyDetails thisDetail = ap.ApplyDetails.Where(ad => ad.user_id == currentUser.userId && ad.step == step).OrderBy(ad=>ad.pass).First();
             //会签&不是会签的已审批判断
             if (thisDetail.pass != null || ap.ApplyDetails.Where(ad => ad.step == step && ad.pass != null && (ad.countersign == null || ad.countersign == false)).Count() > 0)
             {
@@ -502,7 +490,7 @@ namespace Sale_Order.Controllers
                         if (ap.order_type.Equals("BL")) {
                             //写入备料单号
                             var bl = db.Sale_BL.Single(b => b.sys_no == ap.sys_no);
-                            bl.bill_no = utl.getBLbillNo(bl.market_dep,bl.bus_dep,(int)bl.original_user_id);
+                            bl.bill_no = utl.getBLbillNo(bl.market_dep,bl.bus_dep,(int)bl.original_user_id,bl.trade_type_name);
 
                             //写入备料库存
                             db.Sale_BL_stock.InsertOnSubmit(new Sale_BL_stock()
@@ -585,7 +573,6 @@ namespace Sale_Order.Controllers
         //退回上一审批人，目前只有退换货申请有这个功能
         public JsonResult BackToPreviousStep(Apply ap, int step, string reason)
         {
-
             try
             {
                 //将上一步的审核操作清空
@@ -616,12 +603,8 @@ namespace Sale_Order.Controllers
                 return Json(new { success = false, msg = "审核发生错误，删除子步骤失败" }, "text/html");
             }
 
-
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
-
             //发送邮件通知上一环节审批人
-            if (utl.emailToPrevious(ap.id, step - 1, reason, user.real_name))
+            if (utl.emailToPrevious(ap.id, step - 1, reason, currentUser.realName))
             {
                 utl.writeEventLog("发送邮件", "通知下一环节：发送成功", ap.sys_no + ":" + step.ToString(), Request);
             }
@@ -636,8 +619,6 @@ namespace Sale_Order.Controllers
         //退红字单，客服审核，如果数量有变更，需要通知营业员，插入一个审核步骤
         public JsonResult HandleQtyEditTHAudit(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             int applyId = int.Parse(fc.Get("applyId"));
             Apply ap = db.Apply.Single(a => a.id == applyId);
             int step = int.Parse(fc.Get("step"));
@@ -667,7 +648,7 @@ namespace Sale_Order.Controllers
             try
             {
                 //更新这一步骤的状态
-                ApplyDetails thisDetail = ap.ApplyDetails.Where(ad => ad.user_id == userId && ad.step == step).First();
+                ApplyDetails thisDetail = ap.ApplyDetails.Where(ad => ad.user_id == currentUser.userId && ad.step == step).First();
                 thisDetail.ip = Request.UserHostAddress;
                 thisDetail.pass = isOK;
                 thisDetail.comment = comment;
@@ -780,8 +761,6 @@ namespace Sale_Order.Controllers
         //审核员挂起申请
         public JsonResult BlockOrder(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             int applyId = int.Parse(fc.Get("applyId"));
             Apply ap = db.Apply.Single(a => a.id == applyId);
             int step = int.Parse(fc.Get("step"));
@@ -796,7 +775,7 @@ namespace Sale_Order.Controllers
 
             db.BlockOrder.InsertOnSubmit(new BlockOrder()
             {
-                @operator = userId,
+                @operator = currentUser.userId,
                 block_time = DateTime.Now,
                 step = step,
                 step_name = ap.ApplyDetails.Where(ad => ad.step == step).First().step_name,
@@ -808,7 +787,7 @@ namespace Sale_Order.Controllers
             utl.writeEventLog("审核单据", "将订单暂时挂起", ap.sys_no, Request);
 
             //发送通知邮件给申请者
-            if (utl.emailForBlock(applyId, userId, comment))
+            if (utl.emailForBlock(applyId, currentUser.userId, comment))
             {
                 utl.writeEventLog("发送邮件", "挂起通知营业员：发送成功", ap.sys_no + ":" + step.ToString(), Request);
             }
@@ -823,8 +802,6 @@ namespace Sale_Order.Controllers
         //刷新处理结果
         public JsonResult RefleshAuditResult(int applyId, int step)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
             var details = db.ApplyDetails.Where(ad => ad.apply_id == applyId && ad.step == step);
             bool hasAudited = false;
             bool? pass = false;
@@ -835,7 +812,7 @@ namespace Sale_Order.Controllers
                 //被NG的
                 hasAudited = true;
                 pass = false;
-                comment = details.Where(d => d.user_id == userId).First().comment;
+                comment = details.Where(d => d.user_id == currentUser.userId).First().comment;
             }
             else if (details.Where(d => d.pass != null).Count() == 0)
             {
@@ -849,18 +826,18 @@ namespace Sale_Order.Controllers
                     //不是会签
                     hasAudited = true;
                     pass = true;
-                    comment = details.Where(d => d.user_id == userId).First().comment;
+                    comment = details.Where(d => d.user_id == currentUser.userId).First().comment;
                 }
                 else { 
                     //是会签
-                    if (details.Where(d => d.user_id == userId && d.pass == null).Count() > 0)
+                    if (details.Where(d => d.user_id == currentUser.userId && d.pass == null).Count() > 0)
                     {
                         hasAudited = false;
                     }
                     else {
                         hasAudited = true;
                         pass = true;
-                        comment = details.Where(d => d.user_id == userId).First().comment;
+                        comment = details.Where(d => d.user_id == currentUser.userId).First().comment;
                     }
                 }
             }
@@ -1002,15 +979,7 @@ namespace Sale_Order.Controllers
             return Json(gr, "text/html");
 
         }
-
-        //获取佣金率
-        public JsonResult GetCommissionRate(string proType, double? MU)
-        {
-            double? result = 0;
-            db.getCommissionRate(proType, MU, ref result);
-            return Json(result, "text/html");
-        }
-
+        
         ////保存订单表头
         //[HttpPost]
         //public JsonResult saveSaleOrder(FormCollection col)
@@ -1356,14 +1325,13 @@ namespace Sale_Order.Controllers
 
         public JsonResult AuditorSaveSampleBill(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int step = -1;
             if (!Int32.TryParse(fc.Get("step"), out step))
             {
                 return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
             }
 
-            string saveResult = utl.saveSampleBill(fc, step, userId);
+            string saveResult = utl.saveSampleBill(fc, step, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult))
             {
                 return Json(new { suc = true }, "text/html");
@@ -1377,14 +1345,13 @@ namespace Sale_Order.Controllers
         //审核人保存CCM开改模单
         public JsonResult AuditorSaveCCMModelContract(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int step = -1;
             if (!Int32.TryParse(fc.Get("step"), out step))
             {
                 return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
             }
 
-            string saveResult = utl.saveCCMModelContract(fc, step, userId);
+            string saveResult = utl.saveCCMModelContract(fc, step, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult))
             {
                 return Json(new { suc = true }, "text/html");
@@ -1398,14 +1365,13 @@ namespace Sale_Order.Controllers
         //审核人保存开改模单
         public JsonResult AuditorSaveModelContract(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int step = -1;
             if (!Int32.TryParse(fc.Get("step"), out step))
             {
                 return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
             }
 
-            string saveResult = utl.saveModelContract(fc, step, userId);
+            string saveResult = utl.saveModelContract(fc, step, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult))
             {
                 return Json(new { suc = true }, "text/html");
@@ -1419,7 +1385,6 @@ namespace Sale_Order.Controllers
         //审核人保存备料单
         public JsonResult AuditorSaveBLBill(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int step = -1;
             if (!Int32.TryParse(fc.Get("step"), out step)) {
                 return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
@@ -1434,7 +1399,6 @@ namespace Sale_Order.Controllers
                     utl.writeEventLog("备料单", "成控修改成交价：" + bl.deal_price + "->" + dealPrice, bl.sys_no, Request);
                     bl.deal_price = dealPrice;
                 }
-                
             }else if (stepName.Contains("计划")) {
                 //计划员指定订料员
                 string orderIds = fc.Get("order_ids");
@@ -1446,7 +1410,7 @@ namespace Sale_Order.Controllers
 
                 bl.order_ids = orderIds;
                 bl.order_names = orderNames;
-                bl.update_user_id = userId;
+                bl.update_user_id = currentUser.userId;
                 bl.step_version = step;
                 bl.planner_comment = plannerComment;
             }
@@ -1478,9 +1442,9 @@ namespace Sale_Order.Controllers
                     //因为是会签，同时审批时如果将旧数据删除，会造成数据丢失的情况，A、B同时编辑时，A保存后，B再保存，那么A编辑的内容将会消失。
                     //改为只删除和插入自己的那些分录，其它不动。
 
-                    db.Sale_BL_details.DeleteAllOnSubmit(bl.Sale_BL_details.Where(b => b.order_id == userId));
-                    bl.Sale_BL_details.AddRange(details.Where(d => d.order_id == userId));
-                    bl.update_user_id = userId;
+                    db.Sale_BL_details.DeleteAllOnSubmit(bl.Sale_BL_details.Where(b => b.order_id == currentUser.userId));
+                    bl.Sale_BL_details.AddRange(details.Where(d => d.order_id == currentUser.userId));
+                    bl.update_user_id = currentUser.userId;
                     bl.step_version = step;
                 }
             }
@@ -1499,13 +1463,12 @@ namespace Sale_Order.Controllers
         //审核人保存华为出货报告
         public JsonResult AuditorSaveHCBill(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int step = -1;
             if (!Int32.TryParse(fc.Get("step"), out step)) {
                 return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
             }
 
-            string saveResult = utl.saveHCBill(fc, step, userId);
+            string saveResult = utl.saveHCBill(fc, step, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult)) {
                 return Json(new { suc = true }, "text/html");
             }

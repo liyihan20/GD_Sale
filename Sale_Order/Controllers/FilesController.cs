@@ -1,28 +1,27 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Web.Mvc;
-using CrystalDecisions.CrystalReports.Engine;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using Sale_Order.Controllers;
 using Sale_Order.Filter;
 using Sale_Order.Models;
+using Sale_Order.Models.BLDTTableAdapters;
+using Sale_Order.Models.CCDTTableAdapters;
+using Sale_Order.Models.CMDTTableAdapters;
 using Sale_Order.Models.SBDTTableAdapters;
 using Sale_Order.Models.SODTTableAdapters;
 using Sale_Order.Models.THDTTableAdapters;
-using Sale_Order.Models.CCDTTableAdapters;
-using Sale_Order.Models.CMDTTableAdapters;
 using Sale_Order.Utils;
-using Sale_Order.Models.BLDTTableAdapters;
+using System;
+using System.IO;
+using System.Linq;
 using System.Web;
-using System.Collections.Generic;
+using System.Web.Mvc;
 
 
 namespace TestCRM.Controllers.Sales
 {
-    public class FilesController : Controller
+    public class FilesController : BaseController
     {
         //
-        // GET: /Orders/
-        SaleDBDataContext db = new SaleDBDataContext();
+        // GET: /Orders/        
         SomeUtils utl = new SomeUtils();
         string model = "报表导出";
 
@@ -134,8 +133,7 @@ namespace TestCRM.Controllers.Sales
             return File(stream, "application/pdf"); 
         }
 
-        public ActionResult printTHReport(string sysNo) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+        public ActionResult printTHReport(string sysNo) {            
             string crystalFile = "TH_A4_Report.rpt";
 
             if (db.Apply.Where(a => a.sys_no == sysNo && a.success == true).Count() < 1)
@@ -167,7 +165,6 @@ namespace TestCRM.Controllers.Sales
         //秋海打印签收报表
         public ActionResult printTHQSReport(string sysNo)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string crystalFile = "THQS_A4_Report.rpt";
 
             if (db.Apply.Where(a => a.sys_no == sysNo && (a.success==true || a.success==null)).Count() < 1)
@@ -210,16 +207,15 @@ namespace TestCRM.Controllers.Sales
         [SessionTimeOutFilter()]
         public ActionResult printSBYFReport(string sysNo)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string crystalFile = "SBYF_A4_Report.rpt";
 
             if ((from a in db.Apply
                  from ad in a.ApplyDetails
                  where a.sys_no == sysNo
-                 && ad.user_id == userId
+                 && ad.user_id == currentUser.userId
                  select ad).Count() < 1)
             {
-                if (!utl.hasGotPower(userId, "chk_pdf_report"))
+                if (!utl.hasGotPower(currentUser.userId, "chk_pdf_report"))
                 {
                     utl.writeEventLog(model, "流水号不存在或没有权限查看", sysNo, Request, -100);
                     ViewBag.tip = "流水号不存在或没有权限查看";
@@ -300,16 +296,15 @@ namespace TestCRM.Controllers.Sales
         [SessionTimeOutFilter()]
         public ActionResult printCCYFReport(string sysNo)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string crystalFile = "CCYF_A4_Report.rpt";
 
             if ((from a in db.Apply
                  from ad in a.ApplyDetails
                  where a.sys_no == sysNo
-                 && ad.user_id == userId
+                 && ad.user_id == currentUser.userId
                  select ad).Count() < 1)
             {
-                if (!utl.hasGotPower(userId, "chk_pdf_report"))
+                if (!utl.hasGotPower(currentUser.userId, "chk_pdf_report"))
                 {
                     utl.writeEventLog(model, "流水号不存在或没有权限查看", sysNo, Request, -100);
                     ViewBag.tip = "流水号不存在或没有权限查看";
@@ -390,16 +385,15 @@ namespace TestCRM.Controllers.Sales
         [SessionTimeOutFilter()]
         public ActionResult printCMYFReport(string sysNo)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string crystalFile = "CMYF_A4_Report.rpt";
 
             if ((from a in db.Apply
                  from ad in a.ApplyDetails
                  where a.sys_no == sysNo
-                 && ad.user_id == userId
+                 && ad.user_id == currentUser.userId
                  select ad).Count() < 1)
             {
-                if (!utl.hasGotPower(userId, "chk_pdf_report"))
+                if (!utl.hasGotPower(currentUser.userId, "chk_pdf_report"))
                 {
                     utl.writeEventLog(model, "流水号不存在或没有权限查看", sysNo, Request, -100);
                     ViewBag.tip = "流水号不存在或没有权限查看";
@@ -484,18 +478,7 @@ namespace TestCRM.Controllers.Sales
         [SessionTimeOutFilter()]
         public ActionResult printBLReport(string sysNo)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            string crystalFile = "BL_A4_Report.rpt";
-
-            //if ((from a in db.Apply
-            //     from ad in a.ApplyDetails
-            //     where a.sys_no == sysNo
-            //     && ad.user_id == userId
-            //     select ad).Count() < 1) {
-            //    utl.writeEventLog(model, "流水号不存在或没有权限查看", sysNo, Request, -100);
-            //    ViewBag.tip = "流水号不存在或没有权限查看";
-            //    return View("Tip");
-            //}
+            string crystalFile = "BL_A4_Report.rpt";            
 
             utl.writeEventLog(model, "导出备料单报表", sysNo, Request, 0);
 

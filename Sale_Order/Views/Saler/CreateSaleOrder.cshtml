@@ -5,8 +5,39 @@
     var order = ViewData["order"] as Sale_SO;
     var details = ViewData["details"] as List<Sale_SO_details>;
     var dJson=JsonConvert.SerializeObject(details);
+    var account = order.account;
 }
 
+<script>
+    //不同公司各自获取自己K3的基础资料
+    $(function(){        
+        
+        $(".k3_item").each(function(){
+            var what=$(this).attr("data-what");
+            var panelWidth=$(this).attr("data-panelWidth") || null;
+            var penelHeight=$(this).attr("data-panelHeight") || 300;
+            var editable=$(this).attr("data-editable") || false;
+            var required=true;
+            if($(this).attr("data-required")=="false"){
+                required=false;
+            }
+
+            $(this).combobox({
+                valueField:"no",
+                textField:"name",
+                url:"../Items/getItems?what="+what+"&account=@account",
+                width:140,
+                panelHeight:penelHeight,
+                panelWidth:panelWidth,
+                editable:editable,
+                required:required
+            });
+        });
+
+        $("#agency_div").css("visibility","visible");
+
+    });
+</script>
 <script type="text/javascript">
 
     var tax_rate = 13;
@@ -83,7 +114,7 @@
 
         $("#currency_no").combobox({
             onSelect: function (record) {
-                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
+                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyNo: record.no,currencyName:record.name },
                     function (data) {
                         $('#exchange_rate').numberbox('setValue', data);
                     }, "json"
@@ -120,7 +151,7 @@
                         var _this = "#" + box_id;
                         var q = $(_this).combobox('getText');
                         if (q != "") {
-                            $.post(url, { q: q },
+                            $.post(url, { q: q ,account:"@account" },
                             function (data) {
                                 $(_this).combobox('loadData', data);
                                 $(_this).combobox('setText', q);
@@ -150,7 +181,7 @@
                         var _this = "#" + box_id;
                         var q = $(_this).combogrid('getText');
                         if (q != "") {
-                            $.post("@Url.Content("~/Items/getCostomers")", { q: q },
+                            $.post("@Url.Content("~/Items/getCostomers")", { q: q,account:"@account" },
                                 function (data) {
                                     $(_this).combogrid('grid').datagrid('loadData', data);
                                     $(_this).combogrid('setText', q);
@@ -195,7 +226,7 @@
                 enter: function () {
                     var q = $("#item_no").combogrid('getText');
                     if (q != "") {
-                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
+                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q,account:"@account" },
                                 function (data) {
                                     $("#item_no").combogrid('grid').datagrid('loadData', data);
                                     $("#item_no").combogrid('setText', q);
@@ -221,7 +252,7 @@
             }
         });
 
-        
+
 
         //不含税单价，含税单价
         var stop = 0;
@@ -273,16 +304,16 @@
         if("@order.currency_no"==""){
             $("#currency_no").combobox("setValue", "RMB");
         }
-        $("#buy_unit_no").combogrid("setText","@order.buy_unit_name");
-        $("#oversea_client_no").combogrid("setText","@order.oversea_client_name");
-        $("#plan_firm_no").combogrid("setText","@order.plan_firm_name");
-        $("#final_client_no").combogrid("setText","@order.final_client_name");
+        $("#buy_unit_no").combogrid("setText","@Html.Raw(order.buy_unit_name)");
+        $("#oversea_client_no").combogrid("setText","@Html.Raw(order.oversea_client_name)");
+        $("#plan_firm_no").combogrid("setText","@Html.Raw(order.plan_firm_name)");
+        $("#final_client_no").combogrid("setText","@Html.Raw(order.final_client_name)");
         $("#clerk_no").combobox("setText","@order.clerk_name");
         $("#clerk2_no").combobox("setText","@order.clerk2_name");
         $("#clerk3_no").combobox("setText","@order.clerk3_name");
         $("#charger_no").combobox("setText","@order.charger_name");
 
-    });    
+    });
 
     //保存订单时各种验证
     function beforeSaveOrder() {
@@ -428,7 +459,9 @@
         var v_pro_type = $("#product_type_no").combobox("getText");
 
         if (row.deal_price > 0) {
-            row.MU = 100 * (1 - ((row.cost * (1 + row.tax_rate / 100)) / (row.deal_price * v_exchange))) - row.fee_rate;
+            row.MU = (100 * (1 - ((row.cost * (1 + row.tax_rate / 100)) / (row.deal_price * v_exchange))) - row.fee_rate).toFixed(4);
+        }else{
+            row.MU = 0;
         }
 
         if (row.MU <= 0) {
@@ -438,8 +471,8 @@
             $.ajax({
                 type: "POST",
                 dataType: "json",
-                url: "@Url.Content("~/Audit/GetCommissionRate")",
-                data: "proType=" + v_pro_type + "&MU=" + row.MU,
+                url: "@Url.Content("~/Items/GetK3CommissionRate")",
+                data: "proType=" + v_pro_type + "&MU=" + row.MU + "&account=@account",
                 async: false,
                 success: function (data) {
                     row.commission_rate = data;
@@ -672,7 +705,7 @@ else {
         }
     </script>
 }
-<div class="easyui-layout" data-options="fit:true" id="agency_div">
+<div class="easyui-layout" data-options="fit:true" id="agency_div" style="visibility:hidden">
     @if (order.step_version > 0) {
         @*挂起信息*@
         @Html.Partial("_BlockInfoPartial")
@@ -696,16 +729,26 @@ else {
                 <div>
                     @*表头*@
                     <table border="0" cellpadding="0" cellspacing="3" style="width:900px;">
-                        @if (order.step_version > 0) { 
                         <tr>
                             <td>
-                                @Html.Lang("order_no"):
+                                公司：
                             </td>
                             <td>
-                                <input id="order_no" class="easyui-textbox" name="order_no" required="true" style="width: 140px" value="@order.order_no" />
+                                <input class="easyui-textbox" name="account" id="account" style="width:140px" readonly="readonly" value="@order.account"/>
                             </td>
+                            @if (order.step_version > 0) {
+                                <td>
+                                    @Html.Lang("order_no"):
+                                </td>
+                                <td>
+                                    <input id="order_no" class="easyui-textbox" name="order_no" required="true" style="width: 140px" value="@order.order_no" />
+                                </td>                        
+                            }
+                            else {
+                                <td></td><td></td>
+                            }
+                            <td></td><td></td><td></td><td></td>
                         </tr>
-                        }
                         <tr>
                             <td>
                                 @Html.Lang("order_date"):
@@ -730,8 +773,9 @@ else {
                                 @Html.Lang("trade_type"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="trade_type_no" name="trade_type_no" url='@Url.Content("~/Items/getItems?what=trade_type")' 
-                                valuefield="no" textfield="name" style="width: 140px"  required="true" panelheight="auto"  editable="false" value="@order.trade_type_no" />
+                                @*<input class="easyui-combobox" id="trade_type_no" name="trade_type_no" url='@Url.Content("~/Items/getItems?what=trade_type")' 
+                                valuefield="no" textfield="name" style="width: 140px"  required="true" panelheight="auto"  editable="false" value="@order.trade_type_no" />*@
+                                <input class="k3_item" id="trade_type_no" name="trade_type_no" data-what="trade_type" data-panelHeight="auto" value="@order.trade_type_no" />
                             </td>
                         </tr>
                         <tr>
@@ -739,29 +783,33 @@ else {
                                 @Html.Lang("agency"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="department_no" name="department_no" style="width: 140px"
-                                       panelwidth="160" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" editable="false" value="@order.department_no" />
+                                @*<input class="easyui-combobox" id="department_no" name="department_no" style="width: 140px"
+                                       panelwidth="160" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" editable="false" value="@order.department_no" />*@
+                                <input class="k3_item" id="department_no" name="department_no" data-what="agency" data-panelWidth="160" value="@order.department_no" />
                             </td>
                             <td>
                                 @Html.Lang("project_team"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="project_group_no" name="project_group_no" url='@Url.Content("~/Items/getItems?what=project_group")' 
-                                       panelwidth="160" valuefield="no" textfield="name" style="width: 140px"  required="true"  editable="false" value="@order.project_group_no" />
+                                @*<input class="easyui-combobox" id="project_group_no" name="project_group_no" url='@Url.Content("~/Items/getItems?what=project_group")' 
+                                       panelwidth="160" valuefield="no" textfield="name" style="width: 140px"  required="true"  editable="false" value="@order.project_group_no" />*@
+                                <input class="k3_item" id="project_group_no" name="project_group_no" data-what="project_group" data-panelWidth="160" value="@order.project_group_no" />
                             </td>
                             <td>
                                 @Html.Lang("order_type"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="order_type_no" name="order_type_no" url='@Url.Content("~/Items/getItems?what=order_type")' 
-                                valuefield="no" textfield="name" style="width: 140px"  required="true" panelheight="auto" editable="false" value="@order.order_type_no" />
+                                @*<input class="easyui-combobox" id="order_type_no" name="order_type_no" url='@Url.Content("~/Items/getItems?what=order_type")' 
+                                valuefield="no" textfield="name" style="width: 140px"  required="true" panelheight="auto" editable="false" value="@order.order_type_no" />*@
+                                <input class="k3_item" id="order_type_no" name="order_type_no" data-what="order_type" data-panelHeight="auto" value="@order.order_type_no" />
                             </td>
                             <td>
                                 @Html.Lang("pro_type"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="product_type_no" name="product_type_no" url="@Url.Content("~/Items/getItems?what=product_type")"
-                                    valuefield="no" textfield="name" style="width: 140px" required="true" editable="false" value="@order.product_type_no" />
+                                @*<input class="easyui-combobox" id="product_type_no" name="product_type_no" url="@Url.Content("~/Items/getItems?what=product_type")"
+                                    valuefield="no" textfield="name" style="width: 140px" required="true" editable="false" value="@order.product_type_no" />*@
+                                <input class="k3_item" id="product_type_no" name="product_type_no" data-what="product_type" value="@order.product_type_no" />
                             </td>
                         </tr>
                         <tr>
@@ -775,15 +823,17 @@ else {
                                 @Html.Lang("payment"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="clearing_way_no" name="clearing_way_no" url="@Url.Content("~/Items/getItems?what=clearing_way")"
-                                    valuefield="no" textfield="name" style="width: 140px" panelWidth="240" required="true" value="@order.clearing_way_no" />
+                                @*<input class="easyui-combobox" id="clearing_way_no" name="clearing_way_no" url="@Url.Content("~/Items/getItems?what=clearing_way")"
+                                    valuefield="no" textfield="name" style="width: 140px" panelWidth="240" required="true" value="@order.clearing_way_no" />*@
+                                <input class="k3_item" id="clearing_way_no" name="clearing_way_no" data-what="clearing_way" data-panelWidth="240" data-editable="true" value="@order.clearing_way_no" />
                             </td>
                             <td>
                                 @Html.Lang("currency"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="currency_no" name="currency_no" url="@Url.Content("~/Items/getItems?what=currency")"
-                                    valuefield="no" textfield="name" panelHeight="auto" style="width: 140px"  required="true" editable="false" value="@order.currency_no" />
+                                @*<input class="easyui-combobox" id="currency_no" name="currency_no" url="@Url.Content("~/Items/getItems?what=currency")"
+                                    valuefield="no" textfield="name" panelHeight="auto" style="width: 140px"  required="true" editable="false" value="@order.currency_no" />*@
+                                <input class="k3_item" id="currency_no" name="currency_no" data-what="currency" data-panelHeight="auto" value="@order.currency_no" />
                             </td>
                             <td>
                                 @Html.Lang("exchange"):
@@ -823,14 +873,15 @@ else {
                                 @Html.Lang("sale_type"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="sale_way_no" name="sale_way_no" url="@Url.Content("~/Items/getItems?what=sale_type")"
-                            valuefield="no" textfield="name" style="width: 140px"  required="true" editable="false" value="@order.sale_way_no" />
+                                @*<input class="easyui-combobox" id="sale_way_no" name="sale_way_no" url="@Url.Content("~/Items/getItems?what=sale_type")"
+                            valuefield="no" textfield="name" style="width: 140px" required="true" editable="false" value="@order.sale_way_no" />*@
+                                <input class="k3_item" id="sale_way_no" name="sale_way_no" data-what="sale_type" data-panelHeight="auto" value="@order.sale_way_no" />
                             </td>
                             <td>
                                 @Html.Lang("clerk1"):
                             </td>
                             <td>
-                                <input class="clerk_box" id="clerk_no" name="clerk_no" style="width: 140px"  required="true" value="@order.clerk_no" />
+                                <input class="clerk_box" id="clerk_no" name="clerk_no" style="width: 140px" required="true" value="@order.clerk_no" />
                             </td>
                             <td>
                                 @Html.Lang("clerk2"):
@@ -850,8 +901,9 @@ else {
                                 @Html.Lang("trade_rule"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="trade_rule_no" name="trade_rule_no" url="@Url.Content("~/Items/getItems?what=trade_rule")"
-                                    valuefield="no" textfield="name" style="width: 140px" editable="false" value="@order.trade_rule_no" />
+                                @*<input class="easyui-combobox" id="trade_rule_no" name="trade_rule_no" url="@Url.Content("~/Items/getItems?what=trade_rule")"
+                                    valuefield="no" textfield="name" style="width: 140px" editable="false" value="@order.trade_rule_no" />*@
+                                <input class="k3_item" id="trade_rule_no" name="trade_rule_no" data-what="trade_rule" data-required="false" data-panelHeight="auto" value="@order.trade_rule_no" />
                             </td>
                             <td>
                                 @Html.Lang("percent1"):
@@ -872,14 +924,20 @@ else {
                                 <input class="easyui-numberbox" id="percent3" name="percent3" min="0" max="100" precision="1" style="width: 140px" value="@order.percent3" />
                             </td>
                         </tr>
-                        <tr>                
+                        <tr> 
                             <td>
                                 @Html.Lang("contract_num"):
                             </td>
                             <td>
                                 <input class="easyui-textbox" id="contract_no" name="contract_no" style="width: 140px" required="true" value="@order.contract_no" />
                             </td>
-                            <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                            <td>
+                                @Html.Lang("po_no"):
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" id="po_number" name="po_number" style="width: 140px" value="@order.po_number" />
+                            </td>
+                            <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
                         </tr>
                     </table>
                 </div>
@@ -911,8 +969,9 @@ else {
                                 @Html.Lang("delivery_place"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="delivery_place_no" name="delivery_place_no" url="@Url.Content("~/Items/getItems?what=delivery_place")"
-                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px"  required="true" editable="false" value="@order.delivery_place_no" />
+                                @*<input class="easyui-combobox" id="delivery_place_no" name="delivery_place_no" url="@Url.Content("~/Items/getItems?what=delivery_place")"
+                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px"  required="true" editable="false" value="@order.delivery_place_no" />*@
+                                <input class="k3_item" id="delivery_place_no" name="delivery_place_no" data-what="delivery_place" data-panelHeight="auto" value="@order.delivery_place_no" />
                             </td>
                         </tr>
                         <tr>                
@@ -926,15 +985,17 @@ else {
                                @Html.Lang("backPaper"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="backpaper_confirm_no" name="backpaper_confirm_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
-                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.backpaper_confirm_no" />
+                                @*<input class="easyui-combobox" id="backpaper_confirm_no" name="backpaper_confirm_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
+                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.backpaper_confirm_no" />*@
+                                <input class="k3_item" id="backpaper_confirm_no" name="backpaper_confirm_no" data-what="YesOrNo" data-required="false" data-panelHeight="auto" value="@order.backpaper_confirm_no" />
                             </td>
                             <td>
                                 @Html.Lang("produce_way"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="produce_way_no" name="produce_way_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
-                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.produce_way_no" />
+                                @*<input class="easyui-combobox" id="produce_way_no" name="produce_way_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
+                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.produce_way_no" />*@
+                                <input class="k3_item" id="produce_way_no" name="produce_way_no" data-what="YesOrNo" data-required="false" data-panelHeight="auto" value="@order.produce_way_no" />
                             </td>
                         </tr>           
                         <tr>
@@ -942,17 +1003,19 @@ else {
                                 @Html.Lang("truly_logo"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="print_truly_no" name="print_truly_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
-                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.print_truly_no" />
+                                @*<input class="easyui-combobox" id="print_truly_no" name="print_truly_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
+                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.print_truly_no" />*@
+                                <input class="k3_item" id="print_truly_no" name="print_truly_no" data-what="YesOrNo" data-required="false" data-panelHeight="auto" value="@order.print_truly_no" />
                             </td>
                             <td>
                                 @Html.Lang("customer_logo"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="client_logo_no" name="client_logo_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
-                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.client_logo_no" />
+                                @*<input class="easyui-combobox" id="client_logo_no" name="client_logo_no" url="@Url.Content("~/Items/getItems?what=YesOrNo")"
+                                    valuefield="no" textfield="name" panelheight="auto" style="width: 140px" editable="false" value="@order.client_logo_no" />*@
+                                <input class="k3_item" id="client_logo_no" name="client_logo_no" data-what="YesOrNo" data-required="false" data-panelHeight="auto" value="@order.client_logo_no" />
                             </td>
-                            <td>&nbsp;</td><td>&nbsp;</td>
+                            <td></td><td></td>
                         </tr>
                         <tr>
                             <td>
@@ -1027,7 +1090,7 @@ else {
             </td>
             <td>
                 <input class="easyui-textbox" id="item_modual" name="item_modual" style="width: 140px" readonly="readonly" />
-            </td>            
+            </td>
         </tr>
         <tr>
             <td>
@@ -1041,7 +1104,7 @@ else {
                 @Html.Lang("qty"):
             </td>
             <td>
-                <input class="easyui-numberbox" id="qty" name="qty" style="width: 140px" precision="2" min="0" required="true" />
+                <input class="easyui-numberbox" id="qty" name="qty" style="width: 140px" precision="6" min="0" required="true" />
             </td>
             <td>
                 @Html.Lang("quote_num"):
@@ -1141,13 +1204,13 @@ else {
                 @Html.Lang("project_name"):
             </td>
             <td>
-                <input class="easyui-combobox" id="project_no" name="project_no" textField="name" valueField="no" panelWidth="320px" style="width: 140px" required="true" />
+                <input class="easyui-combobox" id="project_no" name="project_no" textField="name" valueField="no" panelWidth="320px" style="width: 140px" required="true" editable="false" />
             </td>
             <td>
-                &nbsp;
+                MU:
             </td>
             <td>
-                &nbsp;
+                <input class="easyui-textbox" id="MU" name="MU" readonly="readonly" style="width: 140px" />
             </td>
         </tr>
         <tr>

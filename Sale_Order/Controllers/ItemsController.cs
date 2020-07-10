@@ -5,184 +5,112 @@ using Sale_Order.Models;
 using Sale_Order.Filter;
 using Sale_Order.Utils;
 using System.Collections.Generic;
+using Sale_Order.Services;
 
 namespace Sale_Order.Controllers
 {
-    public class ItemsController : Controller
-    {
-        //
-        // GET: /Items/
-        SaleDBDataContext db = new SaleDBDataContext();
+    public class ItemsController : BaseController
+    {             
         SomeUtils utl = new SomeUtils();
 
         //获取各个字段的选择列表
-        public JsonResult getItems(string what)
-        {
-            var result = from it in db.vwItems
-                         where it.what.Equals(what)
-                         orderby it.fname
-                         select new
-                         {
-                             id = it.interid,
-                             no=it.fid,
-                             name = it.fname
-                         };
-            return Json(result);
+        public JsonResult getItems(string what,string account="光电总部")
+        {            
+            return Json(new K3ItemSv(account).GetK3Items(what).Select(k => new
+            {
+                no = k.fid,
+                name = k.fname
+            }).ToList());
         }
 
         //获取汇率
-        public JsonResult getExchangeRate(int currencyId)
-        {
-            double? result = 0;
-            db.getExchangeRate(currencyId, ref result);
-            return Json(result);
+        public JsonResult getExchangeRate(string currencyNo,string currencyName,string account="光电总部")
+        {            
+            return Json(new K3ItemSv(account).GetK3ExchangeRate(currencyNo,currencyName));
         }
 
         //获取业务员
-        public JsonResult getClerks(string q)
+        public JsonResult getClerks(string q, string account = "光电总部")
         {
-            var result = db.getClerk(q, 0);
-            return Json(result);
-        }
-
-        //验证业务员
-        public JsonResult verifyClerk(string q)
-        {
-            var result = db.getClerk(q, 1).ToList();
-            if (result.Count() > 0)
-            {
-                return Json(new { success = true, itemId = result.First().id });
-            }
-            else
-            {
-                return Json(new { success = false });
-            }
-        }
-
-        //获取营业员
-        public JsonResult getSalers(string q)
-        {
-            var result = db.getSaler(q, 0);
-            return Json(result);
-        }
-
-        //验证营业员
-        public JsonResult verifySaler(string q)
-        {
-            var result = db.getSaler(q, 1).ToList();
-            if (result.Count() > 0)
-            {
-                return Json(new { success = true, itemId = result.First().id });
-            }
-            else
-            {
-                return Json(new { success = false });
-            }
-        }
-
-        //获取K3用户表，用于制单人
-        public JsonResult getK3User()
-        {
-            var result = from ku in db.vwK3User
-                         select new
-                         {
-                             id = ku.id,
-                             name = ku.name
-                         };
-            return Json(result);
+            return Json(new K3ItemSv(account).GetK3Emp(q).Select(e => new { number = e.emp_card_number, name = e.emp_name }));
         }
 
         //获取客户
-        public JsonResult getCostomers(string q)
+        public JsonResult getCostomers(string q, string account = "光电总部")
         {
-            var result = db.getCostomer(q, 0);
-            return Json(result);
-        }
-
-        //获取光电和半导体的客户
-        public JsonResult getAllCustomers(string q) {
-            return Json(db.getAllCostomer(q).OrderBy(a => a.number));
+            return Json(new K3ItemSv(account).GetK3Customer(q).Select(e => new { number = e.customer_number, name = e.customer_name }));
         }
 
         //验证客户
-        public JsonResult verifyCostomer(string q)
-        {
-            var result = db.getCostomer(q, 1).ToList();
-            if (result.Count() > 0)
-            {
-                return Json(new { success = true, itemId = result.First().id });
-            }
-            else
-            {
-                return Json(new { success = false });
-            }
-        }
+        //public JsonResult verifyCostomer(string q)
+        //{
+        //    var result = db.getCostomer(q, 1).ToList();
+        //    if (result.Count() > 0)
+        //    {
+        //        return Json(new { success = true, itemId = result.First().id });
+        //    }
+        //    else
+        //    {
+        //        return Json(new { success = false });
+        //    }
+        //}
 
         //带币别验证客户
-        public JsonResult verifyCostomer2(string q, int currency, string customer_id)
-        {
-            //首先从id入手
-            if (!string.IsNullOrWhiteSpace(customer_id))
-            {
-                int id;
-                if (Int32.TryParse(customer_id, out id))
-                {
-                    var customer = db.getCostomerById(id).First();
-                    if (customer.name.Equals(q))
-                    {
-                        return Json(new { success = true, itemId = id });
-                    }
-                }
-            }
-            //没有id再从名称入手，比如不是通过搜索，而是通过复制
-            var result = db.getCostomer(q, 1).ToList();
-            if (result.Count() > 0)
-            {
-                if (result.Count() > 1)
-                {
-                    if (currency == 1 && result.Where(r => r.number.StartsWith("01")).Count() > 0)
-                    {
-                        return Json(new { success = true, itemId = result.Where(r => r.number.StartsWith("01")).First().id });
-                    }
-                    else if (currency != 1 && result.Where(r => r.number.StartsWith("05")).Count() > 0)
-                    {
-                        return Json(new { success = true, itemId = result.Where(r => r.number.StartsWith("05")).First().id });
-                    }
-                    else
-                    {
-                        return Json(new { success = true, itemId = result.First().id });
-                    }
-                }
-                else
-                {
-                    return Json(new { success = true, itemId = result.First().id });
-                }
-            }
+        //public JsonResult verifyCostomer2(string q, int currency, string customer_id)
+        //{
+        //    //首先从id入手
+        //    if (!string.IsNullOrWhiteSpace(customer_id))
+        //    {
+        //        int id;
+        //        if (Int32.TryParse(customer_id, out id))
+        //        {
+        //            var customer = db.getCostomerById(id).First();
+        //            if (customer.name.Equals(q))
+        //            {
+        //                return Json(new { success = true, itemId = id });
+        //            }
+        //        }
+        //    }
+        //    //没有id再从名称入手，比如不是通过搜索，而是通过复制
+        //    var result = db.getCostomer(q, 1).ToList();
+        //    if (result.Count() > 0)
+        //    {
+        //        if (result.Count() > 1)
+        //        {
+        //            if (currency == 1 && result.Where(r => r.number.StartsWith("01")).Count() > 0)
+        //            {
+        //                return Json(new { success = true, itemId = result.Where(r => r.number.StartsWith("01")).First().id });
+        //            }
+        //            else if (currency != 1 && result.Where(r => r.number.StartsWith("05")).Count() > 0)
+        //            {
+        //                return Json(new { success = true, itemId = result.Where(r => r.number.StartsWith("05")).First().id });
+        //            }
+        //            else
+        //            {
+        //                return Json(new { success = true, itemId = result.First().id });
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return Json(new { success = true, itemId = result.First().id });
+        //        }
+        //    }
 
-            return Json(new { success = false });
-        }
+        //    return Json(new { success = false });
+        //}
 
         //获取产品信息
-        public JsonResult getProductInfo(string q)
+        public JsonResult getProductInfo(string q, string account = "光电总部")
         {
-            var result = (from vp in db.vwProductInfo
-                          where vp.item_no.StartsWith(q)
-                          || vp.item_name.Contains(q)
-                          || vp.item_model.Contains(q)
-                          select new
-                          {
-                              id = vp.item_id,
-                              name = vp.item_name,
-                              model = vp.item_model,
-                              number = vp.item_no,
-                              qtyPrecision = vp.qty_decimal,
-                              taxRate = vp.tax_rate,
-                              pricePrecision = vp.price_decimal,
-                              unit_id = vp.unit_id,
-                              unit_name = vp.unit_name,
-                              unit_number = vp.unit_number
-                          }).Take(20);
-            return Json(result);
+            return Json(new K3ItemSv(account).GetK3ProductByInfo(q).Select(k => new
+            {
+                number = k.item_no,
+                name = k.item_name,
+                model = k.item_model,
+                unit_name = k.unit_name,
+                id = k.item_id,
+                unit_number = k.unit_number
+            }).ToList());
         }
 
         //获取项目编号（2013-7-19更新）
@@ -220,43 +148,7 @@ namespace Sale_Order.Controllers
         //下载文件
         [SessionTimeOutFilter()]
         public ActionResult downLoadFile(string sys_no)
-        {
-            //int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            //SomeUtils utl = new SomeUtils();
-            //const string DOWNFILE = "下载附件";
-            //userId=1为超级管理员
-            //if (userId != 1)
-            //{
-            //    var order = db.Order.Where(o => o.sys_no == sys_no && o.step_version == 0);
-            //    if (order.Count() < 1)
-            //    {
-            //        utl.writeEventLog(DOWNFILE, "流水号不存在", sys_no, Request,1000);
-            //        ViewBag.tip = "此流水号不存在";
-            //        return View("Tip");
-            //    }
-            //    else
-            //    {
-            //        if (userId != order.First().user_id)
-            //        {
-            //            var ap = db.Apply.Where(a => a.sys_no == sys_no);
-            //            if (ap.Count() < 1)
-            //            {
-            //                utl.writeEventLog(DOWNFILE, "没有权限下载", sys_no, Request,1000);
-            //                ViewBag.tip = "对不起，你没有权限下载附件";
-            //                return View("Tip");
-            //            }
-            //            else
-            //            {
-            //                if (ap.First().ApplyDetails.Where(ad => ad.user_id == userId).Count() < 1)
-            //                {
-            //                    utl.writeEventLog(DOWNFILE, "没有权限下载", sys_no, Request,1000);
-            //                    ViewBag.tip = "对不起，你没有权限下载附件";
-            //                    return View("Tip");
-            //                }
-            //            }
-            //        }
-            //    }
-            //}            
+        {            
             ViewData["sys_no"] = sys_no;
             return View();
         }
@@ -345,22 +237,10 @@ namespace Sale_Order.Controllers
                       select new { name = d.dep_type }).Distinct();
             return Json(tp);
         }
-
-        //获取所有事业部部门
-        //public JsonResult getAllWorkDeps()
-        //{
-        //    var deps = from d in db.ProduceDep                       
-        //               select new
-        //               {
-        //                   id = d.id,
-        //                   name = d.name
-        //               };
-        //    return Json(deps);
-        //}
+               
 
         //获取自己可以查看的事业部订单
-        public JsonResult GetMyCheckingDep(int userID,string orderType) {
-            var user = db.User.Single(u => u.id == userID);
+        public JsonResult GetMyCheckingDep(string orderType) {            
             String[] orderTypeDepts = new String[]{};
             if (orderType.Equals("SO")) {
                 orderTypeDepts = db.Department.Where(d => d.dep_type == "销售事业部").Select(d => d.name).ToArray();
@@ -370,14 +250,14 @@ namespace Sale_Order.Controllers
             }
             List<ResultModel> list = new List<ResultModel>();
             list.Add(new ResultModel() { value = "all", text = "所有" });
-            string userCanCheckDeps = user.can_check_deps;
-            if (userCanCheckDeps.Equals("*")) {
+            List<string> userCanCheckDeps = db.Sale_user_can_check_deps.Where(s => s.username == currentUser.userName && s.bill_type == orderType).Select(s => s.dep_name).Distinct().ToList();
+            if (userCanCheckDeps.Contains("*")) {
                 foreach (string proc in orderTypeDepts) {
                     list.Add(new ResultModel() { value = proc, text = proc });
                 }
             }
             else {
-                foreach (var proc in userCanCheckDeps.Split(new char[] { ',', '，' })) {
+                foreach (var proc in userCanCheckDeps) {
                     if (orderTypeDepts.Contains(proc)) {
                         list.Add(new ResultModel() { value = proc, text = proc });
                     }
@@ -389,12 +269,11 @@ namespace Sale_Order.Controllers
         //摘要：
         //获取用户配置文件，sel为1包括默认模板，为0只包括用户模板
         public JsonResult getExcelTemplate(int sel) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             if (sel == 1)
             {
                 var result = from ex in db.UserExcelTemplate
                              where ex.user_id == 0
-                             || ex.user_id == userId
+                             || ex.user_id == currentUser.userId
                              select new
                              {
                                  value = ex.id,
@@ -404,7 +283,7 @@ namespace Sale_Order.Controllers
             }
             else {
                 var result = from ex in db.UserExcelTemplate
-                             where ex.user_id == userId
+                             where ex.user_id == currentUser.userId
                              select new
                              {
                                  value = ex.id,
@@ -415,9 +294,8 @@ namespace Sale_Order.Controllers
         }
 
         //获取用户模板，放到datagrid
-        public JsonResult GetMyTemplate() { 
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            var result = db.UserExcelTemplate.Where(u => u.user_id == userId);
+        public JsonResult GetMyTemplate() {             
+            var result = db.UserExcelTemplate.Where(u => u.user_id == currentUser.userId);
             return Json(result);
         }
 
@@ -428,15 +306,14 @@ namespace Sale_Order.Controllers
         }
 
         //新增模板
-        public JsonResult addTemplate(FormCollection fc) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+        public JsonResult addTemplate(FormCollection fc) {            
             string shortName = fc.Get("short_name");
             string segInfo = fc.Get("seg_info");
             segInfo = segInfo.Replace('，', ',').Replace(",,", ",");
             if (segInfo.LastIndexOf(',') == segInfo.Length - 1) {
                 segInfo = segInfo.Substring(0, segInfo.Length - 1);
             }
-            if (db.UserExcelTemplate.Where(u => u.user_id == userId && u.short_name == shortName).Count() > 0)
+            if (db.UserExcelTemplate.Where(u => u.user_id == currentUser.userId && u.short_name == shortName).Count() > 0)
             {
                 return Json(new { success = false, msg = "模板名称不能重复，保存失败" }, "text/html");
             }
@@ -448,7 +325,7 @@ namespace Sale_Order.Controllers
             tem.short_name = shortName;
             tem.seg_info = segInfo;
             tem.bill_type = "SO";
-            tem.user_id = userId;
+            tem.user_id = currentUser.userId;
             db.UserExcelTemplate.InsertOnSubmit(tem);
             db.SubmitChanges();
 
@@ -585,9 +462,6 @@ namespace Sale_Order.Controllers
                 res.Add(new ResultModel() { value = ch.ToString(), text = db.Department.Single(d=>d.dep_no==ch && d.dep_type=="退货出货组").name });
             }
 
-            //foreach (var ch in db.ReturnDeptStepAuditor.Where(r => r.step_name == "出货组").Select(r => r.return_dept).Distinct()) {
-            //    res.Add(new ResultModel() { value = ch.ToString(), text = db.ProduceDep.Single(p => p.id == ch).name });
-            //}
 
             res = res.OrderBy(r => r.text).ToList();
             res.Insert(0, new ResultModel() { value = "0", text = "无" });
@@ -596,10 +470,9 @@ namespace Sale_Order.Controllers
        
 
         //获取可以上传品质报告的客退编号
-        public JsonResult getUnfinishedSysNo() {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+        public JsonResult getUnfinishedSysNo() {            
             var result = (from ad in db.ApplyDetails
-                         where ad.user_id == userId
+                         where ad.user_id == currentUser.userId
                          && ad.Apply.success == null
                          && ad.pass == true
                          select new { name = ad.Apply.sys_no }).ToList();
@@ -721,6 +594,12 @@ namespace Sale_Order.Controllers
             }
             return Json(new { suc = true });
         }
+
+        public JsonResult GetK3CommissionRate(string proType, double MU, string account)
+        {
+            return Json(new K3ItemSv(account).GetK3CommissionRate(proType, MU));
+        }
+
 
     }
 }

@@ -147,6 +147,7 @@ namespace Sale_Order.Controllers
                 cookie.Expires = DateTime.Now.AddSeconds(-1);
                 Response.AppendCookie(cookie);
             }
+            Session.Clear();
             return RedirectToAction("Login");
         }
 

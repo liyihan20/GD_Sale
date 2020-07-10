@@ -9,17 +9,7 @@
         $("#structure_tr").hide();
         $("#ele_tr").hide();
         $("#env_special_span").hide();
-        $("#reliability_special_span").hide();
-
-        $("#currency").combobox({
-            onSelect: function (record) {
-                $.post("@Url.Content("~/Items/getExchangeRate")", { currencyId: record.id },
-                    function (data) {
-                        $('#exchange').numberbox('setValue', data);
-                    }, "json"
-                );
-            }
-        });
+        $("#reliability_special_span").hide();               
 
         $("#is_structure_special").combobox({
             onChange: function (newValue, oldValue) {
@@ -797,7 +787,7 @@ else
                                 @Html.Lang("biller"):
                             </td>
                             <td>
-                                <input class="easyui-textbox" id="create_user" name="create_user" value="@cmc.User.real_name" readonly="readonly" style="width: 115px" />
+                                <input class="easyui-textbox" id="create_user" name="create_user" value="@ViewData["username"]" readonly="readonly" style="width: 115px" />
                             </td>
                         </tr>
                         <tr>

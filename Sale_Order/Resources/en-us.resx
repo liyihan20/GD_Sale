@@ -1617,4 +1617,7 @@
     <value>Customer Item No.</value>
     <comment>客户料号</comment>
   </data>
+  <data name="po_no" xml:space="preserve">
+    <value>Po Number</value>
+  </data>
 </root>

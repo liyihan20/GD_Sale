@@ -106,16 +106,22 @@
             <div>
                 @*表头*@
                 <table border="0" cellpadding="0" cellspacing="3" style="width:900px;">
-                    @if (order.order_no != null) {
-                        <tr>
-                            <td>
-                                @Html.Lang("order_no"):
-                            </td>
-                            <td>
-                                <input class="easyui-textbox" style="width: 140px" value="@order.order_no" />
-                            </td>
-                        </tr>
+                    <tr>
+                        <td>
+                            公司：
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" style="width:140px" value="@order.account" />
+                        </td>
+                    @if (order.order_no != null) {                        
+                        <td>
+                            @Html.Lang("order_no"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" style="width: 140px" value="@order.order_no" />
+                        </td>                        
                     }
+                    </tr>
                     <tr>
                         <td>
                             @Html.Lang("order_date"):
@@ -279,8 +285,12 @@
                         <td>
                             <input class="easyui-textbox" style="width: 140px" value="@order.contract_no" />
                         </td>
-                        <td>&nbsp;</td>
-                        <td>&nbsp;</td>
+                        <td>
+                            @Html.Lang("po_no"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" style="width: 140px" value="@order.po_number" />
+                        </td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>

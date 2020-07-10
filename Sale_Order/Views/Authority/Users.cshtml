@@ -1,5 +1,12 @@
 ﻿<script type="text/javascript">
   
+    $(function () {
+        $("#username").on("blur", function () {
+            
+            $("#real_name").val($(this).val());
+        });
+    })
+
     var url;
     function newUser() {
         $('#dlg').dialog('open').dialog('setTitle', '@Html.Lang("add")@Html.Lang("user")');
@@ -25,8 +32,8 @@
             success: function (data) {
                 var result = eval('(' + data + ')');
                 if (result.success) {
-                    $('#dlg').dialog('close');      // close the dialog   
-                    $('#dg').datagrid('reload');    // reload the user data   
+                    $('#dlg').dialog('close');
+                    $('#dg').datagrid('reload'); 
                 } else {
                     $.messager.show({
                         title: '@Html.Lang("tip")',
@@ -76,11 +83,11 @@
             <th field="username" width="20" align="center">@Html.Lang("user")@Html.Lang("name")</th>  
             <th field="real_name" width="20" align="center">@Html.Lang("real")@Html.Lang("name")</th> 
             <th field="department_name" width="30">@Html.Lang("department")</th>
-            <th field="job" width="20">@Html.Lang("job")</th>  
-            <th field="email" width="30">@Html.Lang("email")</th> 
-            <th field="can_check_deps" width="60">@Html.Lang("proc_dep")</th>  
+            <th field="card_number" width="20">厂牌</th>  
+            <th field="email" width="30">@Html.Lang("email")</th>
             <th field="is_forbit" width="10">@Html.Lang("is_forbit")</th>  
             <th field="in_date" width="20">@Html.Lang("register_date")</th> 
+            <th field="last_login" width="20">最后登录日期</th> 
         </tr>  
     </thead>  
 </table>  
@@ -94,33 +101,29 @@
     </div>  
 </div>  
     
-<div id="dlg" class="easyui-dialog" style="width:400px;height:380px;padding:10px 20px" 
+<div id="dlg" class="easyui-dialog" style="width:400px;padding:10px 20px" 
         closed="true" buttons="#dlg-buttons">  
     <div class="ftitle">@Html.Lang("user")@Html.Lang("info")</div>  
     <form id="fm" method="post">  
         <div class="fitem">  
             <label>@Html.Lang("user")@Html.Lang("name"):</label>  
-            <input name="username" class="easyui-validatebox" required="true"/>  
+            <input name="username" id="username" class="easyui-validatebox" required="true"/>  
         </div>  
         <div class="fitem">  
-            <label>@Html.Lang("real")@Html.Lang("name"):</label>  
-            <input name="real_name" class="easyui-validatebox" required="true"/>  
-        </div>
+            <label>厂牌:</label>  
+            <input name="card_number" class="easyui-validatebox"/>  
+        </div>  
         <div class="fitem">
             <label>@Html.Lang("department"):</label>  
-            <input class="easyui-combobox" name="department" url="@Url.Content("~/Items/getUserDeps")" valueField="id" textField="name" style="width:155px"/>
+            <input class="easyui-combobox" name="department" url="@Url.Content("~/Items/getUserDeps")" valueField="id" textField="name" />
         </div>
-        <div class="fitem">  
-            <label>@Html.Lang("job"):</label>  
-            <input name="job" class="easyui-validatebox"/>  
-        </div>  
         <div class="fitem">  
             <label>@Html.Lang("email"):</label>  
             <input name="email" class="easyui-validatebox" required="true"/>  
         </div>
         <div class="fitem">  
-            <label>@Html.Lang("proc_dep"):</label>  
-            <input name="can_check_deps" class="easyui-validatebox" />  
+            <label>@Html.Lang("real")@Html.Lang("name"):</label>  
+            <input name="real_name" id="real_name" class="easyui-validatebox" required="true"/>  
         </div>
         <div class="fitem">  
            <label>@Html.Lang("is_forbit"):</label>  

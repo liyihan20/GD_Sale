@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using Newtonsoft.Json;
+using Sale_Order.Services;
 
 namespace Sale_Order.Utils
 {
@@ -78,20 +79,14 @@ namespace Sale_Order.Utils
             }
             db.SubmitChanges();
             return result;
-        }
-        
-        //获得换货流水号
-        public string getResendSystemNo(string sys_no) {
-            var count = db.ResendBill.Where(r => r.sys_no.StartsWith(sys_no)).Count();
-            return sys_no + "_" + (count + 1).ToString();
-        }
+        }        
 
         //获得备料单单号
-        public string getBLbillNo(string marketName,string busDepName,int userId)
+        public string getBLbillNo(string marketName,string busDepName,int userId,string tradeTypeName="国内贸易")
         {
             //2018年后各办事处大变动，按照新规则
             if (DateTime.Now >= DateTime.Parse("2018-07-01")) {
-                return getBLbillNo201807(marketName, busDepName, userId);
+                return getBLbillNo201807(marketName, busDepName, userId, tradeTypeName);
             }
 
             //2018年后编码新规则
@@ -139,8 +134,14 @@ namespace Sale_Order.Utils
             }
             db.SubmitChanges();
 
+            if (busDepName.Contains("客服")) {
+                prefix += "KF";
+            }
+            if ("国内贸易".Equals(tradeTypeName) && (busDepName.Contains("CCM") || busDepName.Contains("FPI"))) {
+                prefix = "T" + prefix;
+            }
 
-            return busDepName.Contains("客服") ? prefix + "KF" : prefix;
+            return prefix;
         }
         public string getBLbillNo2018(string marketName, string busDepName, int userId)
         {
@@ -216,15 +217,16 @@ namespace Sale_Order.Utils
             return busDepName.Contains("客服") ? prefix + "KF" : prefix;
         }
 
-        public string getBLbillNo201807(string marketName, string busDepName, int userId)
+        public string getBLbillNo201807(string marketName, string busDepName, int userId, string tradeTypeName)
         {
             string prefix = "G";
             string marketValue = "/";
             string agencyName = db.User.Single(u => u.id == userId).Department1.name;
             string[] marketNameArr = new string[] { "中国市场部一部", "中国市场部二部", "中国市场部三部", "中国市场部四部", "中国市场部五部", "中国市场部六部",
-                "中国市场部七部","中国市场部八部","中国市场部九部","中国市场部十部", "中国市场部十一部", "中国市场部十二部", "新加坡", "华诚创", "光能", "杭州" };
+                "中国市场部七部","中国市场部八部","中国市场部九部","中国市场部十部", "中国市场部十一部", "中国市场部十二部", "中国市场部十三部", "中国市场部十四部",
+                 "中国市场部十五部","中国市场部十六部","新加坡", "华诚创", "光能", "杭州" };
             string[] marketValueArr = new string[] { "1","2","3","4","5","6",
-                "7","8","9","10","11","12","XJP","HCC","GN","HZ" };
+                "7","8","9","10","11","12","13","14","15","16","XJP","HCC","GN","HZ" };
 
             for (var i = 0; i < marketNameArr.Length; i++) {
                 if (agencyName.Contains(marketNameArr[i])) {
@@ -270,6 +272,18 @@ namespace Sale_Order.Utils
                     case "中国市场部十二部":
                         marketValue = "12";
                         break;
+                    case "中国市场部十三部":
+                        marketValue = "13";
+                        break;
+                    case "中国市场部十四部":
+                        marketValue = "14";
+                        break;
+                    case "中国市场部十五部":
+                        marketValue = "15";
+                        break;
+                    case "中国市场部十六部":
+                        marketValue = "16";
+                        break;
                     case "新加坡市场部":
                         marketValue = "XJP";
                         break;
@@ -305,7 +319,14 @@ namespace Sale_Order.Utils
             }
             db.SubmitChanges();
 
-            return busDepName.Contains("客服") ? prefix + "KF" : prefix;
+            if (busDepName.Contains("客服")) {
+                prefix += "KF";
+            }
+            if ("国内贸易".Equals(tradeTypeName) && (busDepName.Contains("CCM") || busDepName.Contains("FPI"))) {
+                prefix = "T" + prefix;
+            }
+
+            return prefix;
         }
 
         //样品单编号
@@ -386,16 +407,7 @@ namespace Sale_Order.Utils
             }
             return pro.First().ProcessDetail.Where(pd => pd.step == step).First().step_name;
         }
-
-        //获取佣金率
-        public double? GetCommissionRate(string proType, double? MU)
-        {
-            double? result = 0;
-            db.getCommissionRate(proType, MU, ref result);
-            return result;
-        }
-
-
+        
         //通过系统流水号获得已经转移到正式文件夹的附件路径，退换货
         public static string getTHOrderPath(string sysNum)
         {
@@ -572,16 +584,6 @@ namespace Sale_Order.Utils
             return MyEmail.SendBackToPreviousAuditor(sysNo, nextEmails, orderType, operateType, auditorName, reason);
         }
 
-        //获取业务员ID
-        public int? getEmployeeId(string name)
-        {
-            var emp = db.getClerk(name, 1).ToList();
-            if (emp.Count() > 0)
-                return emp.First().id;
-            else
-                return null;
-        }
-
         //获取客户ID
         public int? getCustomerId(string name)
         {
@@ -600,38 +602,7 @@ namespace Sale_Order.Utils
             else
                 return null;
         }
-
-        //获取Items ID
-        public int? getItemsId(string what, string name)
-        {
-            var item = db.vwItems.Where(i => i.what == what && i.fname == name).ToList();
-            if (item.Count() > 0)
-                return item.First().interid;
-            else
-                return null;
-        }
-
-        //获取产品ID
-        public int? getProductId(string model, string name)
-        {
-            var pro = db.vwProductInfo.Where(p => p.item_model == model && p.item_name == name).ToList();
-            if (pro.Count() > 0)
-            {
-                return pro.First().item_id;
-            }
-            else
-                return null;
-        }
         
-        //获取K3用户ID
-        public int? getK3UserId(string name) {
-            var users = db.vwK3User.Where(u => u.name == name);
-            if (users.Count() > 0)
-                return users.First().id;
-            else
-                return null;
-        }
-
         //生成随机数列
         public string CreateValidateNumber(int length)
         {
@@ -773,51 +744,51 @@ namespace Sale_Order.Utils
         //}
 
         //转换so字段的值
-        public string translateSoValue(string key,string value) {
-            string result = getK3Segement(key,"SO");
-            switch (key) { 
-                case "trade_type":
-                case "order_type":
-                case "clearing_way":
-                case "product_type":
-                case "project_group":
-                case "agency":
-                    result += " = " + getItemsId(key, value).ToString();
-                    break;
-                case "sale_way":
-                    result += " = " + getItemsId("sale_type", value).ToString();
-                    break;
-                case "buy_unit":
-                case "oversea_client":
-                case "final_client":
-                case "plan_firm":
-                    result += " = " + getCustomerId(value);
-                    break;
-                case "backpaper_confirm":
-                case "produce_way":
-                case "print_truly":
-                case "client_logo":
-                    result += " = " + getItemsId("YesOrNo", value).ToString();
-                    break;
-                case "charger":
-                case "clerk":
-                    result += " = " + getEmployeeId(value);
-                    break;
-                case "qty":
-                    result += " = " + value + ",fauxqty = " + value;
-                    break;
-                case "unit_Price":
-                    result += " = " + value + ",fauxprice = " + value;
-                    break;
-                case "aux_tax_price":
-                    result += " = " + value + ",FAuxPriceDiscount = " + value;
-                    break;
-                default:
-                    result += " = '" + value +"'";
-                    break;
-            }
-            return result;
-        }
+        //public string translateSoValue(string key,string value) {
+        //    string result = getK3Segement(key,"SO");
+        //    switch (key) { 
+        //        case "trade_type":
+        //        case "order_type":
+        //        case "clearing_way":
+        //        case "product_type":
+        //        case "project_group":
+        //        case "agency":
+        //            result += " = " + getItemsId(key, value).ToString();
+        //            break;
+        //        case "sale_way":
+        //            result += " = " + getItemsId("sale_type", value).ToString();
+        //            break;
+        //        case "buy_unit":
+        //        case "oversea_client":
+        //        case "final_client":
+        //        case "plan_firm":
+        //            result += " = " + getCustomerId(value);
+        //            break;
+        //        case "backpaper_confirm":
+        //        case "produce_way":
+        //        case "print_truly":
+        //        case "client_logo":
+        //            result += " = " + getItemsId("YesOrNo", value).ToString();
+        //            break;
+        //        case "charger":
+        //        case "clerk":
+        //            result += " = " + getEmployeeId(value);
+        //            break;
+        //        case "qty":
+        //            result += " = " + value + ",fauxqty = " + value;
+        //            break;
+        //        case "unit_Price":
+        //            result += " = " + value + ",fauxprice = " + value;
+        //            break;
+        //        case "aux_tax_price":
+        //            result += " = " + value + ",FAuxPriceDiscount = " + value;
+        //            break;
+        //        default:
+        //            result += " = '" + value +"'";
+        //            break;
+        //    }
+        //    return result;
+        //}
 
         //update 修理单，字段名称转化方法，返回字符串
         //public string parseMBSegment(List<UpdateInfos> uis, string bill_no)
@@ -939,64 +910,64 @@ namespace Sale_Order.Utils
         //}
 
         //转换修理单字段的值
-        public string translateMBValue(string key, string value)
-        {
-            string result = getK3Segement(key, "MB");
-            switch (key)
-            {
-                case "department":
-                    result += " = " + getItemsId("agency", value).ToString();
-                    break;
-                case "customer":
-                    result += " = " + getCustomerId(value);
-                    break;
-                case "employee":
-                    result += " = " + getEmployeeId(value);
-                    break;
-                default:
-                    result += " = '" + value + "'";
-                    break;
-            }
-            return result;
-        }
+        //public string translateMBValue(string key, string value)
+        //{
+        //    string result = getK3Segement(key, "MB");
+        //    switch (key)
+        //    {
+        //        case "department":
+        //            result += " = " + getItemsId("agency", value).ToString();
+        //            break;
+        //        case "customer":
+        //            result += " = " + getCustomerId(value);
+        //            break;
+        //        case "employee":
+        //            result += " = " + getEmployeeId(value);
+        //            break;
+        //        default:
+        //            result += " = '" + value + "'";
+        //            break;
+        //    }
+        //    return result;
+        //}
 
         //转换开模单字段的值
-        public string translateCMValue(string key, string value)
-        {
-            string result = getK3Segement(key, "CM");
-            switch (key)
-            {
-                case "trade_type":
-                case "product_type":
-                    result += " = " + getItemsId(key, value).ToString();
-                    break;
-                case "currency_id":
-                    result += " = " + getItemsId("currency", value).ToString();
-                    break;
-                case "clear_way":
-                    result += " = " + getItemsId("clearing_way", value).ToString();
-                    break;
-                case "sale_way":
-                    result += " = " + getItemsId("sale_type", value).ToString();
-                    break;
-                case "customer":
-                case "zj_customer":
-                case "zz_customer":
-                case "plan_firm":
-                    result += " = " + getCustomerId(value);
-                    break;
-                case "department_id":
-                    result += " = " + getItemsId("agency", value).ToString();
-                    break;
-                case "employee_id":
-                    result += " = " + getEmployeeId(value);
-                    break;
-                default:
-                    result += " = '" + value + "'";
-                    break;
-            }
-            return result;
-        }
+        //public string translateCMValue(string key, string value)
+        //{
+        //    string result = getK3Segement(key, "CM");
+        //    switch (key)
+        //    {
+        //        case "trade_type":
+        //        case "product_type":
+        //            result += " = " + getItemsId(key, value).ToString();
+        //            break;
+        //        case "currency_id":
+        //            result += " = " + getItemsId("currency", value).ToString();
+        //            break;
+        //        case "clear_way":
+        //            result += " = " + getItemsId("clearing_way", value).ToString();
+        //            break;
+        //        case "sale_way":
+        //            result += " = " + getItemsId("sale_type", value).ToString();
+        //            break;
+        //        case "customer":
+        //        case "zj_customer":
+        //        case "zz_customer":
+        //        case "plan_firm":
+        //            result += " = " + getCustomerId(value);
+        //            break;
+        //        case "department_id":
+        //            result += " = " + getItemsId("agency", value).ToString();
+        //            break;
+        //        case "employee_id":
+        //            result += " = " + getEmployeeId(value);
+        //            break;
+        //        default:
+        //            result += " = '" + value + "'";
+        //            break;
+        //    }
+        //    return result;
+        //}
 
         public string getMD5(string str)
         {
@@ -1335,7 +1306,7 @@ namespace Sale_Order.Utils
             //2017-9-9 对缺失的step重新排序，比如现在是124457，确认缺失step3和6，将3以后的step-1，再将6以后的step也减1
             int maxStep = (int)ads.Max(a => a.step);
             List<int> lostSteps = new List<int>();
-            for (int st = 1; st < maxStep; st++) {
+            for (int st = maxStep-1; st >= 1; st--) {
                 if (ads.Where(a => a.step == st).Count() == 0) {
                     lostSteps.Add(st);
                 }
@@ -2195,6 +2166,9 @@ namespace Sale_Order.Utils
             {
                 return "业务员[" + sb.clerk_no + "]不存在，保存失败。";
             }
+            if (db.getClerk(sb.charger_no, 1).Count() < 1) {
+                return "主管[" + sb.charger_no + "]不存在，保存失败。";
+            }
             {                
                 if (sb.currency_no.Equals("RMB"))
                 {
@@ -2266,6 +2240,7 @@ namespace Sale_Order.Utils
                 sb.create_date = DateTime.Now;
                 sb.customer_name = db.getCostomer(sb.customer_no, 1).First().name;
                 sb.clerk_name = db.getClerk(sb.clerk_no, 1).First().name;
+                sb.charger_name = db.getClerk(sb.charger_no, 1).First().name;
                 sb.agency_name = db.vwItems.Where(v => v.what == "agency" && v.fid == sb.agency_no).First().fname;
                 sb.currency_name = db.vwItems.Where(v => v.what == "currency" && v.fid == sb.currency_no).First().fname;
                 sb.fetch_add_name = db.vwItems.Where(v => v.what == "delivery_place" && v.fid == sb.fetch_add_no).First().fname;
@@ -2378,6 +2353,12 @@ namespace Sale_Order.Utils
             }
             if (string.IsNullOrEmpty(bl.clerk_no)) {
                 return "营业员必须在列表中输入姓名或厂牌之后按回车键选择";
+            }
+            if (bl.fetch_date <= bl.plan_order_date) {
+                return "计划交货期必须晚于计划下订单日期";
+            }
+            if (bl.bl_date >= bl.plan_order_date) {
+                return "计划下订单日期必须晚于备料日期";
             }
 
             try {

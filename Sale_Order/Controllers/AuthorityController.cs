@@ -9,10 +9,9 @@ using Sale_Order.Utils;
 
 namespace Sale_Order.Controllers
 {
-    public class AuthorityController : Controller
+    public class AuthorityController : BaseController
     {
-
-        SaleDBDataContext db = new SaleDBDataContext();
+        
         SomeUtils utl = new SomeUtils();
 
         //部门管理
@@ -246,6 +245,7 @@ namespace Sale_Order.Controllers
         public JsonResult getUsers(int page, int rows, string searchValue = "", string searchName = "")
         {
             var users = from u in db.User
+                        join d in db.Department on u.department equals d.id
                         where u.real_name.Contains(searchValue)
                         || u.username.Contains(searchValue)
                         || u.Department1.name.Contains(searchValue)
@@ -255,13 +255,13 @@ namespace Sale_Order.Controllers
                             id = u.id,
                             username = u.username,
                             real_name = u.real_name,
-                            department_name=u.Department1.name,
+                            department_name = d.name,
                             department = u.department,
-                            job = u.job,
+                            card_number = u.card_number,
                             email = u.email,
                             is_forbit = u.is_forbit ? "Y" : "N",
                             in_date = ((DateTime)u.in_date).ToShortDateString(),
-                            can_check_deps = u.can_check_deps
+                            last_login = u.last_login == null ? "" : ((DateTime)u.last_login).ToShortDateString()
                         };
             int total = users.Count();
             users = users.Skip((page - 1) * rows).Take(rows);
@@ -271,16 +271,10 @@ namespace Sale_Order.Controllers
         public JsonResult saveUser(FormCollection col)
         {
             string chValue = col.Get("is_forbit");
-            bool is_forbit = string.IsNullOrEmpty(chValue) ? false : true;
-            Department department;
+            bool is_forbit = string.IsNullOrEmpty(chValue) ? false : true;            
             int dep = Int32.Parse(col.Get("department"));
-            string canCheckDeps = col.Get("can_check_deps");
-            var deps = db.Department.Where(d => d.id == dep);
-            if (deps.Count() > 0)
-            {
-                department = deps.First();
-            }
-            else
+            var department = db.Department.Where(d => d.id == dep).FirstOrDefault();
+            if (department==null)            
             {
                 return Json(new { success = false, msg = "can not save, department should be selected in the list." }, "text/html");
             }
@@ -295,11 +289,9 @@ namespace Sale_Order.Controllers
                 real_name = col.Get("real_name"),
                 Department1 = department,
                 email = col.Get("email"),
-                job = col.Get("job"),
-                is_first_use = true,
+                card_number = col.Get("card_number"),
                 is_forbit = is_forbit,
-                in_date = DateTime.Now,
-                can_check_deps = canCheckDeps
+                in_date = DateTime.Now
             };
             try
             {
@@ -336,12 +328,11 @@ namespace Sale_Order.Controllers
                 user.real_name = col.Get("real_name");
                 user.Department1 = department;
                 user.email = col.Get("email");
-                user.job = col.Get("job");
+                user.card_number = col.Get("card_number");
                 if (is_forbit == false && user.is_forbit == true) {
                     user.last_login = DateTime.Now;
                 }
                 user.is_forbit = is_forbit;
-                user.can_check_deps = canCheckDeps;
                 if (is_forbit) {
                     user.last_login = DateTime.Now;
                 }
@@ -809,8 +800,7 @@ namespace Sale_Order.Controllers
         [HttpPost]
         [SessionTimeOutFilter()]
         public ActionResult BackgroundSearchBills(string sys_no,string proModel, string saler, string fromDate, string toDate, string auditResult)
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+        {            
             ViewData["sys_no"] = sys_no;
             ViewData["pro_model"] = proModel;
             ViewData["saler"] = saler;
@@ -820,7 +810,7 @@ namespace Sale_Order.Controllers
             fromDate = string.IsNullOrWhiteSpace(fromDate) ? "1901-1-1" : fromDate;
             toDate = string.IsNullOrWhiteSpace(toDate) ? "2099-9-9" : toDate;
 
-            var billTypeArr = db.ProcessAuthority.Where(p => p.user_id == userId).Select(p => p.bill_type).Distinct().ToArray();
+            var billTypeArr = db.Sale_user_can_check_deps.Where(p => p.username == currentUser.userName).Select(p => p.bill_type).Distinct().ToArray();
 
             var res = from ap in db.Apply
                       join u in db.User on ap.user_id equals u.id
@@ -1002,7 +992,6 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult GetProcExcuteTimeList(string sys_no, string saler, string fromDate, string toDate, string auditResult)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             ViewData["sys_no"] = sys_no;
             ViewData["saler"] = saler;
             ViewData["from_date"] = fromDate;
@@ -1012,7 +1001,7 @@ namespace Sale_Order.Controllers
             toDate = string.IsNullOrWhiteSpace(toDate) ? "2099-9-9" : toDate;
 
             //测试有没有SO和TH的查看权限
-            var billTypeArr = db.ProcessAuthority.Where(p => p.user_id == userId).Select(p => p.bill_type).Distinct().ToArray();
+            var billTypeArr = db.Sale_user_can_check_deps.Where(p => p.username==currentUser.userName).Select(p => p.bill_type).Distinct().ToArray();
             
             var res = from ap in db.Apply
                       where ap.sys_no.Contains(sys_no)
@@ -1024,11 +1013,12 @@ namespace Sale_Order.Controllers
 
             //如果是TH，则要进一步判断退货部门的权限。为null表示可以查看所有退货部门。
             if (billTypeArr.Contains("TH")) {
-                var returnDepIds = db.ProcessAuthority.Where(p => p.user_id == userId && p.bill_type == "TH").Select(p => p.return_dept_id);
-                if (!returnDepIds.Contains(null)) {
+                var returnDeps = db.Sale_user_can_check_deps.Where(p => p.username == currentUser.userName && p.bill_type == "TH").Select(p => p.dep_name).ToList();
+                if (!returnDeps.Contains("*")) {
                     res = from re in res
                           join rb in db.ReturnBill on re.sys_no equals rb.sys_no
-                          where re.order_type != "TH" || (re.order_type == "TH" && returnDepIds.Contains(rb.return_dept))
+                          join de in db.Department on rb.return_dept equals de.dep_no
+                          where re.order_type != "TH" || (re.order_type == "TH" && returnDeps.Contains(de.name) && de.dep_type == "退货事业部")
                           select re;
                 }
             }
@@ -1274,9 +1264,8 @@ namespace Sale_Order.Controllers
         //查看事业部订单
         [SessionTimeOutFilter()]
         public ActionResult CheckProcBills()
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            ViewData["userid"] = userId;
+        {            
+            ViewData["userid"] = currentUser.userId;
             ViewData["proc_dep"] = "all";
             //查询参数保存在Cookie，方便下次继续查询
             var queryData = Request.Cookies["op_qd"];
@@ -1294,8 +1283,7 @@ namespace Sale_Order.Controllers
 
         [SessionTimeOutFilter()]
         public JsonResult GetDepBills(FormCollection fcl)
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+        {            
             string sysNo = fcl.Get("sys_no");
             string billNo = fcl.Get("bill_no");
             string saler = fcl.Get("saler");
@@ -1317,19 +1305,17 @@ namespace Sale_Order.Controllers
 
             if (string.IsNullOrWhiteSpace(fromDate)) fromDate = "2000-1-1";
             if (string.IsNullOrWhiteSpace(toDate)) toDate = "2099-9-9";
-            var user = db.User.Single(u => u.id == userId);
-            string[] depArr;
+            var user = db.User.Single(u => u.id == currentUser.userId);
+            List<string> depArr;
             if ("all".Equals(procDep))
             {
-                if (user.can_check_deps.Equals("*")) {
-                    depArr = db.Department.Where(d => d.dep_type == "销售事业部").Select(d => d.name).ToArray();
-                }
-                else {
-                    depArr = user.can_check_deps.Split(new Char[] { ',', '，' });
+                depArr = db.Sale_user_can_check_deps.Where(s => s.bill_type == "SO" && s.username == currentUser.userName).Select(s => s.dep_name).ToList();
+                if (depArr.Contains("*")) {
+                    depArr = db.Department.Where(d => d.dep_type == "销售事业部").Select(d => d.name).ToList();
                 }
             }
             else {
-                depArr = new string[] { procDep };
+                depArr = new List<string> { procDep };
             }
 
             var result = (from so in db.Sale_SO
@@ -1521,8 +1507,6 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult CheckReturnBillsBackground()
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            ViewData["userid"] = userId;
             ViewData["proc_dep"] = "all";
             return View();
         }
@@ -1530,7 +1514,6 @@ namespace Sale_Order.Controllers
         [HttpPost]
         public JsonResult BackgroundSearchReturnBills(FormCollection fcl)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string custNo = fcl.Get("cust_no");
             string sysNo = fcl.Get("sys_no");
             string billNo = fcl.Get("bill_no");
@@ -1539,19 +1522,16 @@ namespace Sale_Order.Controllers
             string procDep = fcl.Get("proc_dep");
             fromDate = string.IsNullOrWhiteSpace(fromDate) ? "1901-1-1" : fromDate;
             toDate = string.IsNullOrWhiteSpace(toDate) ? "2099-9-9" : toDate;
-            string[] depArr;
+            List<string> depArr;
             if ("all".Equals(procDep))
             {
-                string userCanCheckDeps = db.User.Single(u => u.id == userId).can_check_deps;
-                if (userCanCheckDeps.Equals("*")) {
-                    depArr = db.Department.Where(d => d.dep_type == "退货事业部").Select(d => d.name).ToArray();
-                }
-                else {
-                    depArr = userCanCheckDeps.Split(new Char[] { ',', '，' });
+                depArr = db.Sale_user_can_check_deps.Where(u => u.bill_type == "TH" && u.username == currentUser.userName).Select(u => u.dep_name).ToList();
+                if (depArr.Contains("*")) {
+                    depArr = db.Department.Where(d => d.dep_type == "退货事业部").Select(d => d.name).ToList();
                 }
             }
             else {
-                depArr = procDep.Split(new Char[] { ',', '，' });
+                depArr = new List<string>() { procDep };
             }
 
             var result = (from re in db.ReturnBill
@@ -1588,9 +1568,8 @@ namespace Sale_Order.Controllers
         }
 
 		[SessionTimeOutFilter()]
-        public ActionResult UploadQualityReport() {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            if (!utl.hasGotPower(userId, "uploadQualityReport"))
+        public ActionResult UploadQualityReport() {            
+            if (!utl.hasGotPower(currentUser.userId, "uploadQualityReport"))
             {
                 ViewBag.tip = " 没有权限";
                 return View("Tip");
@@ -1665,9 +1644,8 @@ namespace Sale_Order.Controllers
         //总裁办批量审批单据
         [SessionTimeOutFilter()]
         public ActionResult CeoBatchAudit()
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            if (!utl.hasGotPower(userId, "ceo_batch_audit")) {
+        {            
+            if (!utl.hasGotPower(currentUser.userId, "ceo_batch_audit")) {
                 ViewBag.tip = "没有权限。";
                 return View("error");
             }
@@ -1696,7 +1674,7 @@ namespace Sale_Order.Controllers
                             applyTime = a.start_date,
                             step = ad.step,
                             stepName = ad.step_name,
-                            orderType=bt.p_name
+                            orderType = bt.p_name
                         }).ToList();
             apps.ForEach(a =>
             {                
@@ -1833,12 +1811,9 @@ namespace Sale_Order.Controllers
 
         public JsonResult GetModualNumLog(int page, int rows, string searchValue = "", bool self = false)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            var user = db.User.Single(u => u.id == userId);
-
             var logs = db.Sale_Modual_number_log
                 .Where(l => l.modual_type.Contains(searchValue) || l.modual_number.Contains(searchValue) || l.op_user.Contains(searchValue))
-                .Where(l => self == false || l.op_user == user.real_name)
+                .Where(l => self == false || l.op_user == currentUser.realName)
                 .OrderByDescending(l => l.id)
                 .Select(l => new
                 {
@@ -1867,13 +1842,11 @@ namespace Sale_Order.Controllers
         }
 
         public JsonResult GetNextModualNumber(string modualType)
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            var user = db.User.Single(u => u.id == userId);
+        {            
             string result = "";
 
             try {
-                db.getNextModualNumber(modualType, user.real_name,"光电", ref result);
+                db.getNextModualNumber(modualType, currentUser.userName,"光电", ref result);
             }
             catch (Exception ex) {
                 return Json(new { suc = false, msg = "取得编号失败："+ex.Message });

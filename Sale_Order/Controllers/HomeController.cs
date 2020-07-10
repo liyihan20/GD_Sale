@@ -1,59 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Sale_Order.Filter;
+using Sale_Order.Models;
+using Sale_Order.Utils;
+using System;
+using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
-using Sale_Order.Models;
-using Sale_Order.Filter;
-using System.Configuration;
-using System.IO;
-using Sale_Order.Utils;
+
 namespace Sale_Order.Controllers
 {    
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-        SaleDBDataContext db = new SaleDBDataContext();
         SomeUtils utl = new SomeUtils();
 
-        [SessionTimeOutFilter()]
-        public ActionResult Main(string url) {
+        [SessionTimeOutFilter]
+        public ActionResult Index()
+        {
+            return View();
+        }
 
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
+        [SessionTimeOutFilter()]
+        public ActionResult Main(string url) {            
             var powers = (from a in db.Authority
                       from u in db.Group
                       from ga in a.GroupAndAuth
                       from gu in u.GroupAndUser
-                      where ga.group_id == u.id && gu.user_id == userId
+                      where ga.group_id == u.id && gu.user_id == currentUser.userId
                       select a.sname).ToArray();
             ViewData["url"] = string.IsNullOrEmpty(url)?"": utl.MyUrlDecoder(url);
             ViewData["powers"] = powers;
-            ViewData["username"] = user.real_name;
-            ViewData["depName"] = user.Department1.name;
+            ViewData["username"] = currentUser.realName;
+            ViewData["depName"] = currentUser.departmentName;
             return View();
         }
-
-        public ActionResult Index()
-        {
-            ViewBag.Message = "Modify this template to kick-start your ASP.NET MVC application." ;
-            
-            return View();
-        }
-
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your app description page.";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
-
+        
         
         public ActionResult ChangeLang(string lang)
         {
@@ -97,9 +78,8 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public JsonResult WriteDownErrors(string message)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             var err=new SystemErrors();
-            err.user_name=db.User.Single(u=>u.id==userId).username;
+            err.user_name = currentUser.userName;
             err.exception=message;
             err.op_time = DateTime.Now;
             db.SystemErrors.InsertOnSubmit(err);
@@ -157,6 +137,6 @@ namespace Sale_Order.Controllers
             }
             return "ok";
         }
-
+        
     }
 }

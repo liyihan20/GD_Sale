@@ -10,12 +10,12 @@ using System.Configuration;
 using Sale_Order.Filter;
 using System.Text;
 using Newtonsoft.Json;
+using Sale_Order.Services;
 
 namespace Sale_Order.Controllers
 {
-    public class SalerController : Controller
+    public class SalerController : BaseController
     {
-        SaleDBDataContext db = new SaleDBDataContext();
         SomeUtils utl = new SomeUtils();
         const string SALEORDER = "销售订单";
         const string SALECONTRACT = "销售合同";
@@ -190,6 +190,7 @@ namespace Sale_Order.Controllers
                     order.step_version = 0;
                     order.sys_no = newSysNo;
                     order.order_date = DateTime.Now;
+                    order.account = order.account ?? "光电总部";
                     ViewData["order"] = order;
                     ViewData["details"] = details;
 
@@ -381,28 +382,25 @@ namespace Sale_Order.Controllers
             }
             return Json(new { suc = true });
         }
-
-
+        
         #region 销售订单
 
         //新建销售订单
         [SessionTimeOutFilter()]
-        public ActionResult CreateSaleOrder()
-        {            
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
-
+        public ActionResult CreateSaleOrder(string account="光电总部")
+        {
             Sale_SO order = new Sale_SO();
             List<Sale_SO_details> details = new List<Sale_SO_details>();
 
-            order.user_name = db.User.Single(u => u.id == userId).real_name;
-            order.user_id = userId;
+            order.user_name = currentUser.realName;
+            order.user_id = currentUser.userId;
             order.sys_no = utl.getSystemNo("SO");            
             order.order_date = DateTime.Now;
             order.percent1 = 100;
             order.step_version = 0;
+            order.account = account;
 
-            var dep = db.vwItems.Where(v => v.what == "agency" && v.fname == user.Department1.name).FirstOrDefault();
+            var dep = new K3ItemSv(account).GetK3Items("agency").Where(k => k.fname == currentUser.departmentName).FirstOrDefault();
             if (dep!=null)
             {
                 order.department_name = dep.fname;
@@ -419,11 +417,15 @@ namespace Sale_Order.Controllers
         [HttpPost]
         public JsonResult SaveSaleOrder(FormCollection col)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
-            Sale_SO h = JsonConvert.DeserializeObject<Sale_SO>(col.Get("head"));
-            List<Sale_SO_details> ds = JsonConvert.DeserializeObject<List<Sale_SO_details>>(col.Get("details"));
-            
+            Sale_SO h;
+            List<Sale_SO_details> ds;
+            try {
+                h = JsonConvert.DeserializeObject<Sale_SO>(col.Get("head"));
+                ds = JsonConvert.DeserializeObject<List<Sale_SO_details>>(col.Get("details"));
+            }
+            catch (Exception ex) {
+                return Json(new SimpleResultModel(ex));
+            }
             //如已提交，则不能再保存
             if (h.step_version == 0) {
                 var ap = db.Apply.Where(a => a.sys_no == h.sys_no);
@@ -435,10 +437,85 @@ namespace Sale_Order.Controllers
 
             //订单号判断是否有重复
             if (!string.IsNullOrEmpty(h.order_no)) {
-                if (db.Sale_SO.Where(s => s.order_no == h.order_no).Count() > 0) {
+                if (db.Sale_SO.Where(s => s.order_no == h.order_no && s.sys_no != h.sys_no).Count() > 0) {
                     return Json(new SimpleResultModel(false, "此订单号之前已使用！"));
                 }
             }
+
+            //2020-07-10 伟忠要求判断采购订单号是否重复，有重复的不能再下
+            if (!string.IsNullOrWhiteSpace(h.po_number)) {
+                var existedPoNumberBill = from s in db.Sale_SO
+                                          join a in db.Apply on s.sys_no equals a.sys_no
+                                          where s.po_number == h.po_number && s.sys_no != h.sys_no
+                                          && (a.success == true || a.success == null)
+                                          select s.sys_no;
+                if (existedPoNumberBill.Count() > 0) {
+                    return Json(new SimpleResultModel(false, "此采购订单号之前已经使用过，流水号：" + existedPoNumberBill.First()));
+                }
+            }
+
+            //验证客户编码与客户名称是否匹配
+            if (db.isCustomerNameAndNoMath(h.buy_unit_name, h.buy_unit_no).First().suc==false) {
+                return Json(new SimpleResultModel(false, "购货单位请输入后按回车键搜索后在列表中选择"));
+            }
+            if (db.isCustomerNameAndNoMath(h.plan_firm_name, h.plan_firm_no).First().suc == false) {
+                return Json(new SimpleResultModel(false, "方案公司请输入后按回车键搜索后在列表中选择"));
+            }
+            if (db.isCustomerNameAndNoMath(h.oversea_client_name, h.oversea_client_no).First().suc == false) {
+                return Json(new SimpleResultModel(false, "海外客户请输入后按回车键搜索后在列表中选择"));
+            }
+            if (db.isCustomerNameAndNoMath(h.final_client_name, h.final_client_no).First().suc == false) {
+                return Json(new SimpleResultModel(false, "最终客户请输入后按回车键搜索后在列表中选择"));
+            }
+
+
+            #region 验证业务员和主管
+            if (string.IsNullOrEmpty(h.clerk_no)) {
+                return Json(new SimpleResultModel(false, "业务员1请输入后按回车键搜索后在列表中选择"));
+            }
+            if (string.IsNullOrEmpty(h.charger_no)) {
+                return Json(new SimpleResultModel(false, "主管请输入后按回车键搜索后在列表中选择"));
+            }
+            if (string.IsNullOrEmpty(h.clerk2_name) && !string.IsNullOrEmpty(h.clerk2_no)) {
+                h.clerk2_no = "";
+            }
+            if (string.IsNullOrEmpty(h.clerk3_name) && !string.IsNullOrEmpty(h.clerk3_no)) {
+                h.clerk3_no = "";
+            }
+            string account = h.account ?? "光电总部";
+            var c1 = new K3ItemSv(account).GetK3Emp(h.clerk_no);
+            if (c1.Count()!=1) {
+                return Json(new SimpleResultModel(false, "业务员1不可用，请重新选择"));
+            }
+            else if (!c1.First().emp_name.Equals(h.clerk_name)) {
+                return Json(new SimpleResultModel(false, "业务员1请输入后按回车键搜索后在列表中选择"));
+            }
+            if (h.percent2!=null && h.percent2>0) {
+                var c2 = new K3ItemSv(account).GetK3Emp(h.clerk2_no);
+                if (c2.Count() != 1) {
+                    return Json(new SimpleResultModel(false, "业务员2不可用，请重新选择"));
+                }
+                else if (!c2.First().emp_name.Equals(h.clerk2_name)) {
+                    return Json(new SimpleResultModel(false, "业务员2请输入后按回车键搜索后在列表中选择"));
+                }
+            }
+            if (h.percent3 != null && h.percent3 > 0) {
+                var c3 = new K3ItemSv(account).GetK3Emp(h.clerk3_no);
+                if (c3.Count() != 1) {
+                    return Json(new SimpleResultModel(false, "业务员3不可用，请重新选择"));
+                }
+                else if (!c3.First().emp_name.Equals(h.clerk3_name)) {
+                    return Json(new SimpleResultModel(false, "业务员3请输入后按回车键搜索后在列表中选择"));
+                }
+            }
+            var c4 = new K3ItemSv(account).GetK3Emp(h.charger_no);
+            if (c4.Count() != 1) {
+                return Json(new SimpleResultModel(false, "主管不可用，请重新选择"));
+            }
+            else if (!c4.First().emp_name.Equals(h.charger_name)) {
+                return Json(new SimpleResultModel(false, "主管请输入后按回车键搜索后在列表中选择"));
+            }
+            #endregion
 
             #region 验证营业员比例的合法性,并保存营业员比例
             string salerPercent = h.salePs.Trim();
@@ -466,7 +543,8 @@ namespace Sale_Order.Controllers
                     {
                         if (!string.IsNullOrWhiteSpace(tpNamest))
                         {
-                            if (utl.getSalerId(tpNamest.Trim()) == null)
+                            if(new K3ItemSv(account).GetK3Emp(tpNamest).Count()<1)
+                            //if (utl.getSalerId(tpNamest.Trim()) == null)
                             {
                                 return Json(new SimpleResultModel(false, "保存失败：以下营业员不可用：" + tpNamest));
                             }
@@ -475,9 +553,10 @@ namespace Sale_Order.Controllers
                 }
                 else
                 {
-                    if (utl.getSalerId(tpName) == null)
+                    if (new K3ItemSv(account).GetK3Emp(tpName).Count() < 1)
+                    //if (utl.getSalerId(tpName) == null)
                     {
-                        return Json(new SimpleResultModel(false, "保存失败：以下营业员不可用："));
+                        return Json(new SimpleResultModel(false, "保存失败：以下营业员不可用：" + tpName));
                     }
                 }
                 if (tpPercent.Contains("%"))
@@ -486,7 +565,7 @@ namespace Sale_Order.Controllers
                 }
                 if (!float.TryParse(tpPercent, out percent))
                 {
-                    return Json(new { success = false, msg = "保存失败：以下比例不合法：" + tpPercent }, "text/html");
+                    return Json(new SimpleResultModel (false, "保存失败：以下比例不合法：" + tpPercent));
                 }
                 if (percent < 0 || percent > 100)
                 {
@@ -514,7 +593,7 @@ namespace Sale_Order.Controllers
             }
             if (spList.Sum(l => l.percent) != 100)
             {
-                return Json(new { success = false, msg = "保存失败：营业员比例之和不等以100%" }, "text/html");
+                return Json(new SimpleResultModel (false, "保存失败：营业员比例之和不等以100%"));
             }
             #endregion
 
@@ -551,7 +630,7 @@ namespace Sale_Order.Controllers
                         d.commission_rate = 0;
                     }
                     else {
-                        d.commission_rate = (decimal)utl.GetCommissionRate(h.product_type_name, (double)d.MU);
+                        d.commission_rate = new K3ItemSv(h.account).GetK3CommissionRate(h.product_type_name, (double)d.MU);
                     }
                     //2018-10-1开始，佣金计算公式修改，将佣金再除（1+税率%）
                     if (h.product_type_name == "CCM" && d.MU < -6) {
@@ -580,7 +659,7 @@ namespace Sale_Order.Controllers
                 BackupData bd = new BackupData();
                 bd.op_date = DateTime.Now;
                 bd.sys_no = h.sys_no;
-                bd.user_id = userId;
+                bd.user_id = currentUser.userId;
                 bd.main_data = JsonConvert.SerializeObject(existedBills);
                 bd.secondary_data = JsonConvert.SerializeObject(existedDetails);
                 db.BackupData.InsertOnSubmit(bd);
@@ -618,7 +697,7 @@ namespace Sale_Order.Controllers
                 ViewBag.tip = "单据不存在";
                 return View("Tip");
             }
-
+            order.account = order.account ?? "光电总部";
             var details = db.Sale_SO_details.Where(s => s.order_id == order.id).ToList();
 
             ViewData["order"] = order;
@@ -633,16 +712,9 @@ namespace Sale_Order.Controllers
         //审核结果auditResult: 10(全部），0（正在审核），1（成功），-1（失败）
         public JsonResult CheckOwnSaleOrders(string sysNo, DateTime fromDate, DateTime toDate, int auditResult)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            //var result = (from v in db.VwOrder
-            //             where v.user_id == userId
-            //             && v.step_version == 0
-            //             && v.order_date >= fromDate
-            //             && v.order_date <= toDate
-            //             select v).ToList();
             var result = (from o in db.Sale_SO
                           join e in db.Sale_SO_details on o.id equals e.order_id
-                          where o.user_id == userId
+                          where o.user_id == currentUser.userId
                           && o.order_date >= fromDate
                           && o.order_date <= toDate
                           select new { o, e }).ToList();
@@ -696,7 +768,8 @@ namespace Sale_Order.Controllers
                     product_name = res.e.item_name,
                     qty = res.e.qty,
                     sys_no = res.o.sys_no,
-                    apply_date = app.Count() >= 1 ? ((DateTime)app.First().start_date).ToString("yyyy-MM-dd HH:mm") : ""
+                    apply_date = app.Count() >= 1 ? ((DateTime)app.First().start_date).ToString("yyyy-MM-dd HH:mm") : "",
+                    account = res.o.account ?? "光电总部"
                 });
 
             }
@@ -746,7 +819,6 @@ namespace Sale_Order.Controllers
         {
             string pre = sys_no.Substring(0, 2);
             var ord = db.Sale_SO.Where(s => s.sys_no == sys_no).FirstOrDefault();
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
 
             string processType = pre;
             
@@ -756,7 +828,7 @@ namespace Sale_Order.Controllers
             }
 
             Apply apply = new Apply();
-            apply.user_id = userId;
+            apply.user_id = currentUser.userId;
             apply.sys_no = sys_no;
             apply.start_date = DateTime.Now;
             apply.ip = Request.UserHostAddress;
@@ -773,11 +845,11 @@ namespace Sale_Order.Controllers
             {
                 if (!testFlag)
                 {
-                    ads = utl.getApplySequence(apply, processType, userId, db.User.Single(u => u.id == userId).Department1.dep_no, ord.produce_dep_id);
+                    ads = utl.getApplySequence(apply, processType, currentUser.userId, db.User.Single(u => u.id == currentUser.userId).Department1.dep_no, ord.produce_dep_id);
                 }
                 else
                 {
-                    ads = utl.getTestApplySequence(apply, processType, userId);
+                    ads = utl.getTestApplySequence(apply, processType, currentUser.userId);
                 }
             }
             catch (Exception ex)
@@ -845,24 +917,22 @@ namespace Sale_Order.Controllers
 
         //新增CCM开模改模单
         [SessionTimeOutFilter()]
-        public ActionResult CreateCCMModelContract()
-        {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
+        public ActionResult CreateCCMModelContract(string account="光电总部")
+        {            
             string sys_no = utl.getSystemNo("CC");
             CcmModelContract cmc = new CcmModelContract();
             cmc.sys_no = sys_no;
-            var dep = db.vwItems.Where(v => v.what == "agency" && v.fname == user.Department1.name);
-            if (dep.Count() > 0)
+            var dep = new K3ItemSv(account).GetK3Items("agency").Where(k => k.fname == currentUser.departmentName).FirstOrDefault();
+            if (dep != null)
             {
-                cmc.agency_no = dep.First().fid;
+                cmc.agency_no = dep.fid;
             }
-            cmc.User = user;
+            cmc.user_id = currentUser.userId;
             cmc.step_version = 0;
             cmc.bill_date = DateTime.Now;
             //cmc.product_type = "CCM";
             ViewData["cmc"] = cmc;
-
+            ViewData["username"] = currentUser.realName;
             utl.writeEventLog(CREATEMODEL, "新建一张CCM开改模单", sys_no, Request);
             return View();
         }
@@ -871,30 +941,27 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult CreateModelContract()
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
             string sys_no = utl.getSystemNo("CM");
             ModelContract cm = new ModelContract();
             cm.sys_no = sys_no;
-            var dep = db.vwItems.Where(v => v.what == "agency" && v.fname == user.Department1.name);
+            var dep = db.vwItems.Where(v => v.what == "agency" && v.fname == currentUser.departmentName);
             if (dep.Count() > 0)
             {
                 cm.agency_no = dep.First().fid;
             }
-            cm.User = user;
+            cm.original_user_id = currentUser.userId;
             cm.step_version = 0;
             cm.bill_date = DateTime.Now;            
             ViewData["cm"] = cm;
-
+            ViewData["username"] = currentUser.realName;
             utl.writeEventLog(CREATEMODEL, "新建一张开改模单", sys_no, Request);
             return View();
         }
 
         //保存CCM开改模单
         public JsonResult SalerSaveCCMModelContract(FormCollection col) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int stepVersion = 0;
-            string saveResult = utl.saveCCMModelContract(col, stepVersion, userId);
+            string saveResult = utl.saveCCMModelContract(col, stepVersion, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult))
             {
                 return Json(new { suc = true }, "text/html");
@@ -907,9 +974,8 @@ namespace Sale_Order.Controllers
         //保存开改模单（除CCM）
         public JsonResult SalerSaveModelContract(FormCollection col)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int stepVersion = 0;
-            string saveResult = utl.saveModelContract(col, stepVersion, userId);
+            string saveResult = utl.saveModelContract(col, stepVersion, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult))
             {
                 return Json(new { suc = true }, "text/html");
@@ -920,10 +986,9 @@ namespace Sale_Order.Controllers
             }
         }
 
-        public JsonResult CheckOwnCreateModelBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult) {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
+        public JsonResult CheckOwnCreateModelBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult) {            
             var result = (from v in db.CcmModelContract
-                         where v.user_id==userId
+                         where v.user_id==currentUser.userId
                          && (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
                          && v.bill_date >= fromDate
                          && v.bill_date <= toDate
@@ -939,7 +1004,7 @@ namespace Sale_Order.Controllers
                              deal_price = v.price
                          }).Union(
                              from v in db.ModelContract
-                             where v.original_user_id == userId
+                             where v.original_user_id == currentUser.userId
                              && (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
                              && v.bill_date >= fromDate
                              && v.bill_date <= toDate
@@ -1060,7 +1125,6 @@ namespace Sale_Order.Controllers
         public ActionResult BeginApplyCM(string sys_no)
         {
             string pre = sys_no.Substring(0, 2);
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             string processType = pre;
             string projectTeam = "";
             string busDep = "";
@@ -1105,7 +1169,7 @@ namespace Sale_Order.Controllers
             }
 
             Apply apply = new Apply();
-            apply.user_id = userId;
+            apply.user_id = currentUser.userId;
             apply.sys_no = sys_no;
             apply.start_date = DateTime.Now;
             apply.ip = Request.UserHostAddress;
@@ -1125,7 +1189,7 @@ namespace Sale_Order.Controllers
                 {
                     //获取部门id，事业部id，项目组id，报价员id
                     Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
-                    auditorsDic.Add("部门ID", db.User.Single(u => u.id == userId).Department1.dep_no);
+                    auditorsDic.Add("部门ID", db.User.Single(u => u.id == currentUser.userId).Department1.dep_no);
                     auditorsDic.Add("研发项目组ID", db.Department.Single(d => d.name == projectTeam && d.dep_type == "研发项目组").dep_no);
                     if (quotationClerkId != null) {
                         auditorsDic.Add("表单报价员值ID", quotationClerkId);
@@ -1134,11 +1198,11 @@ namespace Sale_Order.Controllers
                         auditorsDic.Add("开模事业部ID", db.Department.Single(d => d.name == busDep && d.dep_type == "开模事业部").dep_no);
                     }
 
-                    ads = utl.getApplySequence(apply, processType, userId, auditorsDic);
+                    ads = utl.getApplySequence(apply, processType, currentUser.userId, auditorsDic);
                 }
                 else
                 {
-                    ads = utl.getTestApplySequence(apply, processType, userId);
+                    ads = utl.getTestApplySequence(apply, processType, currentUser.userId);
                 }
             }
             catch (Exception ex)
@@ -1180,33 +1244,31 @@ namespace Sale_Order.Controllers
 
         //新建
         [SessionTimeOutFilter()]
-        public ActionResult CreateSampleBill()
+        public ActionResult CreateSampleBill(string account="光电总部")
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
             string sys_no = utl.getSystemNo("SB");
             SampleBill sb = new SampleBill();
             sb.sys_no = sys_no;
-            var dep = db.vwItems.Where(v => v.what == "agency" && v.fname == user.Department1.name);
-            if (dep.Count() > 0)
+            var dep = new K3ItemSv(account).GetK3Items("agency").Where(k => k.fname == currentUser.departmentName).FirstOrDefault();
+            if (dep != null)
             {
-                sb.agency_no = dep.First().fid;
+                sb.agency_no = dep.fid;
             }
-            sb.User = user;
+            sb.original_user_id = currentUser.userId;
             sb.bill_date = DateTime.Now;
             utl.writeEventLog(SAMPLEBILL, "新建一张样品单", sys_no, Request);
 
             ViewData["step"] = 0;
             ViewData["sb"] = sb;
+            ViewData["username"] = currentUser.realName;
             return View();
         }
 
         //保存
         public JsonResult SalerSaveSampleBill(FormCollection col)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int stepVersion = 0;
-            string saveResult = utl.saveSampleBill(col, stepVersion, userId);
+            string saveResult = utl.saveSampleBill(col, stepVersion, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult))
             {
                 return Json(new { suc = true });
@@ -1220,9 +1282,8 @@ namespace Sale_Order.Controllers
         //查看
         public JsonResult CheckOwnSampleBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             var result = from v in db.SampleBill
-                         where v.original_user_id == userId
+                         where v.original_user_id == currentUser.userId
                          && (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
                          && v.bill_date >= fromDate
                          && v.bill_date <= toDate
@@ -1327,7 +1388,6 @@ namespace Sale_Order.Controllers
         public ActionResult BeginApplySB(string sys_no)
         {
             string pre = sys_no.Substring(0, 2);
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             SampleBill sb = db.SampleBill.Single(m => m.sys_no == sys_no);
             string processType = pre;
 
@@ -1351,7 +1411,7 @@ namespace Sale_Order.Controllers
             }
 
             Apply apply = new Apply();
-            apply.user_id = userId;
+            apply.user_id = currentUser.userId;
             apply.sys_no = sys_no;
             apply.start_date = DateTime.Now;
             apply.ip = Request.UserHostAddress;
@@ -1370,16 +1430,16 @@ namespace Sale_Order.Controllers
                 {
                     //获取部门id，事业部id，项目组id，报价员id
                     Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
-                    auditorsDic.Add("部门ID", db.User.Single(u => u.id == userId).Department1.dep_no);
+                    auditorsDic.Add("部门ID", db.User.Single(u => u.id == currentUser.userId).Department1.dep_no);
                     auditorsDic.Add("研发项目组ID", db.Department.Single(d => d.name == sb.project_team && d.dep_type == "研发项目组").dep_no);
                     if (sb.quotation_clerk_id != null) {
                         auditorsDic.Add("表单报价员值ID", sb.quotation_clerk_id);
                     }
-                    ads = utl.getApplySequence(apply, processType, userId, auditorsDic);
+                    ads = utl.getApplySequence(apply, processType, currentUser.userId, auditorsDic);
                 }
                 else
                 {
-                    ads = utl.getTestApplySequence(apply, processType, userId);
+                    ads = utl.getTestApplySequence(apply, processType, currentUser.userId);
                 }
             }
             catch (Exception ex)
@@ -1422,8 +1482,7 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult CreateBLBill()
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
+            User user = db.User.Single(u => u.id == currentUser.userId);
             string sys_no = utl.getSystemNo("BL");
             var bl = new Sale_BL();
             bl.sys_no = sys_no;
@@ -1439,9 +1498,8 @@ namespace Sale_Order.Controllers
         //保存
         public JsonResult SalerSaveBLBill(FormCollection col)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             int stepVersion = 0;
-            string saveResult = utl.saveBLBill(col, stepVersion, userId);
+            string saveResult = utl.saveBLBill(col, stepVersion, currentUser.userId);
             if (string.IsNullOrWhiteSpace(saveResult)) {
                 //2017-10-16 增加是否有下挂bom的提示 2018-1-22不需要提示了，因为不用再经过订料员
                 //string busDep = col.Get("bus_dep");
@@ -1462,9 +1520,8 @@ namespace Sale_Order.Controllers
 
         public JsonResult CheckOwnBLBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             var result = from v in db.Sale_BL
-                         where v.original_user_id == userId
+                         where v.original_user_id == currentUser.userId
                          && (v.sys_no.Contains(sysNo) || v.product_model.Contains(sysNo))
                          && v.bl_date >= fromDate
                          && v.bl_date <= toDate
@@ -1550,9 +1607,8 @@ namespace Sale_Order.Controllers
             ViewData["stepName"] = stepName;
             ViewData["blockInfo"] = db.BlockOrder.Where(b => b.sys_no == sys_no).OrderBy(b => b.step).ToList();
             if (stepName.Contains("订料")) {
-                int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-                ViewData["order_id"] = userId;
-                ViewData["order_name"] = db.User.Single(u => u.id == userId).real_name;
+                ViewData["order_id"] = currentUser.userId;
+                ViewData["order_name"] = currentUser.realName;
             }
             return View("CreateBLBill");
         }
@@ -1561,7 +1617,6 @@ namespace Sale_Order.Controllers
         public ActionResult BeginApplyBL(string sys_no)
         {
             string pre = sys_no.Substring(0, 2);
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == sys_no);
             string processType = pre;
 
@@ -1578,7 +1633,7 @@ namespace Sale_Order.Controllers
             }
 
             Apply apply = new Apply();
-            apply.user_id = userId;
+            apply.user_id = currentUser.userId;
             apply.sys_no = sys_no;
             apply.start_date = DateTime.Now;
             apply.ip = Request.UserHostAddress;
@@ -1595,12 +1650,12 @@ namespace Sale_Order.Controllers
                 if (!testFlag) {
                     //获取部门id，事业部id，项目组id，报价员id
                     Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
-                    auditorsDic.Add("部门ID", db.User.Single(u => u.id == userId).Department1.dep_no);
+                    auditorsDic.Add("部门ID", db.User.Single(u => u.id == currentUser.userId).Department1.dep_no);
                     auditorsDic.Add("备料事业部ID", db.Department.Single(d => d.name == bl.bus_dep && d.dep_type == "备料事业部").dep_no);
-                    ads = utl.getApplySequence(apply, processType, userId, auditorsDic);
+                    ads = utl.getApplySequence(apply, processType, currentUser.userId, auditorsDic);
                 }
                 else {
-                    ads = utl.getTestApplySequence(apply, processType, userId);
+                    ads = utl.getTestApplySequence(apply, processType, currentUser.userId);
                 }
             }
             catch (Exception ex) {
@@ -1632,24 +1687,21 @@ namespace Sale_Order.Controllers
         }
 
         #endregion
-
-
+        
         #region 华为出货报告
 
         [SessionTimeOutFilter()]
         public ActionResult CreateHCBill()
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
             string sys_no = utl.getSystemNo("HC");
             var hc = new Sale_HC();
-            hc.sys_no = sys_no;            
-            hc.user_name = user.real_name;
+            hc.sys_no = sys_no;
+            hc.user_name = currentUser.realName;
             hc.bill_date = DateTime.Now;
 
             ViewData["HC"] = hc;
             ViewData["step"] = 0;
-            ViewData["userName"] = user.real_name;
+            ViewData["userName"] = currentUser.realName;
             ViewData["fileResult"] = "[]";
             utl.writeEventLog(BLBILL, "新建一张华为出货报告", sys_no, Request);
             return View();
@@ -1657,9 +1709,7 @@ namespace Sale_Order.Controllers
 
         public JsonResult SalerSaveHCBill(FormCollection fc)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-
-            var result = utl.saveHCBill(fc, 0, userId);
+            var result = utl.saveHCBill(fc, 0, currentUser.userId);
             if (!string.IsNullOrEmpty(result)) {
                 return Json(new SimpleResultModel() { suc = false, msg = result });
             }
@@ -1669,9 +1719,8 @@ namespace Sale_Order.Controllers
 
         public JsonResult CheckOwnHCBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             var result = from v in db.Sale_HC
-                         where v.user_id == userId
+                         where v.user_id == currentUser.userId
                          && (v.sys_no.Contains(sysNo) || v.item_model.Contains(sysNo))
                          && v.bill_date >= fromDate
                          && v.bill_date <= toDate
@@ -1757,12 +1806,11 @@ namespace Sale_Order.Controllers
         public ActionResult BeginApplyHC(string sys_no)
         {
             string pre = sys_no.Substring(0, 2);
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             Sale_HC bl = db.Sale_HC.Single(s => s.sys_no == sys_no);
             string processType = pre;                       
 
             Apply apply = new Apply();
-            apply.user_id = userId;
+            apply.user_id = currentUser.userId;
             apply.sys_no = sys_no;
             apply.start_date = DateTime.Now;
             apply.ip = Request.UserHostAddress;
@@ -1780,10 +1828,10 @@ namespace Sale_Order.Controllers
                     //获取部门id，事业部id，项目组id，报价员id
                     Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
                     auditorsDic.Add("华为出货事业部ID", db.Department.Single(d => d.name == bl.dep_name && d.dep_type == "华为出货事业部").dep_no);
-                    ads = utl.getApplySequence(apply, processType, userId, auditorsDic);
+                    ads = utl.getApplySequence(apply, processType, currentUser.userId, auditorsDic);
                 }
                 else {
-                    ads = utl.getTestApplySequence(apply, processType, userId);
+                    ads = utl.getTestApplySequence(apply, processType, currentUser.userId);
                 }
             }
             catch (Exception ex) {
@@ -1817,8 +1865,6 @@ namespace Sale_Order.Controllers
         //审核人进入审核编辑界面
         public ActionResult AuditorModifyHCBill(int apply_id, string sys_no, int step)
         {
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            User user = db.User.Single(u => u.id == userId);
             var hc = db.Sale_HC.Single(s => s.sys_no == sys_no);
             var fileInfo = db.Sale_HC_fileInfo.Where(h => h.sys_no == hc.sys_no).ToList();
             var fileResult = (from fi in fileInfo
@@ -1835,7 +1881,7 @@ namespace Sale_Order.Controllers
             ViewData["hc"] = hc;
             ViewData["applyId"] = apply_id;
             ViewData["step"] = step;
-            ViewData["userName"] = user.real_name;
+            ViewData["userName"] = currentUser.realName;
             ViewData["fileResult"] = JsonConvert.SerializeObject(fileResult);
 
             return View("CreateHCBill");
@@ -1847,11 +1893,8 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult CheckOrderDetail(int id, string billType, bool canCheckBLFile=false)
         {
-            string sysNum;
-            //int newestId;
-            int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-            var notContractPrice = utl.hasGotPower(userId, Powers.not_contract_price.ToString());
-            var notAllPrice = utl.hasGotPower(userId, Powers.not_all_price.ToString());
+            var notContractPrice = utl.hasGotPower(currentUser.userId, Powers.not_contract_price.ToString());
+            var notAllPrice = utl.hasGotPower(currentUser.userId, Powers.not_all_price.ToString());
             ViewData["hiddenPrice"] = notContractPrice || notAllPrice ? "true" : "false";
             ViewData["hiddenAll"] = notAllPrice ? "true" : "false";
             
@@ -1860,14 +1903,14 @@ namespace Sale_Order.Controllers
                 case "SO":
                 case "1":
                     var order = db.Sale_SO.Where(s => s.id == id).FirstOrDefault();
+                    order.account = order.account ?? "光电总部";
                     if (order == null) {
                         ViewBag.tip = "单据已更新，请刷新后再查询";
                         return View("Tip");
                     }
-                    sysNum = order.sys_no;
-                    utl.writeEventLog(SALEORDER, "查看单据明细", sysNum, Request);
+                    utl.writeEventLog(SALEORDER, "查看单据明细", order.sys_no, Request);
                     //挂起订单信息
-                    var blockInfo = db.BlockOrder.Where(b => b.sys_no == sysNum).OrderBy(b => b.step).ToList();
+                    var blockInfo = db.BlockOrder.Where(b => b.sys_no == order.sys_no).OrderBy(b => b.step).ToList();
                                         
                     ViewData["order"] = order;
                     ViewData["details"] = db.Sale_SO_details.Where(s => s.order_id == id).ToList();
@@ -1900,7 +1943,7 @@ namespace Sale_Order.Controllers
                     Sale_BL bl = db.Sale_BL.Single(m => m.id == id);                    
                     blockInfo = db.BlockOrder.Where(b => b.sys_no == bl.sys_no).OrderBy(b => b.step).ToList();                    
                     utl.writeEventLog(BLBILL, "查看备料", bl.sys_no, Request);
-                    string userDep = db.User.Single(u => u.id == userId).Department1.name;
+                    string userDep = currentUser.departmentName;
                     ViewData["hiddenModel"] = new string[] { "上海", "北京", "深圳", "汕尾", "新加坡", "中国市场部", "香港", "光能", "杭州" }.Where(s => userDep.Contains(s)).Count() > 0 ? "true" : "false";
                     ViewData["bl"] = bl;
                     ViewData["blockInfo"] = blockInfo;
@@ -1950,12 +1993,6 @@ namespace Sale_Order.Controllers
                 case "TH":
                     id = db.ReturnBill.Where(r => r.sys_no == ap.sys_no).First().id;
                     break;
-                case "HH":
-                    id = db.ResendBill.Where(r => r.sys_no == ap.sys_no).First().id;
-                    break;
-                case "CH":
-                    id = db.FetchBill.Where(r => r.sys_no == ap.sys_no).First().id;
-                    break;
                 case "PJ":
                     id = db.Project_bills.Where(r => r.sys_no == ap.sys_no).First().id;
                     break;
@@ -2002,34 +2039,21 @@ namespace Sale_Order.Controllers
         //    return "";
         //}
 
-        public string UPro()
+        /// <summary>
+        /// 选择公司模块
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <param name="controllerName"></param>
+        /// <returns></returns>
+        [SessionTimeOutFilter]
+        public ActionResult ChooseCompany(string actionName, string controllerName = "Saler")
         {
-            var list = (from a in db.Apply
-                        where a.order_type == "BL"
-                        && a.success == null
-                        && a.ApplyDetails.Where(d => d.step_name == "市场总部审批").Count() == 0
-                        select new
-                        {
-                            applyId = a.id,
-                            maxStep = a.ApplyDetails.Max(d => d.step)
-                        }).ToList();
-
-            foreach (var l in list) {
-                db.ApplyDetails.InsertOnSubmit(new ApplyDetails()
-                {
-                    apply_id = l.applyId,
-                    step_name = "市场总部审批",
-                    step = l.maxStep + 1,
-                    can_modify = false,
-                    countersign = false,
-                    user_id = 87
-                });
-            }
-
-            db.SubmitChanges();
-
-            return "ok:" + list.Count();
+            ViewData["actionName"] = actionName;
+            ViewData["controllerName"] = controllerName;
+            return View();
         }
+
+        
 
     }
 }

@@ -8,6 +8,10 @@ namespace Sale_Order.Models
     //订单临时表列表model
     public class OrderModel
     {
+        public OrderModel()
+        {
+            this.account = "光电总部";
+        }
         public int bill_id { get; set; }
         public string sys_no { get; set; }
         public string buy_unit { get; set; }
@@ -17,6 +21,7 @@ namespace Sale_Order.Models
         public decimal? deal_price { get; set; }
         public string apply_status { get; set; }
         public string apply_date { get; set; }
+        public string account { get; set; }
     }
 
     //附件信息model
