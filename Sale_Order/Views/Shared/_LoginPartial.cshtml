@@ -2,15 +2,7 @@
 @{
     string[] powers = (string[])ViewData["powers"];
 }
-<script type="text/javascript">
-    //    $(function () {
-    //        $("#menu_tree > li > ul > li").each(function (i) {
-    //            if ($(this).children().length < 2) {
-    //                alert($(this).html());
-    //            }
-    //        });
-    //    });
-</script>
+
 <ul id="menu_tree" class="easyui-tree" style="visibility:hidden">
     <li><span>@Html.Lang("invoice_manage")</span>
         <ul>
@@ -20,7 +12,7 @@
                 <ul>
                     @if (Array.IndexOf(powers, Powers.new_order.ToString()) != -1)
                     {
-                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder"><span>@Html.Lang("new_sale_order")</span> </li>   
+                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder&companys=光电总部,光电仁寿,光电科技"><span>@Html.Lang("new_sale_order")</span> </li>   
                         <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>                
                     }
                     @if (Array.IndexOf(powers, Powers.ceo_excel.ToString()) != -1)
@@ -39,7 +31,7 @@
                 <ul>                    
                     <li id="~/Authority/FetchModualNumber"><span>获取开模序号</span></li>
                     <li id="~/Saler/CreateCCMModelContract"><span>@Html.Lang("create_ccm_model_bill")</span> </li>                     
-                    <li id="~/Saler/CreateModelContract"><span>@Html.Lang("create_model_bill")</span> </li>                    
+                    <li id="~/Saler/ChooseCompany?actionName=CreateModelContract"><span>@Html.Lang("create_model_bill")</span> </li>                    
                     <li id="~/Saler/CheckAllOrders?bill_type=3"><span>@Html.Lang("check_add_apply")</span> </li>
                 </ul>
             </li> 
@@ -47,8 +39,8 @@
             @if ((Array.IndexOf(powers, Powers.new_sample.ToString()) != -1) || (Array.IndexOf(powers, Powers.agency_sb_excel.ToString()) != -1))
             {
             <li><span>@Html.Lang("sample_invoice")</span>
-                <ul>                    
-                    <li id="~/Saler/CreateSampleBill"><span>@Html.Lang("create_sample_bill")</span> </li>
+                <ul>
+                    <li id="~/Saler/ChooseCompany?actionName=CreateSampleBill"><span>@Html.Lang("create_sample_bill")</span> </li>                    
                     @if (Array.IndexOf(powers, Powers.agency_sb_excel.ToString()) != -1) { 
                         <li id="downAgencyExcel">办事处报表</li>
                     }
