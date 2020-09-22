@@ -1,4 +1,6 @@
-﻿
+﻿<link rel="stylesheet" href="@Url.Content("~/Scripts/webuploader/webuploader.css")" />
+<script src="@Url.Content("~/Scripts/webuploader/webuploader.withoutimage.js")"></script>
+<script src="@Url.Content("~/Scripts/MyUploader.js")"></script>
 <script type="text/javascript">
     $(function () {
         $("#combo").combobox({
@@ -6,7 +8,12 @@
                 var datas = $("#combo").combobox("getData");
                 for (var i = 0; i < datas.length; i++) {
                     if (datas[i].name == newValue) {
-                        $("#sys_no").val(newValue);
+                        $("#file_div").myUploader({
+                                sysNum: newValue,
+                                uploadUser: "@ViewData["userName"]",
+                                canUpload:true
+                        });
+                        //$("#wu_sysNum").val(newValue);
                         return;
                     }
                 }
@@ -17,13 +24,18 @@
 </script>
 
 <div id="login" class="easyui-panel" title="上传/覆盖品质报告" style="width:820px;padding:5px 10px">
-<input type="hidden" id="sys_no" name="sys_no"/>
 <br />
 客退编号:
 <input class="easyui-combobox" id="combo" name="combo" style="width: 120px" valuefield="name" textfield="name" url="@Url.Content("~/Items/getUnfinishedSysNo")"/>
 <br /><br />
-<div data-options="region:'center'" style="+position: relative;">
-               @Html.Partial("_UploadFilePartial")
-               
+
+<div id="file_div" class="easyui-panel" title="附件清单" style="width: 740px;height:188px;">
+    @*存放附件table*@
 </div>
+
+@*<div>
+    <input type="hidden" id="wu_sysNum" />
+    @Html.Partial("_UploadFilePartial_wu")
+               
+</div>*@
 </div>

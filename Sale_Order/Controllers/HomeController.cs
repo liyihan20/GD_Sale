@@ -72,7 +72,6 @@ namespace Sale_Order.Controllers
         public bool testEmail(int applyId) {
             return utl.emailToNextAuditor(applyId);
         }
-        
 
         //保存错误信息
         [SessionTimeOutFilter()]
@@ -137,6 +136,6 @@ namespace Sale_Order.Controllers
             }
             return "ok";
         }
-        
+               
     }
 }

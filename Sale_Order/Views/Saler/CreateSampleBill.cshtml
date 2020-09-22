@@ -1,9 +1,49 @@
 ﻿@using Sale_Order.Models;
 @{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
     SampleBill sb = (SampleBill)ViewData["sb"];
-    int step = (int)ViewData["step"];
+    int step = (int)sb.step_version;
     string formTitle = step == 0 ? "新建样品单" : "修改样品单";
+    string account = sb.account;
 }
+<style type="text/css">
+    #order_div input {
+        width: 140px;
+    }
+</style>
+
+<script>
+    //不同公司各自获取自己K3的基础资料
+    $(function () {
+
+        $(".k3_item").each(function () {
+            var what = $(this).attr("data-what");
+            var valueField = $(this).attr("data-valueField") || "no";
+            var panelWidth = $(this).attr("data-panelWidth") || null;
+            var penelHeight = $(this).attr("data-panelHeight") || 300;
+            var editable = $(this).attr("data-editable") || false;
+            var required = true;
+            if ($(this).attr("data-required") == "false") {
+                required = false;
+            }
+
+            $(this).combobox({
+                valueField: valueField,
+                textField: "name",
+                url: "../Items/getItems?what=" + what + "&account=@account",
+                width: 140,
+                panelHeight: penelHeight,
+                panelWidth: panelWidth,
+                editable: editable,
+                required: required
+            });
+        });
+
+        $("#agency_div").css("visibility", "visible");
+
+    });
+</script>
+
 <script type="text/javascript">
     $(function () {
 
@@ -29,7 +69,7 @@
                         var _this = "#" + box_id;
                         var q = $(_this).combobox('getText');
                         if (q != "") {
-                            $.post(url, { q: q },
+                            $.post(url, { q: q, account: "@account" },
                             function (data) {
                                 $(_this).combobox('loadData', data);
                                 $(_this).combobox('setText', q);
@@ -61,7 +101,7 @@
                         var _this = "#" + box_id;
                         var q = $(_this).combogrid('getText');
                         if (q != "") {
-                            $.post("@Url.Content("~/Items/getCostomers")", { q: q },
+                            $.post("@Url.Content("~/Items/getCostomers")", { q: q, account: "@account" },
                                 function (data) {
                                     $(_this).combogrid('grid').datagrid('loadData', data);
                                     $(_this).combogrid('setText', q);
@@ -74,6 +114,23 @@
 
             });
         });
+
+        //如果购货客户是01开头的，那么如果其他3个客户没有值的话，将其应用到其他3个客户
+        $("#customer_no").combogrid({
+            onChange: function (newValue, oldValue) {
+                var self = this;
+                if (newValue.indexOf("01.") == 0) {
+                    $(".customerbox").each(function () {
+                        if ($(this).combogrid("getValue") == "") {
+                            $(this).combogrid("setValue", newValue);
+                            $(this).combogrid("setText", $(self).combogrid("getText"));
+                            $(this).combogrid('grid').datagrid('loadData', $(self).combogrid('grid').datagrid('getData'));
+                        }
+                    });
+                }
+            }
+        });
+
 
         $("#product_model").combogrid({
             valueField: "model",
@@ -90,7 +147,7 @@
                 enter: function () {
                     var q = $("#product_model").combogrid('getText');
                     if (q != "") {
-                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q },
+                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q, account: "@account" },
                             function (data) {
                                 $("#product_model").combogrid('grid').datagrid('loadData', data);
                                 $("#product_model").combogrid('setText', q);
@@ -251,89 +308,168 @@
         $("#has_video_function").combobox("setValue", "@sb.has_video_function");
         $("#has_touch_panel").combobox("setValue", "@sb.has_touch_panel");
     });
+
+    function validateForm() {
+        var clear_way_no = $("#clear_way_no").combobox("getValue");
+        if ($.grep($("#clear_way_no").combobox("getData"), function (n, i) { return n.no == clear_way_no; }).length == 0) {
+            tip("支付方式不合法，请从列表中选择");
+            return null;
+        }
+
+        if (!$('#order_form').form('validate')) {
+            tip("必填项不能为空");
+            return null;
+        }
+
+        var head = getFormJson($("#order_form"));
+        //将combobox和combogrid的text设置到_name属性中并和head合并
+        Object.assign(head, getFormComboboxText($('#order_form')));
+
+        console.log(head);
+
+        //继续验证
+        if (head.is_free == "收费") {
+            if (head.deal_price == "") {
+                tip("收费样品必须填写[成交价]");
+                return null;
+            }
+            if (head.contract_price == "") {
+                tip("收费样品必须填写[合同价]");
+                return null;
+            }
+            if (head.quote_num == "") {
+                tip("收费样品必须填写[报价编号]");
+                return null;
+            }
+            if (head.is_special_sample == "") {
+                tip("收费样品必须填写[是否为特殊样品单]");
+                return null;
+            }
+            head.total_sum = (head.sample_qty * head.contract_price).toFixed(4);
+        } else {
+            head.total_sum = (head.sample_qty * head.cost).toFixed(4);
+            head.deal_price = 0;
+            head.contract_price = 0;
+        }
+        if (head.product_model == "") {
+            tip("规格型号不能为空");
+            return null;
+        }
+        if (head.clerk_no == "") {
+            tip("业务员不存在，保存失败");
+            return null;
+        }
+        if (head.charger_no == "") {
+            tip("主管不存在，保存失败");
+            return null;
+        }
+
+        if (head.currency_no == "RMB") {
+            if (head.fetch_add_name.indexOf("中国汕尾") < 0) {
+                tip("保存失败：币别为人民币时，交货地点必须选择中国汕尾（GN）！");
+                return null;
+            }
+            if (head.is_free == "收费" && head.sale_type_no != "FXF03") {
+                tip("币别为RMB的收费样品，[销售方式]必须是分期收款销售，保存失败");
+                return null;
+            }
+            if (head.is_free == "免费" && head.sale_type_no != "FXF01") {
+                tip("币别为RMB的免费样品，[销售方式]必须是现销，保存失败");
+                return null;
+            }
+            if (head.trade_type_no != "03") {
+                tip("币别为RMB的[贸易类型]必须是国内贸易");
+                return null;
+            }
+            if (head.customer_no.indexOf("01.") != 0 && head.customer_no.indexOf("04.") != 0) {
+                tip("币别为RMB的[购货单位]必须是01开头的");
+                return null;
+            }
+            if (head.sea_customer_no.indexOf("01.") != 0 && head.sea_customer_no.indexOf("04.") != 0) {
+                tip("币别为RMB的[海外客户]必须是01开头的");
+                return null;
+            }
+        }
+        else {
+            if (head.fetch_add_name.indexOf("香港货仓") < 0) {
+                tip("保存失败：币别为非人民币时，交货地点必须选择香港货仓（HK）！");
+                return null;
+            }
+            if (head.sale_type_no != "FXF02") {
+                tip("币别为非RMB的[销售方式]必须是赊销，保存失败");
+                return null;
+            }
+            if (head.trade_type_no != "02") {
+                tip("币别为非RMB的[贸易类型]必须是一般贸易");
+                return null;
+            }
+            if (head.customer_no != "04.204") {
+                tip("币别为非RMB的[购货单位]必须是香港信利光电有限公司");
+                return null;
+            }
+            if (head.sea_customer_no.indexOf("05.") != 0) {
+                tip("币别为非RMB的[海外客户]必须是05开头的");
+                return null;
+            }
+        }
+        //如果规格型号的text和value不一致，则提示
+        if ($("#product_model").combogrid('getText') != $("#product_model").combogrid('getValue')) {
+            tip("规格型号请搜索回车后从列表中选择");
+            return null;
+        }
+
+        //国内贸易的必须填写合同编号，且格式是CM年月流水号，比如CM201801001
+        if ($("#trade_type_no").combobox("getValue") == "03") {
+            var pat = /CM\d{9}/;
+            if (!pat.test($("#contract_po_no").val())) {
+                tip("保存失败：国内贸易的【合同编号P/O】字段必须符合以下格式：CM+年+月+流水号，例如CM201802001");
+                return null;
+            }
+        }
+
+        if (head.how_many_time == "") {
+            delete head.how_many_time;
+        }
+
+        return head;
+
+    }
+
 </script>
-@if (step == 0)
-{ 
+@if (step == 0) {
     <script type="text/javascript">
-    $(function () { 
+    $(function () {
 
         //保存订单
         $('#saveAllBut').bind('click', function () {
+                        
+            var head = validateForm();
+            if (!head) { return;}
 
-            ///2018-3-20加入的一些规则
-            var deliveryPlace = $("#fetch_add_no").combobox("getText");
-            if ($("#currency_no").combobox("getText") == "人民币") {
-                if (deliveryPlace.indexOf("中国汕尾") < 0) {
-                    alert("保存失败：币别为人民币时，交货地点必须选择中国汕尾（GN）！");
-                    return;
+            $.messager.progress();
+            $('#saveAllBut').linkbutton('disable');
+            $('#submitApply').linkbutton('disable');
+            $.post("@Url.Content("~/Saler/SalerSaveSampleBill")", { head: JSON.stringify(head) }, function (data) {
+                $.messager.progress("close");
+                $('#saveAllBut').linkbutton('enable');
+                $('#submitApply').linkbutton('enable');
+                if (data.suc) {
+                    tip("@Html.Lang("suc_save")");
+                } else {
+                    tip("@Html.Lang("failure_save"):" + data.msg);
                 }
-            } else {
-                if (deliveryPlace.indexOf("香港货仓") < 0) {
-                    alert("保存失败：币别为非人民币时，交货地点必须选择香港货仓（HK）！");
-                    return;
-                }
-            }
-
-            $.messager.progress(); 
-            $('#order_form').form('submit',{
-                url: '@Url.Content("~/Saler/SalerSaveSampleBill")',
-                onSubmit:function(param){
-                    if(!$('#order_form').form('validate')){
-                        return false;
-                    }
-                    //如果规格型号的text和value不一致，则提示
-                    if($("#product_model").combogrid('getText') != $("#product_model").combogrid('getValue')){
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "规格型号请搜索回车后从列表中选择"
-                        });
-                        return false;
-                    }
-
-                    //国内贸易的必须填写合同编号，且格式是CM年月流水号，比如CM201801001
-                    if ($("#trade_type_no").combobox("getValue") == "03") {
-                        var pat = /CM\d{9}/;
-                        if (!pat.test($("#contract_po_no").val())) {
-                            $.messager.show({
-                                title: '@Html.Lang("tip")',
-                                msg: "保存失败：国内贸易的【合同编号P/O】字段必须符合以下格式：CM+年+月+流水号，例如CM201802001"
-                            });
-                            return false;
-                        }
-                    }
-
-                    //保存客户名称
-                    param.zz_customer_name=$('#zz_customer_no').combobox('getText');
-                    param.plan_firm_name=$('#plan_firm_no').combobox('getText');
-                    param.sea_customer_name=$('#sea_customer_no').combobox('getText');
-                    return true;
-                },
-                success: function (data) { 
-                    var result = eval('('+ data +')');
-                    if(result.suc){ 
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "@Html.Lang("suc_save")"
-                        });
-                    }else{
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "@Html.Lang("failure_save"):"+result.msg
-                        });
-                    }                        
-                }
-            });
-            $.messager.progress("close");             
+            });                
+            
         });
-        
-       //提交申请按钮
-        $("#submitApply").click(function(){
+
+        //提交申请按钮
+        $("#submitApply").click(function () {
             //首先检测订单是否已保存
             $("#submitApply").linkbutton('disable');
             $('#saveAllBut').linkbutton('disable');
-            $.post("@Url.Content("~/Saler/CheckIsBillExist")",{sysNum:$("#sys_no").val()},
-            function(data){
-                if(data.success){  
+            $.post("@Url.Content("~/Saler/CheckIsBillExist")", { sysNum: $("#sys_no").val() },
+            function (data) {
+                if (data.success) {
                     //判断合同编号是否已存在
                     $.post("@Url.Content("~/Saler/IsContractNoExists")",
                         { contractNo: $("#contract_po_no").val(), sysNum: $("#sys_no").val(), billType: "SB" }, function (data) {
@@ -347,605 +483,586 @@
                                 });
                             }
                         });
-                }else{
+                } else {
                     $("#submitApply").linkbutton('enable');
                     $('#saveAllBut').linkbutton('enable');
                     $.messager.show({
                         title: '@Html.Lang("tip")',
                         msg: data.msg
-                     });
+                    });
                 }
-            },"json");
+            }, "json");
         });
     });
 
-        function beginApply() {
-            $.messager.show({
-                title: '@Html.Lang("tip")',
-                msg: "正在提交，请等待跳转。。。"
-            });
-            setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplySB?sys_no=")"+$("#sys_no").val();', 2000);
-        }
-    </script>
+    function beginApply() {
+        $.messager.show({
+            title: '@Html.Lang("tip")',
+            msg: "正在提交，请等待跳转。。。"
+        });
+        setTimeout('window.location.href="@Url.Content("~/Saler/BeginApplySB?sys_no=")"+$("#sys_no").val();', 2000);
+    }
+</script>
 }
-@if (step > 0)
-{ 
+@if (step > 0) {
     <script type="text/javascript">
-        function okClick(){        
-            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
-	            if (r){                    
-	                //判断合同编号是否已存在
-                    $.post("@Url.Content("~/Saler/IsContractNoExists")",
-                        { contractNo: $("#contract_po_no").val(), sysNum: $("#sys_no").val(), billType: "SB" }, function (data) {
-                            if (data.suc) {
-                                saveForm();
-                                $.messager.progress();
-                            } else {
-                                $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
-                                    if (r) {
-                                        saveForm();
-                                        $.messager.progress();
-                                    }
-                                });
-                            }
-                        });
-	            }
-            });
-        }
-    function noClick(){
-        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
-	        if (r){
-                $('#okFlag').val('false');
-                beginAudit();
+    function okClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
+            if (r) {
+                //判断合同编号是否已存在
+                $.post("@Url.Content("~/Saler/IsContractNoExists")",
+                    { contractNo: $("#contract_po_no").val(), sysNum: $("#sys_no").val(), billType: "SB" }, function (data) {
+                        if (data.suc) {
+                            saveForm();
+                            $.messager.progress();
+                        } else {
+                            $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                                if (r) {
+                                    saveForm();
+                                    $.messager.progress();
+                                }
+                            });
+                        }
+                    });
             }
         });
     }
-   
-        function saveForm() {
-            $('#order_form').form('submit',{
-                url: '@Url.Content("~/Audit/AuditorSaveSampleBill")',
-                onSubmit: function(param){ 
-                    //如果规格型号的text和value不一致，则提示
-                    if($("#product_model").combogrid('getText') != $("#product_model").combogrid('getValue')){
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "规格型号请搜索回车后从列表中选择"
-                        });
-                        return false;
-                    }
-                    param.step="@step";                            
-                    param.zz_customer_name=$('#zz_customer_no').combobox('getText');
-                    param.plan_firm_name=$('#plan_firm_no').combobox('getText');
-                    param.sea_customer_name=$('#sea_customer_no').combobox('getText');
-                },
-                success: function (data) {
-                    var result = eval('('+ data +')');
-                    if(result.suc){
-                        $('#okFlag').val('true');
-                        beginAudit();
-                    }else{
-                        $.messager.progress("close");
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: "@Html.Lang("failure_save"):"+result.msg
-                        });
-                }                        
-            }
-            }); 
+    function noClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function (r) {
+                if (r) {
+                    $('#okFlag').val('false');
+                    beginAudit();
+                }
+            });
         }
 
-   function beginAudit(){        
-        $("#audit_fm").form("submit",{
-            url:"@Url.Content("~/Audit/HandleAgencyAudit")",
-            success:function(data){
+        function saveForm() {
+            var head = validateForm();
+            if (!head) {
+                $.messager.progress("close");
+                return;
+            }
+
+            $.post("@Url.Content("~/Saler/SalerSaveSampleBill")", { head: JSON.stringify(head) }, function (data) {
+                if (data.suc) {
+                    $('#okFlag').val('true');
+                    beginAudit();
+                } else {
+                    $.messager.progress("close");
+                    tip("@Html.Lang("failure_save"):" + data.msg);
+                }
+            });
+    
+        }
+
+    function beginAudit() {
+        $("#audit_fm").form("submit", {
+            url: "@Url.Content("~/Audit/HandleAgencyAudit")",
+            success: function (data) {
                 $.messager.progress('close');
-                var result=eval("("+data+")"); 
+                var result = eval("(" + data + ")");
                 $.messager.show({
                     title: '@Html.Lang("tip")',
                     msg: result.msg + ",正在跳转..."
                 });
-                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 1500);
                 //getAuditResult();
             }
         });
     }
 
-    function block(){
-        var reason=$("#agency_comment").val();
-        if($.trim(reason)==""){
+    function block() {
+        var reason = $("#agency_comment").val();
+        if ($.trim(reason) == "") {
             $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "挂起操作必须写明原因，提交失败"
-                });   
-        }else{
-             $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
-	         if (r){
-                 $.messager.progress();
-                 $("#audit_fm").form("submit",{
-                    url:"@Url.Content("~/Audit/BlockOrder")",
-                    success:function(data){
-                        $.messager.progress('close');
-                        var result=eval("("+data+")"); 
-                         if(result.success){
-                            $.messager.show({
-                                title: '@Html.Lang("tip")',
-                                msg: result.msg + ",正在跳转..."
-                            });
-                            setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-                        }else{
-                            $.messager.show({
-                                title: '@Html.Lang("tip")',
-                                msg: result.msg
-                            });
-                            setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",3000);
+                title: '@Html.Lang("tip")',
+                msg: "挂起操作必须写明原因，提交失败"
+            });
+        } else {
+            $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function (r) {
+                if (r) {
+                    $.messager.progress();
+                    $("#audit_fm").form("submit", {
+                        url: "@Url.Content("~/Audit/BlockOrder")",
+                        success: function (data) {
+                            $.messager.progress('close');
+                            var result = eval("(" + data + ")");
+                            if (result.success) {
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: result.msg + ",正在跳转..."
+                                });
+                                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 1500);
+                            } else {
+                                $.messager.show({
+                                    title: '@Html.Lang("tip")',
+                                    msg: result.msg
+                                });
+                                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 3000);
+                            }
                         }
-                    }
-                });
-            }
-            });  
+                    });
+                }
+            });
         }
     }
     </script>
 }
 
 
-<div class="easyui-layout" data-options="fit:true" id="agency_div">
-@if (step > 0)
-{
-@*挂起信息*@
-@Html.Partial("_BlockInfoPartial")
-<div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;
-        padding: 8px 10px;">
-        <form id="audit_fm" method="post" action="">
-            @Html.Lang("audit_opinion"):
-            <input type="hidden" name="step" value="@ViewData["step"]" />
-            <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
-            <input type="hidden" name="okFlag" id="okFlag" value="" />
-            <input id="agency_comment" name="agency_comment" style="width: 500px" />&nbsp; 
-            <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a>
-            <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
-            <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
-        </form>
-    </div>
-}
-<div data-options="region:'center'">
-<form id="order_form" method="post">
-<div id="order_div" class="easyui-panel" title="@Html.Lang("create_sample_bill")" style="width: 840px; padding: 10px;
-    background: #fafafa;+position: relative;">
-    <div>
-        @*表头*@
-        <table border="0" cellpadding="0" cellspacing="3" width="800">            
-            <tr>
-                <td>
-                    下单日期:
-                </td>
-                <td>
-                    <input class="easyui-datebox" id="bill_date" name="bill_date" style="width: 120px" required="true"  editable="false" value="@(((DateTime)sb.bill_date).ToString("yyyy-MM-dd"))"/>
-                </td>
-                <td>
-                    是否收费:
-                </td>
-                <td>
-                    <input class="easyui-combobox" style="width: 120px" name="is_free" id="is_free" data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+<div class="easyui-layout" data-options="fit:true" id="agency_div"  style="visibility:hidden">
+    @if (step > 0) {
+        @*挂起信息*@
+        @Html.Partial("_BlockInfoPartial")
+        <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa; padding: 8px 10px;">
+            <form id="audit_fm" method="post" action="">
+                @Html.Lang("audit_opinion"):
+                <input type="hidden" name="step" value="@sb.step_version" />
+                <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
+                <input type="hidden" name="okFlag" id="okFlag" value="" />
+                <input class="easyui-textbox" id="agency_comment" name="agency_comment" style="width: 500px" />&nbsp;
+                <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a>
+                <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
+            </form>
+        </div>
+    }
+    <div data-options="region:'center'">
+        <form id="order_form" method="post">
+            <input type="hidden" name="step_version" id="step_version" value="@sb.step_version" />
+            <div id="order_div" class="easyui-panel" title="@Html.Lang("create_sample_bill")" style="width: 940px; padding: 10px; background: #fafafa;">
+                <div>
+                    @*表头*@
+                    <table border="0" cellpadding="0" cellspacing="3" width="900">
+                        <tr>
+                            <td>
+                                公司：
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" name="account" id="account" readonly="readonly" value="@sb.account" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                下单日期:
+                            </td>
+                            <td>
+                                <input class="easyui-datebox" id="bill_date" name="bill_date" required="true" editable="false" value="@(((DateTime)sb.bill_date).ToString("yyyy-MM-dd"))" />
+                            </td>
+                            <td>
+                                是否收费:
+                            </td>
+                            <td>
+                                <input class="easyui-combobox" name="is_free" id="is_free" data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
                                            {value:'收费'},{value:'免费'}
                                            ]" />
-                </td>
-                <td>
-                    对应项目组:
-                </td>
-                <td>
-                    <input id="project_team" name="project_team" style="width: 120px" />
-                </td>
-                <td>
-                    系统流水号:
-                </td>
-                <td>
-                    <input type="text" name="sys_no" id="sys_no" style="width:115px" readonly="readonly" value="@sb.sys_no"/>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    结算方式:
-                </td>
-                <td>
-                    <input class="easyui-combobox" id="clear_way" name="clear_way" url="@Url.Content("~/Items/getItems?what=clearing_way")"
-                        valuefield="name" textfield="name" style="width: 120px" panelWidth="240" required="true" value="@sb.clear_way" />
-                </td>
-                <td>
-                    贸易类型:
-                </td>
-                <td>
-                    <input class="easyui-combobox" id="trade_type_no" name="trade_type_no" style="width: 120px"  editable="false"
-                    panelHeight="auto" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=trade_type")" required="true" value="@sb.trade_type_no" />
-                </td>
-                <td>
-                    交货地点:
-                </td>
-                <td>
-                    <input class="easyui-combobox" id="fetch_add_no" name="fetch_add_no" url="@Url.Content("~/Items/getItems?what=delivery_place")" editable="false"
-                        valuefield="no" textfield="name" panelheight="auto" panelwidth="200" style="width: 120px"  required="true" value="@sb.fetch_add_no" />
-                </td>
-                <td>
-                    销售方式:
-                </td>
-                <td>
-                    <input class="easyui-combobox" id="sale_type_no" name="sale_type_no" url="@Url.Content("~/Items/getItems?what=sale_type")" panelheight="auto"  editable="false"
-                    valuefield="no" textfield="name" style="width: 120px" required="true" value="@sb.sale_type_no" />
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    办事处:
-                </td>
-                <td>
-                    <input class="easyui-combobox" id="agency_no" name="agency_no" style="width: 120px" 
-                    panelwidth="140" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" value="@sb.agency_no"/>
-                </td>
-                <td>
-                    业务员:
-                </td>
-                <td>
-                    <input id="clerk_no" class="remotebox" name="clerk_no" style="width: 120px" value="@sb.clerk_no" />
-                </td>
-                <td>
-                    币别:
-                </td>
-                <td>
-                    <input id="currency_no" class="easyui-combobox" name="currency_no" panelHeight="auto" url="@Url.Content("~/Items/getItems?what=currency")" editable="false"
-                        valuefield="no" textfield="name" style="width: 120px"  required="true" value="@sb.currency_no" />
-                </td>
-                <td>
-                    汇率:
-                </td>
-                <td>
-                    <input class="easyui-numberbox" name="exchange_rate" id="exchange_rate" style="width: 115px" precision="4" value="@sb.exchange_rate" />
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    产品类别:
-                </td>
-                <td>
-                    @*<input class="easyui-combobox" id="product_type" name="product_type" style="width: 120px"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
-                                           data:[
-                                           {value:'TP'},{value:'TDD'},{value:'FPI'},{value:'CCM'},{value:'后盖板'},{value:'测试架'},{value:'FIC'}
-                                           ]" value="@sb.product_type" />*@
-
-                    <input class="easyui-combobox" id="product_type" name="product_type" style="width: 120px"
-                               data-options="textField:'name',valueField:'name', required:true,editable:false,"
-                               url="@Url.Content("~/Items/getItems?what=product_type")" value="@sb.product_type"
-                                />
-                </td>
-                <td>
-                    产品型号:
-                </td>
-                <td colspan="3">
-                    <input id="product_model" name="product_model" style="width: 300px" value="@sb.product_model" />
-                    <input type="hidden" name="product_number" id="product_number" value="@sb.product_number" />
-                    <input type="hidden" name="product_name" id="product_name" value="@sb.product_name"/>
-                    <input type="hidden" name="product_unit" id="product_unit" value="@sb.product_unit" />
-                </td>
-                <td>
-                    要求完成日期:
-                </td>
-                <td>
-                    <input class="easyui-datebox" name="demand_finish_date" id="demand_finish_date" style="width: 115px"  editable="false"
-                        required="true" value="@(sb.demand_finish_date == null ? "" : ((DateTime)sb.demand_finish_date).ToString("yyyy-MM-dd"))"/>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    购货单位:
-                </td>
-                <td>
-                    <input id="customer_no" class="customerbox" name="customer_no" style="width: 120px"
-                        panelwidth="240px" value="@sb.customer_no" />
-                </td>
-                <td>
-                    方案公司:
-                </td>
-                <td>
-                    <input id="plan_firm_no" class="customerbox" name="plan_firm_no" style="width: 120px"
-                        panelwidth="240px" value="@sb.plan_firm_no" />
-                </td>
-                <td>
-                    海外客户:
-                </td>
-                <td>
-                    <input id="sea_customer_no" class="customerbox" name="sea_customer_no" style="width: 120px"
-                        panelwidth="240px" value="@sb.sea_customer_no" />
-                </td>
-                <td>
-                    终端客户:
-                </td>
-                <td>
-                    <input id="zz_customer_no" class="customerbox" name="zz_customer_no" style="width: 120px"
-                        panelwidth="240px" value="@sb.zz_customer_no" />
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    是否共用现有产品:
-                    <input class="easyui-combobox" style="width: 80px" name="use_existed_product" id="use_existed_product"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                            </td>
+                            <td>
+                                对应项目组:
+                            </td>
+                            <td>
+                                <input id="project_team" name="project_team" />
+                            </td>
+                            <td>
+                                系统流水号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" name="sys_no" id="sys_no" readonly="readonly" value="@sb.sys_no" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                结算方式:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="clear_way_no" name="clear_way_no" data-what="clearing_way" data-panelwidth="240" data-editable="true" value="@sb.clear_way_no" />
+                                @*<input class="easyui-combobox" id="clear_way" name="clear_way" url="@Url.Content("~/Items/getItems?what=clearing_way")"
+                                    valuefield="name" textfield="name" panelWidth="240" required="true" value="@sb.clear_way" />*@
+                            </td>
+                            <td>
+                                贸易类型:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="trade_type_no" name="trade_type_no" data-what="trade_type" data-panelHeight="auto" value="@sb.trade_type_no" />
+                                @*<input class="easyui-combobox" id="trade_type_no" name="trade_type_no" editable="false"
+                                       panelheight="auto" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=trade_type")" required="true" value="@sb.trade_type_no" />*@
+                            </td>
+                            <td>
+                                交货地点:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="fetch_add_no" name="fetch_add_no" data-what="delivery_place" data-panelHeight="auto" value="@sb.fetch_add_no" />
+                                @*<input class="easyui-combobox" id="fetch_add_no" name="fetch_add_no" url="@Url.Content("~/Items/getItems?what=delivery_place")" editable="false"
+                                       valuefield="no" textfield="name" panelheight="auto" panelwidth="200" required="true" value="@sb.fetch_add_no" />*@
+                            </td>
+                            <td>
+                                销售方式:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="sale_type_no" name="sale_type_no" data-what="sale_type" data-panelHeight="auto" value="@sb.sale_type_no" />
+                                @*<input class="easyui-combobox" id="sale_type_no" name="sale_type_no" url="@Url.Content("~/Items/getItems?what=sale_type")" panelheight="auto" editable="false"
+                                       valuefield="no" textfield="name" required="true" value="@sb.sale_type_no" />*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                办事处:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="agency_no" name="agency_no" data-what="agency" data-panelWidth="160" value="@sb.agency_no" />
+                                @*<input class="easyui-combobox" id="agency_no" name="agency_no"
+                                       panelwidth="140" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" value="@sb.agency_no" />*@
+                            </td>
+                            <td>
+                                业务员:
+                            </td>
+                            <td>
+                                <input id="clerk_no" class="remotebox" name="clerk_no" value="@sb.clerk_no" />
+                            </td>
+                            <td>
+                                币别:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="currency_no" name="currency_no" data-what="currency" data-panelHeight="auto" value="@sb.currency_no" />
+                                @*<input id="currency_no" class="easyui-combobox" name="currency_no" panelheight="auto" url="@Url.Content("~/Items/getItems?what=currency")" editable="false"
+                                       valuefield="no" textfield="name" required="true" value="@sb.currency_no" />*@
+                            </td>
+                            <td>
+                                汇率:
+                            </td>
+                            <td>
+                                <input class="easyui-numberbox" name="exchange_rate" id="exchange_rate" precision="4" value="@sb.exchange_rate" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                产品类别:
+                            </td>
+                            <td>
+                                <input class="k3_item" id="product_type" name="product_type" data-what="product_type" data-valueField="name" value="@sb.product_type" />
+                                @*<input class="easyui-combobox" id="product_type" name="product_type"
+                                       data-options="textField:'name',valueField:'name', required:true,editable:false,"
+                                       url="@Url.Content("~/Items/getItems?what=product_type")" value="@sb.product_type" />*@
+                            </td>
+                            <td>
+                                产品型号:
+                            </td>
+                            <td colspan="3">
+                                <input id="product_model" name="product_model" style="width: 360px" value="@sb.product_model" />
+                                <input type="hidden" name="product_number" id="product_number" value="@sb.product_number" />
+                                <input type="hidden" name="product_name" id="product_name" value="@sb.product_name" />
+                                <input type="hidden" name="product_unit" id="product_unit" value="@sb.product_unit" />
+                            </td>
+                            <td>
+                                要求完成日期:
+                            </td>
+                            <td>
+                                <input class="easyui-datebox" name="demand_finish_date" id="demand_finish_date" editable="false"
+                                       required="true" value="@(sb.demand_finish_date == null ? "" : ((DateTime)sb.demand_finish_date).ToString("yyyy-MM-dd"))" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                购货单位:
+                            </td>
+                            <td>
+                                <input id="customer_no" class="customerbox" name="customer_no" panelwidth="240px" value="@sb.customer_no" />
+                            </td>
+                            <td>
+                                方案公司:
+                            </td>
+                            <td>
+                                <input id="plan_firm_no" class="customerbox" name="plan_firm_no" panelwidth="240px" value="@sb.plan_firm_no" />
+                            </td>
+                            <td>
+                                海外客户:
+                            </td>
+                            <td>
+                                <input id="sea_customer_no" class="customerbox" name="sea_customer_no" panelwidth="240px" value="@sb.sea_customer_no" />
+                            </td>
+                            <td>
+                                终端客户:
+                            </td>
+                            <td>
+                                <input id="zz_customer_no" class="customerbox" name="zz_customer_no" panelwidth="240px" value="@sb.zz_customer_no" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                是否共用现有产品:
+                                <input class="easyui-combobox" style="width: 96px" name="use_existed_product" id="use_existed_product"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
                                            {value:'是'},{value:'否'}
                                            ]" value="@sb.use_existed_product" />
-                </td>
-                <td>
-                    原开模客户:
-                </td>
-                <td>
-                    <input class="easyui-validatebox" name="original_model_customer" id="original_model_customer"
-                        style="width: 115px" value="@sb.original_model_customer" />
-                </td>
-                <td>
-                    图纸编号:
-                </td>
-                <td>
-                    <input id="pic_number" class="easyui-validatebox" name="pic_number" style="width: 115px"  required="true" value="@sb.pic_number" />
-                </td>
-                <td>
-                    图纸版本:
-                </td>
-                <td>
-                    <input id="pic_version" class="easyui-validatebox" name="pic_version" style="width: 115px" required="true" value="@sb.pic_version" />
-                </td>
-            </tr>
-            <tr>
-                @*<td>
-                    报价员:
-                </td>
-                <td>
-                    <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id" style="width: 120px"  editable="false"
-                    valuefield="value" textfield="text" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" value="@sb.quotation_clerk_id" />
-                </td>*@
-                <td>
-                    报价编号:
-                </td>
-                <td>
-                    <input class="easyui-validatebox" name="quote_num" id="quote_num" style="width: 115px" value="@sb.quote_num" />
-                </td>
-                <td>
-                    样品数量:
-                </td>
-                <td>
-                    <input id="sample_qty" class="easyui-numberbox" name="sample_qty" style="width: 115px"
-                        required="true" value="@sb.sample_qty" />
-                </td>
-                <td>
-                    样品用途:
-                </td>
-                <td>
-                    <input class="easyui-combobox" style="width: 120px" name="sample_use" id="sample_use"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto',multiple:true,required:true,editable:false,
+                            </td>
+                            <td>
+                                原开模客户:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" name="original_model_customer" id="original_model_customer" value="@sb.original_model_customer" />
+                            </td>
+                            <td>
+                                图纸编号:
+                            </td>
+                            <td>
+                                <input id="pic_number" class="easyui-textbox" name="pic_number" required="true" value="@sb.pic_number" />
+                            </td>
+                            <td>
+                                图纸版本:
+                            </td>
+                            <td>
+                                <input id="pic_version" class="easyui-textbox" name="pic_version" required="true" value="@sb.pic_version" />
+                            </td>
+                        </tr>
+                        <tr>
+                            @*<td>
+                                    报价员:
+                                </td>
+                                <td>
+                                    <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id" style="width: 120px"  editable="false"
+                                    valuefield="value" textfield="text" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" value="@sb.quotation_clerk_id" />
+                                </td>*@
+                            <td>
+                                报价编号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" name="quote_num" id="quote_num" value="@sb.quote_num" />
+                            </td>
+                            <td>
+                                样品数量:
+                            </td>
+                            <td>
+                                <input id="sample_qty" class="easyui-numberbox" name="sample_qty" required="true" value="@sb.sample_qty" />
+                            </td>
+                            <td>
+                                样品用途:
+                            </td>
+                            <td>
+                                <input class="easyui-combobox" name="sample_use" id="sample_use"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto',multiple:true,required:true,editable:false,
                                         data:[
                                         {value:'可靠性测试'},{value:'功能测试'},{value:'结构测试'}
-                                        ]" value="@sb.sample_use" />
-                </td>
-                <td>
-                    合同编号P/O:
-                </td>
-                <td>
-                    <input id="contract_po_no" class="easyui-validatebox" name="contract_po_no" style="width: 115px" value="@sb.contract_po_no" />
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    成本:
-                </td>
-                <td>
-                    <input id="cost" class="easyui-numberbox" name="cost" style="width: 115px" precision="2" required="true" value="@sb.cost" />
-                </td>
-                <td class="freeHiddenPrice">
-                    成交价:
-                </td>
-                <td class="freeHiddenPrice">
-                    <input id="deal_price" class="easyui-numberbox" name="deal_price" style="width: 115px" precision="5" value="@sb.deal_price" />
-                </td>
-                <td class="freeHiddenPrice">
-                    合同价:
-                </td>
-                <td class="freeHiddenPrice">
-                    <input id="contract_price" class="easyui-numberbox" name="contract_price" style="width: 115px" precision="5" value="@sb.contract_price" />
-                </td>
-                <td>
-                    制单人:
-                </td>
-                <td>
-                    <input class="easyui-textbox" id="create_user" name="create_user"  value="@ViewData["username"]" readonly="readonly" style="width: 115px" />
-                </td> 
-            </tr>
-            <tr>
-                <td>主管:</td>
-                <td>   
-                    <input id="charger_no" class="remotebox" name="charger_no" style="width: 120px" value="@sb.charger_no" />
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    是否为特殊样品单:
-                    <input class="easyui-combobox" style="width: 80px" name="is_special_sample" id="is_special_sample"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                        ]" />
+                            </td>
+                            <td>
+                                合同编号P/O:
+                            </td>
+                            <td>
+                                <input id="contract_po_no" class="easyui-textbox" name="contract_po_no" value="@sb.contract_po_no" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                成本:
+                            </td>
+                            <td>
+                                <input id="cost" class="easyui-numberbox" name="cost" precision="2" required="true" value="@sb.cost" />
+                            </td>
+                            <td class="freeHiddenPrice">
+                                成交价:
+                            </td>
+                            <td class="freeHiddenPrice">
+                                <input id="deal_price" class="easyui-numberbox" name="deal_price" precision="5" value="@sb.deal_price" />
+                            </td>
+                            <td class="freeHiddenPrice">
+                                合同价:
+                            </td>
+                            <td class="freeHiddenPrice">
+                                <input id="contract_price" class="easyui-numberbox" name="contract_price" precision="5" value="@sb.contract_price" />
+                            </td>
+                            <td>
+                                制单人:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" id="create_user" name="create_user" value="@sb.User.real_name" readonly="readonly" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>主管:</td>
+                            <td>
+                                <input id="charger_no" class="remotebox" name="charger_no" value="@sb.charger_no" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                是否为特殊样品单:
+                                <input class="easyui-combobox" style="width: 80px" name="is_special_sample" id="is_special_sample"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
                                            data:[
                                            {value:'是'},{value:'否'}
                                            ]" value="@sb.is_special_sample" />
-                    免费样品特别需求编号:
-                    <input class="easyui-validatebox" name="oa_special_request_no" id="oa_special_request_no" style="width: 150px" value="@sb.oa_special_request_no" />
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    是否超出规定数量:
-                    <input class="easyui-combobox" style="width: 80px" name="is_overtop_qty" id="is_overtop_qty"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                免费样品特别需求编号:
+                                <input class="easyui-textbox" name="oa_special_request_no" id="oa_special_request_no" style="width: 150px" value="@sb.oa_special_request_no" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                是否超出规定数量:
+                                <input class="easyui-combobox" style="width: 80px" name="is_overtop_qty" id="is_overtop_qty"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
                                            data:[
                                            {value:'是'},{value:'否'}
                                            ]" value="@sb.is_overtop_qty" />
-                    超出规定数量原因:
-                    <input id="overtop_qty_reason" class="easyui-validatebox" name="overtop_qty_reason"
-                        style="width: 312px" value="@sb.overtop_qty_reason" />
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    TFT尺寸:<input class="easyui-validatebox" name="TFT_size" style="width: 100px" value="@sb.TFT_size" />
-                    TFT供应商:<input class="easyui-validatebox" name="TFT_supplier" style="width: 160px" value="@sb.TFT_supplier" />
-                    IC型号:<input class="easyui-validatebox" name="TFT_IC_model" style="width: 180px" value="@sb.TFT_IC_model" />
-                    (只针对TFT项目)
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    显示屏:<input class="easyui-combobox" style="width: 140px" name="display_panel" value="@sb.display_panel"                     
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                超出规定数量原因:
+                                <input id="overtop_qty_reason" class="easyui-textbox" name="overtop_qty_reason" style="width: 320px" value="@sb.overtop_qty_reason" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                TFT尺寸:<input class="easyui-textbox" name="TFT_size" style="width: 100px" value="@sb.TFT_size" />
+                                TFT供应商:<input class="easyui-textbox" name="TFT_supplier" style="width: 160px" value="@sb.TFT_supplier" />
+                                IC型号:<input class="easyui-textbox" name="TFT_IC_model" style="width: 180px" value="@sb.TFT_IC_model" />
+                                (只针对TFT项目)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                显示屏:<input class="easyui-combobox" style="width: 140px" name="display_panel" value="@sb.display_panel"
+                                           data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
                                            data:[
                                            {value:'触摸屏T/P捆绑形式'},{value:'捆绑信利显示屏'},{value:'单卖'}
-                                           ]"
-                    />
-                    (单卖是指客户对应此触摸屏的产品的显示屏不是信利产品)
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    第
-                    <input id="how_many_time" class="easyui-numberbox" name="how_many_time" style="width: 50px" value="@sb.how_many_time" />
-                    次下此客户/此型号的样品单 重复下样品单的原因:
-                    <input id="repeat_sample_reason" class="easyui-validatebox" name="repeat_sample_reason"
-                        style="width: 300px" value="@sb.repeat_sample_reason" />
-                    <br />
-                    <span style="font-size: small; color: Red">(填“2”要写原因；同时，相同客户/没有改动的相同样品下单不可超过2次)</span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    是否用于新客户机型:
-                    <input class="easyui-combobox" style="width: 120px" name="for_new_project" id="for_new_project"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                           ]" />
+                                (单卖是指客户对应此触摸屏的产品的显示屏不是信利产品)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                第
+                                <input id="how_many_time" class="easyui-numberbox" name="how_many_time" style="width: 50px" value="@sb.how_many_time" />
+                                次下此客户/此型号的样品单 重复下样品单的原因:
+                                <input id="repeat_sample_reason" class="easyui-textbox" name="repeat_sample_reason"
+                                       style="width: 300px" value="@sb.repeat_sample_reason" />
+                                <br />
+                                <span style="font-size: small; color: Red">(填“2”要写原因；同时，相同客户/没有改动的相同样品下单不可超过2次)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                是否用于新客户机型:
+                                <input class="easyui-combobox" style="width: 120px" name="for_new_project" id="for_new_project"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
                                            data:[
                                            {value:'是'},{value:'否'}
                                            ]" value="@sb.for_new_project" />
-                    (此项选择“是”、“共用现有产品”项选择“是”或是标准品时，请继续填写以下)
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    <table>
-                        <tr>
-                            <td>
-                                1. 新客户机型名称:
-                            </td>
-                            <td>
-                                <input id="new_project_name" class="easyui-validatebox" name="new_project_name" style="width: 115px" value="@sb.new_project_name" />
-                            </td>
-                            <td>
-                                2. 新客户机型预计订单量:
-                            </td>
-                            <td>
-                                <input id="new_project_order_qty" class="easyui-validatebox" name="new_project_order_qty" style="width: 100px" value="@sb.new_project_order_qty" />
-                            </td>
-                            <td>
-                                3. 新客户机型的订单计划:
-                            </td>
-                            <td>
-                                <input id="new_project_order_plan" class="easyui-validatebox" name="new_project_order_plan" style="width: 130px" value="@sb.new_project_order_plan" />
+                                (此项选择“是”、“共用现有产品”项选择“是”或是标准品时，请继续填写以下)
                             </td>
                         </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    产品行业分类:
-                    <input name="product_classification" id="product_classification" style="width: 160px" value="@sb.product_classification" />
-                    具体产品用途:
-                    <input id="product_use" class="easyui-validatebox" name="product_use" style="width: 340px" required="true" value="@sb.product_use" />
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8">
-                    是否项目组推荐方案:
-                    <input class="easyui-combobox" style="width: 50px" name="is_recommend_scheme" id="is_recommend_scheme"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                        <tr>
+                            <td colspan="8">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            1. 新客户机型名称:
+                                        </td>
+                                        <td>
+                                            <input id="new_project_name" class="easyui-textbox" name="new_project_name" style="width: 115px" value="@sb.new_project_name" />
+                                        </td>
+                                        <td>
+                                            2. 新客户机型预计订单量:
+                                        </td>
+                                        <td>
+                                            <input id="new_project_order_qty" class="easyui-textbox" name="new_project_order_qty" style="width: 100px" value="@sb.new_project_order_qty" />
+                                        </td>
+                                        <td>
+                                            3. 新客户机型的订单计划:
+                                        </td>
+                                        <td>
+                                            <input id="new_project_order_plan" class="easyui-textbox" name="new_project_order_plan" style="width: 130px" value="@sb.new_project_order_plan" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                产品行业分类:
+                                <input name="product_classification" id="product_classification" style="width: 160px" value="@sb.product_classification" />
+                                具体产品用途:
+                                <input id="product_use" class="easyui-textbox" name="product_use" style="width: 340px" required="true" value="@sb.product_use" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="8">
+                                是否项目组推荐方案:
+                                <input class="easyui-combobox" style="width: 80px" name="is_recommend_scheme" id="is_recommend_scheme"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
                                            data:[
                                            {value:'是'},{value:'否'}
                                            ]" value="@sb.is_recommend_scheme" />
-                    不适用于推荐方案的原因:
-                    <input class="easyui-validatebox" name="not_recommend_scheme_reason" id="not_recommend_scheme_reason" style="width: 400px" value="@sb.not_recommend_scheme_reason" />
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    注意事项:
-                </td>
-                <td colspan="7">                    
-                    <textarea cols="90" rows="2" name="attention_issue" id="attention_issue" style="margin: 0;">@sb.attention_issue</textarea><br />
-                    (请注明此处追加的样品是跟之前送给客户的哪一次样品来做的)
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    带摄像功能:
-                </td>
-                <td colspan="7">
-                    <input class="easyui-combobox" style="width: 240px" name="has_video_function" id="has_video_function"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
+                                不适用于推荐方案的原因:
+                                <input class="easyui-textbox" name="not_recommend_scheme_reason" id="not_recommend_scheme_reason" style="width: 400px" value="@sb.not_recommend_scheme_reason" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                注意事项:
+                            </td>
+                            <td colspan="7">
+                                <input class="easyui-textbox" name="attention_issue" id="attention_issue" multiline="true" style="width:700px;height:40px" value="@sb.attention_issue" />
+                                <div>(请注明此处追加的样品是跟之前送给客户的哪一次样品来做的)</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                带摄像功能:
+                            </td>
+                            <td colspan="7">
+                                <input class="easyui-combobox" style="width: 240px" name="has_video_function" id="has_video_function"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
                                            data:[
                                            {value:'不带摄像功能'},{value:'带摄像功能，摄像头由TRULY提供'},{value:'带摄像功能，摄像头不是TRULY提供'}
                                            ]" />
-                    <span id="has_video_function_model_span">
-                        @Html.Lang("model"):<input class="easyui-textbox" name="video_model" id="video_model"
-                            style="width: 300px" value="@sb.video_model" />
-                    </span><span id="has_video_function_reason_span">
-                        @Html.Lang("reason"):<input class="easyui-textbox" name="video_reason" id="video_reason"
-                            style="width: 300px" value="@sb.video_reason" />
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    带触摸屏:
-                </td>
-                <td colspan="7">
-                    <input class="easyui-combobox" style="width: 240px" name="has_touch_panel" id="has_touch_panel"
-                        data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
+                                <span id="has_video_function_model_span">
+                                    @Html.Lang("model"):<input class="easyui-textbox" name="video_model" id="video_model"
+                                                               style="width: 300px" value="@sb.video_model" />
+                                </span><span id="has_video_function_reason_span">
+                                    @Html.Lang("reason"):<input class="easyui-textbox" name="video_reason" id="video_reason"
+                                                                style="width: 300px" value="@sb.video_reason" />
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                带触摸屏:
+                            </td>
+                            <td colspan="7">
+                                <input class="easyui-combobox" style="width: 240px" name="has_touch_panel" id="has_touch_panel"
+                                       data-options="textField:'value',valueField:'value',panelHeight:'auto',required:true,editable:false,
                                            data:[
                                            {value:'不带触摸屏'},{value:'带触摸屏，触摸屏由TRULY提供'},{value:'带触摸屏，触摸屏不是TRULY提供'}
                                            ]" />
-                    <span id="has_touch_panel_model_span">
-                        @Html.Lang("model"):<input class="easyui-textbox" name="touch_panel_model" id="touch_panel_model"
-                                style="width: 300px" value="@sb.touch_panel_model" />
-                    </span><span id="has_touch_panel_reason_span">
-                        @Html.Lang("reason"):<input class="easyui-textbox" name="touch_panel_reason" id="touch_panel_reason"
-                                style="width: 300px" value="@sb.touch_panel_reason" />
-                    </span>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    备注:
-                </td>
-                <td colspan="7">
-                    <textarea cols="90" rows="2" name="user_comment" id="user_comment" style="margin: 0;">@sb.user_comment</textarea>
-                </td>
-            </tr>
-        </table>
+                                <span id="has_touch_panel_model_span">
+                                    @Html.Lang("model"):<input class="easyui-textbox" name="touch_panel_model" id="touch_panel_model"
+                                                               style="width: 300px" value="@sb.touch_panel_model" />
+                                </span><span id="has_touch_panel_reason_span">
+                                    @Html.Lang("reason"):<input class="easyui-textbox" name="touch_panel_reason" id="touch_panel_reason"
+                                                                style="width: 300px" value="@sb.touch_panel_reason" />
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                备注:
+                            </td>
+                            <td colspan="7">
+                                <input class="easyui-textbox" name="user_comment" id="user_comment" multiline="true" style="width:700px;height:40px" value="@sb.user_comment" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                @if (step == 0) {
+                    <div align="center">
+                        <a id="saveAllBut" href="#" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">@Html.Lang("save_form")</a>
+                        <a id="submitApply" href="#" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">@Html.Lang("submit_apply")</a>
+                    </div>
+                }
+                <div id="tip_div" class="easyui-panel" title="注意事项" style="width: 800px; padding: 10px 20px; background: #fafafa;">
+                    1. 推荐给新项目使用时，模组项目需填写“摄像功能”与“触摸屏”的栏，单体TP项目则不需要填写。<br />
+                    2. CCM免费样品出样后半年内没有订单时，办事处在之后一个月内将样品返还给公司（坏的也可以），若收不回样品，则说明项目失败原因等（须有办事处经理签名确认），由市场总部交给项目管理员。
+                </div>
+            </div>
+        </form>
     </div>
-    @if (step == 0)
-    {
-        <div align="center">
-            <a id="saveAllBut" href="#" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">@Html.Lang("save_form")</a>
-            <a id="submitApply" href="#" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">@Html.Lang("submit_apply")</a>
-        </div>
-    }
-    <div id="tip_div" class="easyui-panel" title="注意事项" style="width: 800px; padding: 10px 20px;
-        background: #fafafa;">
-        1. 推荐给新项目使用时，模组项目需填写“摄像功能”与“触摸屏”的栏，单体TP项目则不需要填写。<br />
-        2. CCM免费样品出样后半年内没有订单时，办事处在之后一个月内将样品返还给公司（坏的也可以），若收不回样品，则说明项目失败原因等（须有办事处经理签名确认），由市场总部交给项目管理员。
-    </div>
-</div>
-</form>
-</div>
 </div>

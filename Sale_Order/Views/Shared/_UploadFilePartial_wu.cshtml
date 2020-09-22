@@ -11,7 +11,7 @@
             server: '@Url.Content("~/Saler/UploadFileWu")',
             pick: '#up_button',
             auto: true,
-            formData: { "num": $("#wu_sysNum").val() },
+            //formData: { "num": $("#wu_sysNum").val() },
             fileNumLimit: 100,
             fileSingleSizeLimit: 10 * 1024 * 1024,
             accept: {
@@ -19,6 +19,10 @@
                 extensions: 'rar',
                 mimeTypes: 'application/x-rar-compressed'
             }
+        });
+
+        uploader.on('uploadStart', function (file) {
+            uploader.option('formData', { "num": $("#wu_sysNum").val() });
         });
 
         uploader.on('uploadSuccess', function (file, res) {
@@ -35,7 +39,7 @@
         });
 
         uploader.on('uploadError', function (file) {
-            tip("上传出错");
+           tip('上传出错');
         });
 
         uploader.on("error", function (type) {
@@ -59,13 +63,15 @@
         });
 
         //附件信息
-        $.post("@Url.Content("~/Saler/GetFileInfo")", { sys_no: $("#wu_sysNum").val() }, function (data) {
-            if(data.success){
-                $("#up_name").html(data.am.file_name);
-                $("#up_size").html(data.am.file_size);
-                $("#up_time").html(data.am.upload_time);
-            }
-        });
+        if ($("#wu_sysNum").val() != "") {
+            $.post("@Url.Content("~/Saler/GetFileInfo")", { sys_no: $("#wu_sysNum").val() }, function (data) {
+                if (data.success) {
+                    $("#up_name").html(data.am.file_name);
+                    $("#up_size").html(data.am.file_size);
+                    $("#up_time").html(data.am.upload_time);
+                }
+            });
+        }
 
     });
 

@@ -47,5 +47,10 @@ namespace Sale_Order.Services
             return db.ExecuteQuery<decimal?>("exec dbo.getK3CommissionRate @proType={0},@MU={1},@account={2}", proType, MU, _account).FirstOrDefault()??0m;            
         }
 
+        public bool IsCustomerNameAndNoMath(string customerName, string customerNumber)
+        {
+            return db.ExecuteQuery<bool?>("exec dbo.isCustomerNameAndNoMath @name={0},@no={1},@account={2}", customerName, customerNumber, _account).FirstOrDefault() ?? false;
+        }
+
     }
 }

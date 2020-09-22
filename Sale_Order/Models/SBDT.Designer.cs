@@ -462,6 +462,8 @@ namespace Sale_Order.Models {
             
             private global::System.Data.DataColumn columnoa_special_request_no;
             
+            private global::System.Data.DataColumn columnaccount;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public Sale_sample_billDataTable() {
@@ -1089,6 +1091,14 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn accountColumn {
+                get {
+                    return this.columnaccount;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -1197,7 +1207,8 @@ namespace Sale_Order.Models {
                         int quotation_clerk_id, 
                         string quotation_clerk_name, 
                         string is_special_sample, 
-                        string oa_special_request_no) {
+                        string oa_special_request_no, 
+                        string account) {
                 Sale_sample_billRow rowSale_sample_billRow = ((Sale_sample_billRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         null,
@@ -1273,7 +1284,8 @@ namespace Sale_Order.Models {
                         quotation_clerk_id,
                         quotation_clerk_name,
                         is_special_sample,
-                        oa_special_request_no};
+                        oa_special_request_no,
+                        account};
                 rowSale_sample_billRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowSale_sample_billRow);
                 return rowSale_sample_billRow;
@@ -1377,6 +1389,7 @@ namespace Sale_Order.Models {
                 this.columnquotation_clerk_name = base.Columns["quotation_clerk_name"];
                 this.columnis_special_sample = base.Columns["is_special_sample"];
                 this.columnoa_special_request_no = base.Columns["oa_special_request_no"];
+                this.columnaccount = base.Columns["account"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1530,6 +1543,8 @@ namespace Sale_Order.Models {
                 base.Columns.Add(this.columnis_special_sample);
                 this.columnoa_special_request_no = new global::System.Data.DataColumn("oa_special_request_no", typeof(string), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnoa_special_request_no);
+                this.columnaccount = new global::System.Data.DataColumn("account", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnaccount);
                 this.Constraints.Add(new global::System.Data.UniqueConstraint("Constraint1", new global::System.Data.DataColumn[] {
                                 this.columnid}, true));
                 this.columnid.AutoIncrement = true;
@@ -1597,6 +1612,7 @@ namespace Sale_Order.Models {
                 this.columnquotation_clerk_name.MaxLength = 50;
                 this.columnis_special_sample.MaxLength = 10;
                 this.columnoa_special_request_no.MaxLength = 50;
+                this.columnaccount.MaxLength = 50;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -3263,6 +3279,22 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string account {
+                get {
+                    try {
+                        return ((string)(this[this.tableSale_sample_bill.accountColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("表“Sale_sample_bill”中列“account”的值为 DBNull。", e);
+                    }
+                }
+                set {
+                    this[this.tableSale_sample_bill.accountColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool Issys_noNull() {
                 return this.IsNull(this.tableSale_sample_bill.sys_noColumn);
             }
@@ -4136,6 +4168,18 @@ namespace Sale_Order.Models {
             public void Setoa_special_request_noNull() {
                 this[this.tableSale_sample_bill.oa_special_request_noColumn] = global::System.Convert.DBNull;
             }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IsaccountNull() {
+                return this.IsNull(this.tableSale_sample_bill.accountColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetaccountNull() {
+                this[this.tableSale_sample_bill.accountColumn] = global::System.Convert.DBNull;
+            }
         }
         
         /// <summary>
@@ -4644,46 +4688,47 @@ namespace Sale_Order.Models.SBDTTableAdapters {
             tableMapping.ColumnMappings.Add("quotation_clerk_name", "quotation_clerk_name");
             tableMapping.ColumnMappings.Add("is_special_sample", "is_special_sample");
             tableMapping.ColumnMappings.Add("oa_special_request_no", "oa_special_request_no");
+            tableMapping.ColumnMappings.Add("account", "account");
             this._adapter.TableMappings.Add(tableMapping);
             this._adapter.DeleteCommand = new global::System.Data.SqlClient.SqlCommand();
             this._adapter.DeleteCommand.Connection = this.Connection;
-            this._adapter.DeleteCommand.CommandText = "DELETE FROM [dbo].[Sale_sample_bill] WHERE (([id] = @Original_id))";
+            this._adapter.DeleteCommand.CommandText = "DELETE FROM [Sale_sample_bill] WHERE (([id] = @Original_id))";
             this._adapter.DeleteCommand.CommandType = global::System.Data.CommandType.Text;
             this._adapter.DeleteCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@Original_id", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "id", global::System.Data.DataRowVersion.Original, false, null, "", "", ""));
             this._adapter.InsertCommand = new global::System.Data.SqlClient.SqlCommand();
             this._adapter.InsertCommand.Connection = this.Connection;
-            this._adapter.InsertCommand.CommandText = "INSERT INTO [dbo].[Sale_sample_bill] ([sys_no], [original_user_id], [update_user_" +
-                "id], [step_version], [is_free], [bill_no], [project_team], [clear_way], [trade_t" +
-                "ype_no], [trade_type_name], [fetch_add_no], [fetch_add_name], [currency_no], [cu" +
-                "rrency_name], [sale_type_no], [sale_type_name], [agency_no], [agency_name], [cle" +
-                "rk_no], [clerk_name], [bill_date], [demand_finish_date], [product_type], [produc" +
-                "t_number], [product_model], [product_name], [customer_no], [customer_name], [pla" +
-                "n_firm_name], [zz_customer_name], [sea_customer_name], [use_existed_product], [o" +
-                "riginal_model_customer], [pic_number], [pic_version], [sample_qty], [quote_num]," +
-                " [cost], [deal_price], [contract_price], [total_sum], [sample_use], [is_overtop_" +
-                "qty], [overtop_qty_reason], [how_many_time], [repeat_sample_reason], [display_pa" +
-                "nel], [TFT_size], [TFT_supplier], [TFT_IC_model], [for_new_project], [new_projec" +
-                "t_name], [new_project_order_qty], [new_project_order_plan], [product_classificat" +
-                "ion], [product_use], [is_recommend_scheme], [not_recommend_scheme_reason], [atte" +
-                "ntion_issue], [has_video_function], [video_model], [video_reason], [has_touch_pa" +
-                "nel], [touch_panel_model], [touch_panel_reason], [user_comment], [create_date], " +
-                "[product_unit], [exchange_rate], [quotation_clerk_id], [quotation_clerk_name], [" +
-                "is_special_sample], [oa_special_request_no]) VALUES (@sys_no, @p1, @update_user_" +
-                "id, @step_version, @is_free, @bill_no, @project_team, @clear_way, @trade_type_no" +
-                ", @trade_type_name, @fetch_add_no, @fetch_add_name, @currency_no, @currency_name" +
-                ", @sale_type_no, @sale_type_name, @agency_no, @agency_name, @clerk_no, @clerk_na" +
-                "me, @bill_date, @demand_finish_date, @product_type, @product_number, @product_mo" +
-                "del, @product_name, @customer_no, @customer_name, @plan_firm_name, @zz_customer_" +
-                "name, @sea_customer_name, @use_existed_product, @p4, @pic_number, @pic_version, " +
-                "@sample_qty, @quote_num, @cost, @deal_price, @contract_price, @total_sum, @sampl" +
-                "e_use, @is_overtop_qty, @overtop_qty_reason, @how_many_time, @repeat_sample_reas" +
-                "on, @display_panel, @TFT_size, @TFT_supplier, @TFT_IC_model, @for_new_project, @" +
-                "new_project_name, @new_project_order_qty, @new_project_order_plan, @product_clas" +
-                "sification, @product_use, @is_recommend_scheme, @not_recommend_scheme_reason, @a" +
-                "ttention_issue, @has_video_function, @video_model, @video_reason, @has_touch_pan" +
-                "el, @touch_panel_model, @touch_panel_reason, @user_comment, @create_date, @produ" +
-                "ct_unit, @exchange_rate, @quotation_clerk_id, @quotation_clerk_name, @is_special" +
-                "_sample, @oa_special_request_no)";
+            this._adapter.InsertCommand.CommandText = "INSERT INTO [Sale_sample_bill] ([sys_no], [original_user_id], [update_user_id], [" +
+                "step_version], [is_free], [bill_no], [project_team], [clear_way], [trade_type_no" +
+                "], [trade_type_name], [fetch_add_no], [fetch_add_name], [currency_no], [currency" +
+                "_name], [sale_type_no], [sale_type_name], [agency_no], [agency_name], [clerk_no]" +
+                ", [clerk_name], [bill_date], [demand_finish_date], [product_type], [product_numb" +
+                "er], [product_model], [product_name], [customer_no], [customer_name], [plan_firm" +
+                "_name], [zz_customer_name], [sea_customer_name], [use_existed_product], [origina" +
+                "l_model_customer], [pic_number], [pic_version], [sample_qty], [quote_num], [cost" +
+                "], [deal_price], [contract_price], [total_sum], [sample_use], [is_overtop_qty], " +
+                "[overtop_qty_reason], [how_many_time], [repeat_sample_reason], [display_panel], " +
+                "[TFT_size], [TFT_supplier], [TFT_IC_model], [for_new_project], [new_project_name" +
+                "], [new_project_order_qty], [new_project_order_plan], [product_classification], " +
+                "[product_use], [is_recommend_scheme], [not_recommend_scheme_reason], [attention_" +
+                "issue], [has_video_function], [video_model], [video_reason], [has_touch_panel], " +
+                "[touch_panel_model], [touch_panel_reason], [user_comment], [create_date], [produ" +
+                "ct_unit], [exchange_rate], [quotation_clerk_id], [quotation_clerk_name], [is_spe" +
+                "cial_sample], [oa_special_request_no], [account]) VALUES (@sys_no, @p1, @update_" +
+                "user_id, @step_version, @is_free, @bill_no, @project_team, @clear_way, @trade_ty" +
+                "pe_no, @trade_type_name, @fetch_add_no, @fetch_add_name, @currency_no, @currency" +
+                "_name, @sale_type_no, @sale_type_name, @agency_no, @agency_name, @clerk_no, @cle" +
+                "rk_name, @bill_date, @demand_finish_date, @product_type, @product_number, @produ" +
+                "ct_model, @product_name, @customer_no, @customer_name, @plan_firm_name, @zz_cust" +
+                "omer_name, @sea_customer_name, @use_existed_product, @p4, @pic_number, @pic_vers" +
+                "ion, @sample_qty, @quote_num, @cost, @deal_price, @contract_price, @total_sum, @" +
+                "sample_use, @is_overtop_qty, @overtop_qty_reason, @how_many_time, @repeat_sample" +
+                "_reason, @display_panel, @TFT_size, @TFT_supplier, @TFT_IC_model, @for_new_proje" +
+                "ct, @new_project_name, @new_project_order_qty, @new_project_order_plan, @product" +
+                "_classification, @product_use, @is_recommend_scheme, @not_recommend_scheme_reaso" +
+                "n, @attention_issue, @has_video_function, @video_model, @video_reason, @has_touc" +
+                "h_panel, @touch_panel_model, @touch_panel_reason, @user_comment, @create_date, @" +
+                "product_unit, @exchange_rate, @quotation_clerk_id, @quotation_clerk_name, @is_sp" +
+                "ecial_sample, @oa_special_request_no, @account)";
             this._adapter.InsertCommand.CommandType = global::System.Data.CommandType.Text;
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sys_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sys_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@p1", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "original_user_id", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4723,8 +4768,8 @@ namespace Sale_Order.Models.SBDTTableAdapters {
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sample_qty", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sample_qty", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@quote_num", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "quote_num", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@cost", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "cost", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
-            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@deal_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "deal_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
-            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@contract_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "contract_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@deal_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 14, 5, "deal_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@contract_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 14, 5, "contract_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@total_sum", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "total_sum", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sample_use", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sample_use", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@is_overtop_qty", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "is_overtop_qty", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4758,41 +4803,42 @@ namespace Sale_Order.Models.SBDTTableAdapters {
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@quotation_clerk_name", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "quotation_clerk_name", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@is_special_sample", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "is_special_sample", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@oa_special_request_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "oa_special_request_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@account", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "account", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand = new global::System.Data.SqlClient.SqlCommand();
             this._adapter.UpdateCommand.Connection = this.Connection;
-            this._adapter.UpdateCommand.CommandText = "UPDATE [dbo].[Sale_sample_bill] SET [sys_no] = @sys_no, [original_user_id] = @p1," +
-                " [update_user_id] = @update_user_id, [step_version] = @step_version, [is_free] =" +
-                " @is_free, [bill_no] = @bill_no, [project_team] = @project_team, [clear_way] = @" +
-                "clear_way, [trade_type_no] = @trade_type_no, [trade_type_name] = @trade_type_nam" +
-                "e, [fetch_add_no] = @fetch_add_no, [fetch_add_name] = @fetch_add_name, [currency" +
-                "_no] = @currency_no, [currency_name] = @currency_name, [sale_type_no] = @sale_ty" +
-                "pe_no, [sale_type_name] = @sale_type_name, [agency_no] = @agency_no, [agency_nam" +
-                "e] = @agency_name, [clerk_no] = @clerk_no, [clerk_name] = @clerk_name, [bill_dat" +
-                "e] = @bill_date, [demand_finish_date] = @demand_finish_date, [product_type] = @p" +
-                "roduct_type, [product_number] = @product_number, [product_model] = @product_mode" +
-                "l, [product_name] = @product_name, [customer_no] = @customer_no, [customer_name]" +
-                " = @customer_name, [plan_firm_name] = @plan_firm_name, [zz_customer_name] = @zz_" +
-                "customer_name, [sea_customer_name] = @sea_customer_name, [use_existed_product] =" +
-                " @use_existed_product, [original_model_customer] = @p4, [pic_number] = @pic_numb" +
-                "er, [pic_version] = @pic_version, [sample_qty] = @sample_qty, [quote_num] = @quo" +
-                "te_num, [cost] = @cost, [deal_price] = @deal_price, [contract_price] = @contract" +
-                "_price, [total_sum] = @total_sum, [sample_use] = @sample_use, [is_overtop_qty] =" +
-                " @is_overtop_qty, [overtop_qty_reason] = @overtop_qty_reason, [how_many_time] = " +
-                "@how_many_time, [repeat_sample_reason] = @repeat_sample_reason, [display_panel] " +
-                "= @display_panel, [TFT_size] = @TFT_size, [TFT_supplier] = @TFT_supplier, [TFT_I" +
-                "C_model] = @TFT_IC_model, [for_new_project] = @for_new_project, [new_project_nam" +
-                "e] = @new_project_name, [new_project_order_qty] = @new_project_order_qty, [new_p" +
-                "roject_order_plan] = @new_project_order_plan, [product_classification] = @produc" +
-                "t_classification, [product_use] = @product_use, [is_recommend_scheme] = @is_reco" +
-                "mmend_scheme, [not_recommend_scheme_reason] = @not_recommend_scheme_reason, [att" +
-                "ention_issue] = @attention_issue, [has_video_function] = @has_video_function, [v" +
-                "ideo_model] = @video_model, [video_reason] = @video_reason, [has_touch_panel] = " +
-                "@has_touch_panel, [touch_panel_model] = @touch_panel_model, [touch_panel_reason]" +
-                " = @touch_panel_reason, [user_comment] = @user_comment, [create_date] = @create_" +
-                "date, [product_unit] = @product_unit, [exchange_rate] = @exchange_rate, [quotati" +
-                "on_clerk_id] = @quotation_clerk_id, [quotation_clerk_name] = @quotation_clerk_na" +
-                "me, [is_special_sample] = @is_special_sample, [oa_special_request_no] = @oa_spec" +
-                "ial_request_no WHERE (([id] = @Original_id))";
+            this._adapter.UpdateCommand.CommandText = "UPDATE [Sale_sample_bill] SET [sys_no] = @sys_no, [original_user_id] = @p1, [upda" +
+                "te_user_id] = @update_user_id, [step_version] = @step_version, [is_free] = @is_f" +
+                "ree, [bill_no] = @bill_no, [project_team] = @project_team, [clear_way] = @clear_" +
+                "way, [trade_type_no] = @trade_type_no, [trade_type_name] = @trade_type_name, [fe" +
+                "tch_add_no] = @fetch_add_no, [fetch_add_name] = @fetch_add_name, [currency_no] =" +
+                " @currency_no, [currency_name] = @currency_name, [sale_type_no] = @sale_type_no," +
+                " [sale_type_name] = @sale_type_name, [agency_no] = @agency_no, [agency_name] = @" +
+                "agency_name, [clerk_no] = @clerk_no, [clerk_name] = @clerk_name, [bill_date] = @" +
+                "bill_date, [demand_finish_date] = @demand_finish_date, [product_type] = @product" +
+                "_type, [product_number] = @product_number, [product_model] = @product_model, [pr" +
+                "oduct_name] = @product_name, [customer_no] = @customer_no, [customer_name] = @cu" +
+                "stomer_name, [plan_firm_name] = @plan_firm_name, [zz_customer_name] = @zz_custom" +
+                "er_name, [sea_customer_name] = @sea_customer_name, [use_existed_product] = @use_" +
+                "existed_product, [original_model_customer] = @p4, [pic_number] = @pic_number, [p" +
+                "ic_version] = @pic_version, [sample_qty] = @sample_qty, [quote_num] = @quote_num" +
+                ", [cost] = @cost, [deal_price] = @deal_price, [contract_price] = @contract_price" +
+                ", [total_sum] = @total_sum, [sample_use] = @sample_use, [is_overtop_qty] = @is_o" +
+                "vertop_qty, [overtop_qty_reason] = @overtop_qty_reason, [how_many_time] = @how_m" +
+                "any_time, [repeat_sample_reason] = @repeat_sample_reason, [display_panel] = @dis" +
+                "play_panel, [TFT_size] = @TFT_size, [TFT_supplier] = @TFT_supplier, [TFT_IC_mode" +
+                "l] = @TFT_IC_model, [for_new_project] = @for_new_project, [new_project_name] = @" +
+                "new_project_name, [new_project_order_qty] = @new_project_order_qty, [new_project" +
+                "_order_plan] = @new_project_order_plan, [product_classification] = @product_clas" +
+                "sification, [product_use] = @product_use, [is_recommend_scheme] = @is_recommend_" +
+                "scheme, [not_recommend_scheme_reason] = @not_recommend_scheme_reason, [attention" +
+                "_issue] = @attention_issue, [has_video_function] = @has_video_function, [video_m" +
+                "odel] = @video_model, [video_reason] = @video_reason, [has_touch_panel] = @has_t" +
+                "ouch_panel, [touch_panel_model] = @touch_panel_model, [touch_panel_reason] = @to" +
+                "uch_panel_reason, [user_comment] = @user_comment, [create_date] = @create_date, " +
+                "[product_unit] = @product_unit, [exchange_rate] = @exchange_rate, [quotation_cle" +
+                "rk_id] = @quotation_clerk_id, [quotation_clerk_name] = @quotation_clerk_name, [i" +
+                "s_special_sample] = @is_special_sample, [oa_special_request_no] = @oa_special_re" +
+                "quest_no, [account] = @account WHERE (([id] = @Original_id))";
             this._adapter.UpdateCommand.CommandType = global::System.Data.CommandType.Text;
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sys_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sys_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@p1", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "original_user_id", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4832,8 +4878,8 @@ namespace Sale_Order.Models.SBDTTableAdapters {
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sample_qty", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sample_qty", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@quote_num", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "quote_num", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@cost", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "cost", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
-            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@deal_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "deal_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
-            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@contract_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "contract_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@deal_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 14, 5, "deal_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@contract_price", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 14, 5, "contract_price", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@total_sum", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "total_sum", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sample_use", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sample_use", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@is_overtop_qty", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "is_overtop_qty", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4867,6 +4913,7 @@ namespace Sale_Order.Models.SBDTTableAdapters {
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@quotation_clerk_name", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "quotation_clerk_name", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@is_special_sample", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "is_special_sample", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@oa_special_request_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "oa_special_request_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@account", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "account", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@Original_id", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "id", global::System.Data.DataRowVersion.Original, false, null, "", "", ""));
         }
         
@@ -4883,8 +4930,7 @@ namespace Sale_Order.Models.SBDTTableAdapters {
             this._commandCollection = new global::System.Data.SqlClient.SqlCommand[1];
             this._commandCollection[0] = new global::System.Data.SqlClient.SqlCommand();
             this._commandCollection[0].Connection = this.Connection;
-            this._commandCollection[0].CommandText = @"SELECT id, sys_no, original_user_id, update_user_id, step_version, is_free, bill_no, project_team, clear_way, trade_type_no, trade_type_name, fetch_add_no, fetch_add_name, currency_no, currency_name, sale_type_no, sale_type_name, agency_no, agency_name, clerk_no, clerk_name, bill_date, demand_finish_date, product_type, product_number, product_model, product_name, customer_no, customer_name, plan_firm_name, zz_customer_name, sea_customer_name, use_existed_product, original_model_customer, pic_number, pic_version, sample_qty, quote_num, cost, deal_price, contract_price, total_sum, sample_use, is_overtop_qty, overtop_qty_reason, how_many_time, repeat_sample_reason, display_panel, TFT_size, TFT_supplier, TFT_IC_model, for_new_project, new_project_name, new_project_order_qty, new_project_order_plan, product_classification, product_use, is_recommend_scheme, not_recommend_scheme_reason, attention_issue, has_video_function, video_model, video_reason, has_touch_panel, touch_panel_model, touch_panel_reason, user_comment, create_date, product_unit, exchange_rate, quotation_clerk_id, quotation_clerk_name, is_special_sample, oa_special_request_no FROM dbo.Sale_sample_bill
-where sys_no = @sys_no";
+            this._commandCollection[0].CommandText = @"SELECT id, sys_no, original_user_id, update_user_id, step_version, is_free, bill_no, project_team, clear_way, trade_type_no, trade_type_name, fetch_add_no, fetch_add_name, currency_no, currency_name, sale_type_no, sale_type_name, agency_no, agency_name, clerk_no, clerk_name, bill_date, demand_finish_date, product_type, product_number, product_model, product_name, customer_no, customer_name, plan_firm_name, zz_customer_name, sea_customer_name, use_existed_product, original_model_customer, pic_number, pic_version, sample_qty, quote_num, cost, deal_price, contract_price, total_sum, sample_use, is_overtop_qty, overtop_qty_reason, how_many_time, repeat_sample_reason, display_panel, TFT_size, TFT_supplier, TFT_IC_model, for_new_project, new_project_name, new_project_order_qty, new_project_order_plan, product_classification, product_use, is_recommend_scheme, not_recommend_scheme_reason, attention_issue, has_video_function, video_model, video_reason, has_touch_panel, touch_panel_model, touch_panel_reason, user_comment, create_date, product_unit, exchange_rate, quotation_clerk_id, quotation_clerk_name, is_special_sample, oa_special_request_no,account FROM Sale_sample_bill WHERE (sys_no = @sys_no)";
             this._commandCollection[0].CommandType = global::System.Data.CommandType.Text;
             this._commandCollection[0].Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sys_no", global::System.Data.SqlDbType.VarChar, 15, global::System.Data.ParameterDirection.Input, 0, 0, "sys_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
         }
@@ -5053,7 +5099,8 @@ where sys_no = @sys_no";
                     global::System.Nullable<int> quotation_clerk_id, 
                     string quotation_clerk_name, 
                     string is_special_sample, 
-                    string oa_special_request_no) {
+                    string oa_special_request_no, 
+                    string account) {
             if ((sys_no == null)) {
                 this.Adapter.InsertCommand.Parameters[0].Value = global::System.DBNull.Value;
             }
@@ -5492,6 +5539,12 @@ where sys_no = @sys_no";
             else {
                 this.Adapter.InsertCommand.Parameters[72].Value = ((string)(oa_special_request_no));
             }
+            if ((account == null)) {
+                this.Adapter.InsertCommand.Parameters[73].Value = global::System.DBNull.Value;
+            }
+            else {
+                this.Adapter.InsertCommand.Parameters[73].Value = ((string)(account));
+            }
             global::System.Data.ConnectionState previousConnectionState = this.Adapter.InsertCommand.Connection.State;
             if (((this.Adapter.InsertCommand.Connection.State & global::System.Data.ConnectionState.Open) 
                         != global::System.Data.ConnectionState.Open)) {
@@ -5586,6 +5639,7 @@ where sys_no = @sys_no";
                     string quotation_clerk_name, 
                     string is_special_sample, 
                     string oa_special_request_no, 
+                    string account, 
                     int Original_id) {
             if ((sys_no == null)) {
                 this.Adapter.UpdateCommand.Parameters[0].Value = global::System.DBNull.Value;
@@ -6025,7 +6079,13 @@ where sys_no = @sys_no";
             else {
                 this.Adapter.UpdateCommand.Parameters[72].Value = ((string)(oa_special_request_no));
             }
-            this.Adapter.UpdateCommand.Parameters[73].Value = ((int)(Original_id));
+            if ((account == null)) {
+                this.Adapter.UpdateCommand.Parameters[73].Value = global::System.DBNull.Value;
+            }
+            else {
+                this.Adapter.UpdateCommand.Parameters[73].Value = ((string)(account));
+            }
+            this.Adapter.UpdateCommand.Parameters[74].Value = ((int)(Original_id));
             global::System.Data.ConnectionState previousConnectionState = this.Adapter.UpdateCommand.Connection.State;
             if (((this.Adapter.UpdateCommand.Connection.State & global::System.Data.ConnectionState.Open) 
                         != global::System.Data.ConnectionState.Open)) {

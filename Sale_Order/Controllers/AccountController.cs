@@ -119,6 +119,7 @@ namespace Sale_Order.Controllers
             cookie.Values.Add("userid", id.ToString());
             cookie.Values.Add("code", utl.getMD5(id.ToString()));
             cookie.Values.Add("username", utl.EncodeToUTF8(username));//用于记录日志
+            cookie.Values.Add("cop", cop);
             Response.AppendCookie(cookie);
 
             //保存公司名和用户名到cookie，用于再次登录自动填写公司和用户名
@@ -157,6 +158,11 @@ namespace Sale_Order.Controllers
             string newPassword = fcl.Get("newPass");
             string cop = fcl.Get("cop_password");
             int userId = 0;
+
+            if ("eqm".Equals(cop)) {
+                cop = "ele";
+            }
+
             if ("op".Equals(cop)) {
                 userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
             }

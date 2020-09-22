@@ -171,8 +171,7 @@
 <div class="easyui-layout" data-options="fit:true" id="agency_div">
     <div data-options="region:'south',collapsed:false" style="height: 145px; background: #fafafa;">
         <div class="easyui-layout" data-options="fit:true" id="audit_div">
-            <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;
-        padding: 8px 10px;">
+            <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa; padding: 8px 10px;">
                 <form id="audit_fm" method="post" action="">
                 @Html.Lang("audit_opinion"):
                 <input type="hidden" name="step" value="@ViewData["step"]" />
@@ -181,12 +180,10 @@
                 <input type="hidden" name="sys_no" id="sys_no" value="@ViewData["sys_no"]" />
                 <input type="hidden" name="backToPrevious" id="backToPrevious" value="0" />
                 <input type="hidden" name="nextDetails" id="nextDetails" value="" />
-                <input id="agency_comment" name="agency_comment" style="width: 450px" />&nbsp; <a
-                    id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'"
-                    onclick="okClick()">@Html.Lang("pass")</a> <a id="NOBt" href="#agency_div" class="easyui-linkbutton"
-                        data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
-                <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'"
-                    onclick="block()">挂起</a>
+                <input id="agency_comment" name="agency_comment" style="width: 450px" />&nbsp; 
+                    <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a> 
+                    <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                    <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
                 </form>
             </div>
             <div data-options="region:'center'" style="+position: relative;">

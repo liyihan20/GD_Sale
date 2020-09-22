@@ -149,7 +149,7 @@ namespace Sale_Order.Controllers
             }
             return Json(new { success = false }, "text/html");
         }
-        //编辑未开始申请的订单        
+        //编辑未开始申请的订单
         [SessionTimeOutFilter()]
         public ActionResult EditOrderNew(int id, string sys_no)
         {
@@ -159,11 +159,11 @@ namespace Sale_Order.Controllers
                 case "SO":
                     return RedirectToAction("SalerModifySOBill", new { sysNo = sys_no });                    
                 case "SB":
-                    return RedirectToAction("SalerModifySampleBill", new { id = id });
+                    return RedirectToAction("SalerModifySampleBill", new { sysNo = sys_no });
                 case "CC":
                     return RedirectToAction("SalerModifyCCMModelContract", new { id = id });
                 case "CM":
-                    return RedirectToAction("SalerModifyModelContract", new { id = id });
+                    return RedirectToAction("SalerModifyModelContract", new { sysNo = sys_no });
                 case "BL":
                     return RedirectToAction("SalerModifyBLBill", new { id = id });
                 case "HC":
@@ -200,8 +200,8 @@ namespace Sale_Order.Controllers
                     sb.sys_no = newSysNo;
                     sb.bill_date = DateTime.Now;
                     sb.step_version = 0;
+                    sb.account = sb.account ?? "光电总部";
                     ViewData["sb"] = sb;
-                    ViewData["step"] = 0;
                     return View("CreateSampleBill");
                 case "CC":
                     CcmModelContract cc = db.CcmModelContract.Single(s => s.sys_no == sys_no);
@@ -217,6 +217,7 @@ namespace Sale_Order.Controllers
                     cm.bill_date = DateTime.Now;
                     cm.product_number = null;
                     cm.step_version = 0;
+                    cm.account = cm.account ?? "光电总部";
                     ViewData["cm"] = cm;
                     return View("CreateModelContract");
                 case "BL":
@@ -455,16 +456,16 @@ namespace Sale_Order.Controllers
             }
 
             //验证客户编码与客户名称是否匹配
-            if (db.isCustomerNameAndNoMath(h.buy_unit_name, h.buy_unit_no).First().suc==false) {
+            if (!new K3ItemSv(h.account).IsCustomerNameAndNoMath(h.buy_unit_name, h.buy_unit_no)) {
                 return Json(new SimpleResultModel(false, "购货单位请输入后按回车键搜索后在列表中选择"));
             }
-            if (db.isCustomerNameAndNoMath(h.plan_firm_name, h.plan_firm_no).First().suc == false) {
+            if (!new K3ItemSv(h.account).IsCustomerNameAndNoMath(h.plan_firm_name, h.plan_firm_no)) {
                 return Json(new SimpleResultModel(false, "方案公司请输入后按回车键搜索后在列表中选择"));
             }
-            if (db.isCustomerNameAndNoMath(h.oversea_client_name, h.oversea_client_no).First().suc == false) {
+            if (!new K3ItemSv(h.account).IsCustomerNameAndNoMath(h.oversea_client_name, h.oversea_client_no)) {
                 return Json(new SimpleResultModel(false, "海外客户请输入后按回车键搜索后在列表中选择"));
             }
-            if (db.isCustomerNameAndNoMath(h.final_client_name, h.final_client_no).First().suc == false) {
+            if (!new K3ItemSv(h.account).IsCustomerNameAndNoMath(h.final_client_name, h.final_client_no)) {
                 return Json(new SimpleResultModel(false, "最终客户请输入后按回车键搜索后在列表中选择"));
             }
 
@@ -834,6 +835,7 @@ namespace Sale_Order.Controllers
             apply.ip = Request.UserHostAddress;
             apply.order_type = pre;
             apply.p_model = db.Sale_SO_details.Where(s => s.order_id == ord.id).First().item_modual;
+            apply.account = ord.account;
             db.Apply.InsertOnSubmit(apply);
                         
             //2013-7-18:新增一个测试标志，TestFlag为true表示为测试状态，所有审核人都是自己
@@ -939,21 +941,23 @@ namespace Sale_Order.Controllers
 
         //新增开改模单（除CCM）
         [SessionTimeOutFilter()]
-        public ActionResult CreateModelContract()
+        public ActionResult CreateModelContract(string account = "光电总部")
         {
             string sys_no = utl.getSystemNo("CM");
             ModelContract cm = new ModelContract();
             cm.sys_no = sys_no;
-            var dep = db.vwItems.Where(v => v.what == "agency" && v.fname == currentUser.departmentName);
-            if (dep.Count() > 0)
+            cm.account = account;
+
+            var dep = new K3ItemSv(account).GetK3Items("agency").Where(k => k.fname == currentUser.departmentName).FirstOrDefault();
+            if (dep != null)
             {
-                cm.agency_no = dep.First().fid;
+                cm.agency_no = dep.fid;
             }
             cm.original_user_id = currentUser.userId;
             cm.step_version = 0;
-            cm.bill_date = DateTime.Now;            
+            cm.bill_date = DateTime.Now;
+            cm.User = db.User.Single(u => u.id == currentUser.userId);
             ViewData["cm"] = cm;
-            ViewData["username"] = currentUser.realName;
             utl.writeEventLog(CREATEMODEL, "新建一张开改模单", sys_no, Request);
             return View();
         }
@@ -974,16 +978,97 @@ namespace Sale_Order.Controllers
         //保存开改模单（除CCM）
         public JsonResult SalerSaveModelContract(FormCollection col)
         {
-            int stepVersion = 0;
-            string saveResult = utl.saveModelContract(col, stepVersion, currentUser.userId);
-            if (string.IsNullOrWhiteSpace(saveResult))
-            {
-                return Json(new { suc = true }, "text/html");
+            ModelContract mc = null;
+            try {
+                mc = JsonConvert.DeserializeObject<ModelContract>(col.Get("head"));
             }
-            else
-            {
-                return Json(new { suc = false, msg = saveResult }, "text/html");
+            catch (Exception ex) {
+                return Json(new SimpleResultModel { suc = false, msg = "json转化失败：" + ex.Message });
             }
+
+            //如已提交，则不能再保存
+            if (mc.step_version == 0) {
+                var ap = db.Apply.Where(a => a.sys_no == mc.sys_no);
+                if (ap.Count() > 0) {
+                    utl.writeEventLog("保存单据", "已提交不能再次保存", mc.sys_no, Request, 10);
+                    return Json(new SimpleResultModel(false, "已提交的单据不能再次保存！"));
+                }
+            }
+
+            //下单组必须填写编号
+            if (mc.step_version == 4) {
+                if (string.IsNullOrWhiteSpace(mc.old_bill_no)) {
+                    return Json(new SimpleResultModel(false, "下单组审核必须填写订单号，保存失败！"));
+                }
+                else if (db.CcmModelContract.Where(m => m.sys_no != mc.sys_no && m.old_bill_no == mc.old_bill_no).Count() > 0) {
+                    return Json(new SimpleResultModel(false, "订单号在下单系统已存在，保存失败。"));
+                }
+                else {
+                    bool? isExistedInK3 = null;
+                    db.isDublicatedBillNo(mc.old_bill_no, "CM", ref isExistedInK3);
+                    if (isExistedInK3 == true) {
+                        return Json(new SimpleResultModel(false, "订单编号在K3已经存在，保存失败。"));
+                    }
+                }
+            }
+
+            //验证客户编码与客户名称是否匹配
+            if (!new K3ItemSv(mc.account).IsCustomerNameAndNoMath(mc.customer_name, mc.customer_no)) {
+                return Json(new SimpleResultModel(false, "购货单位请输入后按回车键搜索后在列表中选择"));
+            }
+            if (!new K3ItemSv(mc.account).IsCustomerNameAndNoMath(mc.plan_firm_name, mc.plan_firm_no)) {
+                return Json(new SimpleResultModel(false, "方案公司请输入后按回车键搜索后在列表中选择"));
+            }
+            if (!new K3ItemSv(mc.account).IsCustomerNameAndNoMath(mc.oversea_customer_name, mc.oversea_customer_no)) {
+                return Json(new SimpleResultModel(false, "海外客户请输入后按回车键搜索后在列表中选择"));
+            }
+            if (!new K3ItemSv(mc.account).IsCustomerNameAndNoMath(mc.zz_customer_name, mc.zz_customer_no)) {
+                return Json(new SimpleResultModel(false, "最终客户请输入后按回车键搜索后在列表中选择"));
+            }
+
+            if (string.IsNullOrEmpty(mc.clerk_no)) {
+                return Json(new SimpleResultModel(false, "业务员请输入后按回车键搜索后在列表中选择"));
+            }
+
+            if (mc.step_version == 0) {
+                mc.original_user_id = currentUser.userId;                
+            }
+            else {
+                mc.update_user_id = currentUser.userId;
+            }
+
+            ModelContract existedBill = db.ModelContract.Where(s => s.sys_no == mc.sys_no).FirstOrDefault();
+            if (existedBill != null) {
+                mc.original_user_id = existedBill.original_user_id;
+
+                //备份
+                BackupData bd = new BackupData();
+                bd.sys_no = mc.sys_no;
+                bd.main_data = utl.ModelToString(existedBill);
+                bd.op_date = DateTime.Now;
+                bd.user_id = existedBill.update_user_id;
+                db.BackupData.InsertOnSubmit(bd);
+
+                //删除旧数据
+                db.ModelContract.DeleteOnSubmit(existedBill);
+            }
+
+            var apply = db.Apply.Where(a => a.sys_no == mc.sys_no).FirstOrDefault();
+            if (apply != null) {
+                apply.p_model = mc.product_model;
+            }
+
+            db.ModelContract.InsertOnSubmit(mc);
+            try {
+                db.SubmitChanges();
+            }
+            catch (Exception ex) {
+                return Json(new SimpleResultModel { suc = false, msg = "保存失败：" + ex.Message });
+            }
+
+            utl.writeEventLog(CREATEMODEL, "保存成功", mc.sys_no, Request);
+            return Json(new SimpleResultModel() { suc = true });
+                        
         }
 
         public JsonResult CheckOwnCreateModelBills(string sysNo, DateTime fromDate, DateTime toDate, int auditResult) {            
@@ -1091,10 +1176,10 @@ namespace Sale_Order.Controllers
         {
             ViewData["cmc"] = db.CcmModelContract.Single(s => s.id == id);
             return View("CreateCCMModelContract");
-        }        
-        public ActionResult SalerModifyModelContract(int id)
+        }
+        public ActionResult SalerModifyModelContract(string sysNo)
         {
-            ViewData["cm"] = db.ModelContract.Single(s => s.id == id);
+            ViewData["cm"] = db.ModelContract.Single(s => s.sys_no == sysNo);
             return View("CreateModelContract");
         }
 
@@ -1131,6 +1216,7 @@ namespace Sale_Order.Controllers
             string pModel = "";
             string modelType = "";
             int? quotationClerkId = null;
+            string account = null;
 
             if ("CC".Equals(pre)) {
                 processType = "CM_CCM";
@@ -1138,7 +1224,7 @@ namespace Sale_Order.Controllers
                 projectTeam = cc.project_team;
                 quotationClerkId = cc.quotation_clerk_id;
                 pModel = cc.product_model;
-                modelType = cc.model_type;
+                modelType = cc.model_type;                
             }
             else if ("CM".Equals(pre))
             {
@@ -1149,6 +1235,7 @@ namespace Sale_Order.Controllers
                 busDep = mc.bus_dep;
                 pModel = mc.product_model;
                 modelType = mc.model_type;
+                account = mc.account;
 
                 //OLED的需要一个固定报价员审批 2018-10-24
                 if (busDep.Equals("OLED")) {
@@ -1175,6 +1262,7 @@ namespace Sale_Order.Controllers
             apply.ip = Request.UserHostAddress;
             apply.order_type = pre;
             apply.p_model = pModel;
+            apply.account = account ?? "光电总部";
 
             db.Apply.InsertOnSubmit(apply);
 
@@ -1244,11 +1332,12 @@ namespace Sale_Order.Controllers
 
         //新建
         [SessionTimeOutFilter()]
-        public ActionResult CreateSampleBill(string account="光电总部")
+        public ActionResult CreateSampleBill(string account = "光电总部")
         {
             string sys_no = utl.getSystemNo("SB");
             SampleBill sb = new SampleBill();
             sb.sys_no = sys_no;
+            sb.account = account;
             var dep = new K3ItemSv(account).GetK3Items("agency").Where(k => k.fname == currentUser.departmentName).FirstOrDefault();
             if (dep != null)
             {
@@ -1256,27 +1345,99 @@ namespace Sale_Order.Controllers
             }
             sb.original_user_id = currentUser.userId;
             sb.bill_date = DateTime.Now;
+            sb.step_version = 0;
+            sb.User = db.User.Single(u => u.id == currentUser.userId);
+
             utl.writeEventLog(SAMPLEBILL, "新建一张样品单", sys_no, Request);
 
-            ViewData["step"] = 0;
             ViewData["sb"] = sb;
-            ViewData["username"] = currentUser.realName;
             return View();
         }
 
         //保存
         public JsonResult SalerSaveSampleBill(FormCollection col)
         {
-            int stepVersion = 0;
-            string saveResult = utl.saveSampleBill(col, stepVersion, currentUser.userId);
-            if (string.IsNullOrWhiteSpace(saveResult))
-            {
-                return Json(new { suc = true });
+            SampleBill sb = null;
+            try {
+                sb = JsonConvert.DeserializeObject<SampleBill>(col.Get("head"));
             }
-            else
-            {
-                return Json(new { suc = false, msg = saveResult });
+            catch (Exception ex) {
+                return Json(new SimpleResultModel{ suc = false, msg = "json转化失败：" + ex.Message });
             }
+
+            //如已提交，则不能再保存
+            if (sb.step_version == 0) {
+                var ap = db.Apply.Where(a => a.sys_no == sb.sys_no);
+                if (ap.Count() > 0) {
+                    utl.writeEventLog("保存单据", "已提交不能再次保存", sb.sys_no, Request, 10);
+                    return Json(new SimpleResultModel(false, "已提交的单据不能再次保存！"));
+                }
+            }
+
+            //验证客户编码与客户名称是否匹配
+            if (!new K3ItemSv(sb.account).IsCustomerNameAndNoMath(sb.customer_name, sb.customer_no)) {
+                return Json(new SimpleResultModel(false, "购货单位请输入后按回车键搜索后在列表中选择"));
+            }
+            if (!new K3ItemSv(sb.account).IsCustomerNameAndNoMath(sb.plan_firm_name, sb.plan_firm_no)) {
+                return Json(new SimpleResultModel(false, "方案公司请输入后按回车键搜索后在列表中选择"));
+            }
+            if (!new K3ItemSv(sb.account).IsCustomerNameAndNoMath(sb.sea_customer_name, sb.sea_customer_no)) {
+                return Json(new SimpleResultModel(false, "海外客户请输入后按回车键搜索后在列表中选择"));
+            }
+            if (!new K3ItemSv(sb.account).IsCustomerNameAndNoMath(sb.zz_customer_name, sb.zz_customer_no)) {
+                return Json(new SimpleResultModel(false, "最终客户请输入后按回车键搜索后在列表中选择"));
+            }
+
+            if (string.IsNullOrEmpty(sb.clerk_no)) {
+                return Json(new SimpleResultModel(false, "业务员请输入后按回车键搜索后在列表中选择"));
+            }
+            if (string.IsNullOrEmpty(sb.charger_no)) {
+                return Json(new SimpleResultModel(false, "主管请输入后按回车键搜索后在列表中选择"));
+            }
+
+            sb.clear_way = sb.clear_way_name;//历史遗留问题
+
+            if (sb.step_version == 0) {
+                sb.original_user_id = currentUser.userId;
+                sb.create_date = DateTime.Now;
+            }
+            else {
+                sb.update_user_id = currentUser.userId;
+            }
+            
+            SampleBill existedBill = db.SampleBill.Where(s => s.sys_no == sb.sys_no).FirstOrDefault();
+            if (existedBill != null) {
+                sb.original_user_id = existedBill.original_user_id;
+                sb.create_date = existedBill.create_date;
+                
+                //备份
+                BackupData bd = new BackupData();
+                bd.sys_no = sb.sys_no;
+                bd.main_data = utl.ModelToString(existedBill);
+                bd.op_date = DateTime.Now;
+                bd.user_id = existedBill.update_user_id;
+                db.BackupData.InsertOnSubmit(bd);
+
+                //删除旧数据
+                db.SampleBill.DeleteOnSubmit(existedBill);
+            }
+
+            var apply = db.Apply.Where(a => a.sys_no == sb.sys_no).FirstOrDefault();
+            if (apply != null) {
+                apply.p_model = sb.product_model;
+            }
+
+            db.SampleBill.InsertOnSubmit(sb);
+            try {
+                db.SubmitChanges();
+            }
+            catch (Exception ex) {
+                return Json(new SimpleResultModel { suc = false, msg = "保存失败：" + ex.Message });
+            }
+
+            utl.writeEventLog(SAMPLEBILL, "保存成功", sb.sys_no, Request);
+            return Json(new SimpleResultModel() { suc = true });
+                        
         }
 
         //查看
@@ -1296,7 +1457,8 @@ namespace Sale_Order.Controllers
                              product_name = v.product_name,
                              qty = v.sample_qty,
                              cost = v.cost,
-                             deal_price = v.deal_price
+                             deal_price = v.deal_price,
+                             account=v.account
                          };
             List<OrderModel> omList = new List<OrderModel>();
             foreach (var res in result.OrderByDescending(r => r.sys_no))
@@ -1345,7 +1507,8 @@ namespace Sale_Order.Controllers
                     qty = (decimal)res.qty,
                     sys_no = res.sys_no,
                     deal_price = res.deal_price == null ? res.cost : res.deal_price,
-                    apply_date = app.Count() >= 1 ? ((DateTime)app.First().start_date).ToString("yyyy-MM-dd HH:mm") : ""
+                    apply_date = app.Count() >= 1 ? ((DateTime)app.First().start_date).ToString("yyyy-MM-dd HH:mm") : "",
+                    account = res.account
                 });
 
             }
@@ -1365,10 +1528,9 @@ namespace Sale_Order.Controllers
         }
 
         //营业修改
-        public ActionResult SalerModifySampleBill(int id)
+        public ActionResult SalerModifySampleBill(string sysNo)
         {
-            ViewData["sb"] = db.SampleBill.Single(s => s.id == id);
-            ViewData["step"] = 0;
+            ViewData["sb"] = db.SampleBill.Single(s => s.sys_no==sysNo);            
             return View("CreateSampleBill");
         }
 
@@ -1376,8 +1538,10 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter()]
         public ActionResult AuditorModifySampleBill(int apply_id, string sys_no, int step)
         {
-            ViewData["sb"] = db.SampleBill.Single(s => s.sys_no == sys_no);
-            ViewData["step"] = step;
+            var sb = db.SampleBill.Single(s => s.sys_no == sys_no);
+            sb.step_version = step;
+
+            ViewData["sb"] = sb;
             ViewData["applyId"] = apply_id;
             ViewData["blockInfo"] = db.BlockOrder.Where(b => b.sys_no == sys_no).OrderBy(b => b.step).ToList();
             return View("CreateSampleBill");
@@ -1417,6 +1581,7 @@ namespace Sale_Order.Controllers
             apply.ip = Request.UserHostAddress;
             apply.order_type = pre;
             apply.p_model = sb.product_model;
+            apply.account = sb.account;
             db.Apply.InsertOnSubmit(apply);
 
             //2013-7-18:新增一个测试标志，TestFlag为true表示为测试状态，所有审核人都是自己
@@ -1639,6 +1804,7 @@ namespace Sale_Order.Controllers
             apply.ip = Request.UserHostAddress;
             apply.order_type = pre;
             apply.p_model = bl.product_model;
+            apply.account = "光电总部";
             db.Apply.InsertOnSubmit(apply);
 
             //2013-7-18:新增一个测试标志，TestFlag为true表示为测试状态，所有审核人都是自己
@@ -2046,10 +2212,11 @@ namespace Sale_Order.Controllers
         /// <param name="controllerName"></param>
         /// <returns></returns>
         [SessionTimeOutFilter]
-        public ActionResult ChooseCompany(string actionName, string controllerName = "Saler")
+        public ActionResult ChooseCompany(string actionName, string controllerName = "Saler", string companys = "光电总部,光电仁寿")
         {
             ViewData["actionName"] = actionName;
             ViewData["controllerName"] = controllerName;
+            ViewData["companys"] = companys.Split(new char[] { ',' });
             return View();
         }
 

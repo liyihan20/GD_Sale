@@ -465,6 +465,7 @@
     <Content Include="Content\themes\default\images\truly_logo2.png" />
     <Content Include="Content\themes\default\images\truly_logo.jpg" />
     <Content Include="Content\themes\default\images\people_base.jpg" />
+    <Content Include="Content\themes\icons\delete.png" />
     <Content Include="Content\themes\icons\pdf.png" />
     <Content Include="Content\themes\icons\upload.png" />
     <Content Include="Images\tt.jpg" />
@@ -556,6 +557,7 @@
     <Content Include="Scripts\locale\easyui-lang-en.js" />
     <Content Include="Scripts\locale\easyui-lang-zh_CN.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
+    <Content Include="Scripts\MyUploader.js" />
     <Content Include="Scripts\plugins\jquery.parser.js" />
     <Content Include="Scripts\uploadify\jquery.uploadify.min.js" />
     <Content Include="Scripts\img\uploadify-cancel.png" />
@@ -768,6 +770,7 @@
     <Content Include="Views\Saler\CreateSaleOrder.cshtml" />
     <Content Include="Views\Saler\CheckSaleOrder_old.cshtml" />
     <Content Include="Views\Saler\ChooseCompany.cshtml" />
+    <Content Include="Views\Audit\LogEditReturnBill.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?><Database Name="SaleOrder_platform" Class="SaleDBDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
-  <Connection Mode="WebSettings" ConnectionString="Data Source=192.168.100.205;Initial Catalog=SaleOrder_platform;Persist Security Info=True;User ID=crmOrder" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="SaleOrder_platformConnectionString" Provider="System.Data.SqlClient" />
+  <Connection Mode="WebSettings" ConnectionString="Data Source=192.168.100.205;Initial Catalog=SaleOrder_platform;Persist Security Info=True;User ID=lyh" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="SaleOrder_platformConnectionString" Provider="System.Data.SqlClient" />
   <Table Name="dbo.Sale_authority" Member="Authority">
     <Type Name="Authority">
       <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -82,6 +82,7 @@
       <Column Name="order_type" Type="System.String" DbType="Varchar(10)" CanBeNull="true" />
       <Column Name="sys_no" Type="System.String" DbType="Varchar(20)" CanBeNull="true" />
       <Column Name="p_model" Type="System.String" DbType="Varchar(100)" CanBeNull="true" />
+      <Column Name="account" Type="System.String" DbType="varchar(50)" CanBeNull="true" />
       <Association Name="Apply_ApplyDetails" Member="ApplyDetails" ThisKey="id" OtherKey="apply_id" Type="ApplyDetails" />
       <Association Name="User_Apply" Member="User" ThisKey="user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
@@ -361,34 +362,7 @@
       <Column Name="import_stock_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="is_online" Type="System.Boolean" DbType="bit" CanBeNull="true" />
       <Column Name="ch_dep_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Association Name="ReturnBill_ReturnBillDetail" Member="ReturnBill" ThisKey="bill_id" OtherKey="id" Type="ReturnBill" IsForeignKey="true" />
-    </Type>
-  </Table>
-  <Table Name="dbo.Return_bill" Member="ReturnBill">
-    <Type Name="ReturnBill">
-      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="sys_no" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
-      <Column Name="fdate" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
-      <Column Name="return_dept" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="customer_number" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="customer_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
-      <Column Name="has_invoice" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="need_resend" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="user_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="pmc_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
-      <Column Name="express_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="express_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="express_qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
-      <Column Name="all_finish" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-      <Column Name="qty_comment" Type="System.String" DbType="VarChar(2000)" CanBeNull="true" />
-      <Column Name="saler_comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
-      <Column Name="market_comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
-      <Column Name="hide_flag" Type="System.Boolean" DbType="bit" CanBeNull="true" />
-      <Column Name="ch_dep_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="old_sys_no" Type="System.String" DbType="Varchar(20)" CanBeNull="true" />
-      <Association Name="ReturnBill_ReturnBillDetail" Member="ReturnBillDetail" ThisKey="id" OtherKey="bill_id" Type="ReturnBillDetail" />
-      <Association Name="User_ReturnBill" Member="User" ThisKey="user_id" OtherKey="id" Type="User" IsForeignKey="true" />
+      <Association Name="Return_bill_ReturnBillDetail" Member="ReturnBill" ThisKey="bill_id" OtherKey="id" Type="ReturnBill" IsForeignKey="true" />
     </Type>
   </Table>
   <Table Name="dbo.Project_dot_matrix" Member="Project_dot_matrix">
@@ -699,6 +673,8 @@
       <Column Name="product_unit" Type="System.String" DbType="Varchar(20)" CanBeNull="true" />
       <Column Name="currency_name" Type="System.String" DbType="Varchar(20)" CanBeNull="true" />
       <Column Name="contract_po_no" Type="System.String" DbType="Varchar(50)" CanBeNull="true" />
+      <Column Name="account" Type="System.String" DbType="varchar(50)" CanBeNull="true" />
+      <Column Name="clear_way_name" Type="System.String" DbType="varchar(200)" CanBeNull="true" />
       <Association Name="User_ModelContract" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
@@ -854,13 +830,13 @@
       <Association Name="User_ProcessDetail" Member="ProcessDetail" ThisKey="id" OtherKey="user_id" Type="ProcessDetail" />
       <Association Name="User_AgencyAndMarket" Member="AgencyAndMarket" ThisKey="id" OtherKey="market_auditor" Type="AgencyAndMarket" />
       <Association Name="User_BlockOrder" Member="BlockOrder" ThisKey="id" OtherKey="operator" Type="BlockOrder" />
-      <Association Name="User_ReturnBill" Member="ReturnBill" ThisKey="id" OtherKey="user_id" Type="ReturnBill" />
       <Association Name="User_Project_bills" Member="Project_bills" ThisKey="id" OtherKey="user_id" Type="Project_bills" />
       <Association Name="User_CcmModelContract" Member="CcmModelContract" ThisKey="id" OtherKey="user_id" Type="CcmModelContract" />
       <Association Name="User_ModelContract" Member="ModelContract" ThisKey="id" OtherKey="original_user_id" Type="ModelContract" />
       <Association Name="User_Sale_BL_stock" Member="Sale_BL_stock" ThisKey="id" OtherKey="clerk_id" Type="Sale_BL_stock" />
       <Association Name="User_Sale_BL" Member="Sale_BL" ThisKey="id" OtherKey="original_user_id" Type="Sale_BL" />
       <Association Name="User_SampleBill" Member="SampleBill" ThisKey="id" OtherKey="original_user_id" Type="SampleBill" />
+      <Association Name="User_Return_bill" Member="ReturnBill" ThisKey="id" OtherKey="user_id" Type="ReturnBill" />
       <Association Name="Department_User" Member="Department1" ThisKey="department" OtherKey="id" Type="Department" IsForeignKey="true" />
     </Type>
   </Table>
@@ -1102,6 +1078,9 @@
       <Column Name="contract_po_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="charger_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="charger_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="account" Type="System.String" DbType="varchar(50)" CanBeNull="true" />
+      <Column Name="clear_way_no" Type="System.String" DbType="varchar(50)" CanBeNull="true" />
+      <Column Name="clear_way_name" Type="System.String" DbType="varchar(200)" CanBeNull="true" />
       <Association Name="User_SampleBill" Member="User" ThisKey="original_user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
@@ -1156,6 +1135,35 @@
       <Column Name="bill_type" Type="System.String" DbType="VarChar(10)" CanBeNull="true" />
       <Column Name="dep_name" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
       <Column Name="username" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Return_bill" Member="ReturnBill">
+    <Type Name="ReturnBill">
+      <Column Name="id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="sys_no" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="fdate" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
+      <Column Name="return_dept" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="customer_number" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="customer_name" Type="System.String" DbType="VarChar(100)" CanBeNull="true" />
+      <Column Name="has_invoice" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="need_resend" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="user_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="pmc_id" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="express_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="express_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="express_qty" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="all_finish" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="qty_comment" Type="System.String" DbType="VarChar(2000)" CanBeNull="true" />
+      <Column Name="saler_comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="market_comment" Type="System.String" DbType="VarChar(500)" CanBeNull="true" />
+      <Column Name="hide_flag" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
+      <Column Name="ch_dep_name" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
+      <Column Name="old_sys_no" Type="System.String" DbType="VarChar(20)" CanBeNull="true" />
+      <Column Name="express_fee" Type="System.Decimal" DbType="Decimal(10,2)" CanBeNull="true" />
+      <Column Name="who_to_blame" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Association Name="Return_bill_ReturnBillDetail" Member="ReturnBillDetail" ThisKey="id" OtherKey="bill_id" Type="ReturnBillDetail" />
+      <Association Name="User_Return_bill" Member="User" ThisKey="user_id" OtherKey="id" Type="User" IsForeignKey="true" />
     </Type>
   </Table>
   <Function Name="dbo.getGroupBelongToUnit" Method="getGroupBelongToUnit">
@@ -1454,13 +1462,6 @@
       <Column Name="audit_result" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </ElementType>
   </Function>
-  <Function Name="dbo.isCustomerNameAndNoMath" Method="isCustomerNameAndNoMath">
-    <Parameter Name="name" Type="System.String" DbType="NVarChar(100)" />
-    <Parameter Name="no" Type="System.String" DbType="VarChar(50)" />
-    <ElementType Name="isCustomerNameAndNoMathResult">
-      <Column Name="suc" Type="System.Boolean" DbType="Bit" CanBeNull="true" />
-    </ElementType>
-  </Function>
   <Function Name="dbo.getK3Emp" Method="getK3Emp">
     <Parameter Name="empInfo" Type="System.String" DbType="NVarChar(50)" />
     <Parameter Name="account" Type="System.String" DbType="VarChar(10)" />
@@ -1505,5 +1506,11 @@
     <ElementType Name="getK3CommissionRateResult">
       <Column Name="rate" Type="System.Decimal" DbType="Decimal(5,2)" CanBeNull="true" />
     </ElementType>
+  </Function>
+  <Function Name="dbo.isCustomerNameAndNoMath" Method="isCustomerNameAndNoMath">
+    <Parameter Name="name" Type="System.String" DbType="NVarChar(100)" />
+    <Parameter Name="no" Type="System.String" DbType="VarChar(50)" />
+    <Parameter Name="account" Type="System.String" DbType="VarChar(50)" />
+    <Return Type="System.Int32" />
   </Function>
 </Database>

@@ -322,7 +322,7 @@ namespace Sale_Order.Utils
             if (busDepName.Contains("客服")) {
                 prefix += "KF";
             }
-            if ("国内贸易".Equals(tradeTypeName) && (busDepName.Contains("CCM") || busDepName.Contains("FPI"))) {
+            if ("国内贸易".Equals(tradeTypeName) && busDepName.Contains("FPI")) {
                 prefix = "T" + prefix;
             }
 
@@ -330,18 +330,27 @@ namespace Sale_Order.Utils
         }
 
         //样品单编号
-        public string getYPBillNo(string currencyNo, bool isFree)
+        public string getYPBillNo(string currencyNo, bool isFree,string account="光电总部")
         {
             string prefix = "";
             int shortYear = int.Parse(DateTime.Now.ToString("yy"));
             if (!"RMB".Equals(currencyNo)) {
                 prefix = "H";
             }
+            if ("光电总部".Equals(account)) {
+                prefix += "G";
+            }else if("光电仁寿".Equals(account)){
+                prefix += "R";
+            }
+            else if ("光电科技".Equals(account)) {
+                prefix += "K";
+            }
+
             if (isFree) {
-                prefix += "GYPMF";
+                prefix += "YPMF";
             }
             else {
-                prefix += "GSWYP";
+                prefix += "SWYP";
             }
             if ("RMB".Equals(currencyNo)) {
                 prefix += "-" + shortYear;
@@ -564,8 +573,7 @@ namespace Sale_Order.Utils
             bool sendEmail = bool.Parse(ConfigurationManager.AppSettings["SendEmail"]);
             if (!sendEmail)
                 return true;
-
-
+            
             Apply app = db.Apply.Single(ap => ap.id == applyId);
             var billType = db.Sale_BillTypeName.Where(t => t.p_type == app.order_type).FirstOrDefault();
 
@@ -1873,7 +1881,7 @@ namespace Sale_Order.Utils
                         }
                         else
                         {
-                            return "方案公司不存在或不唯一，保存失败。";
+                            return "方案公司不存在或不唯一，保存失败。"; 
                         }
                     }
                     if (db.customerNameAndNoIsFit(mc.zz_customer_no, mc.zz_customer_name).Count() < 1)
@@ -2029,28 +2037,6 @@ namespace Sale_Order.Utils
             {
                 salerId = db.Apply.Where(a => a.sys_no == sb.sys_no).First().user_id;
             }
-
-            //下单组审批，检查订单号的合法性,2018年开始自动生成编号
-            //if (stepVersion == 4)
-            //{
-            //    if (string.IsNullOrWhiteSpace(sb.bill_no))
-            //    {
-            //        return "下单组审核必须填写订单号，保存失败。";
-            //    }
-            //    else if (db.SampleBill.Where(m => m.sys_no != sb.sys_no && m.bill_no == sb.bill_no).Count() > 0)
-            //    {
-            //        return "订单号在下单系统已存在，保存失败。";
-            //    }
-            //    else
-            //    {
-            //        bool? isExistedInK3 = null;
-            //        db.isDublicatedBillNo(sb.bill_no, "SB", ref isExistedInK3);
-            //        if (isExistedInK3 == true)
-            //        {
-            //            return "订单编号在K3已经存在，保存失败。";
-            //        }
-            //    }
-            //}
 
             //检查字段合法性
             //方案公司、终端公司、海外客户

@@ -16,7 +16,7 @@ using System.Web;
 using System.Web.Mvc;
 
 
-namespace TestCRM.Controllers.Sales
+namespace Sale_Order.Controllers
 {
     public class FilesController : BaseController
     {
@@ -554,6 +554,16 @@ namespace TestCRM.Controllers.Sales
             catch (Exception ex) {
                 return Json(new SimpleResultModel() { suc = false, msg = ex.Message });
             }
+
+            //上传成功后，在附件记录表增加记录
+            db.Sale_HC_fileInfo.InsertOnSubmit(new Sale_HC_fileInfo()
+            {
+                file_name = file.FileName,
+                uploader = currentUser.realName,
+                sys_no = sysNum
+            });
+            db.SubmitChanges();
+
             return Json(new SimpleResultModel() { suc = true });
         }
 
@@ -561,10 +571,17 @@ namespace TestCRM.Controllers.Sales
         public JsonResult RemoveUploadedFile(string sysNum, string fileName)
         {
             try {
+                //删除物理文件
                 var uploadFolder = Path.Combine(SomeUtils.getOrderPath(sysNum), sysNum);
                 string fileDirectory = Path.Combine(uploadFolder, fileName);
                 if (System.IO.File.Exists(fileDirectory)) {
                     System.IO.File.Delete(fileDirectory);
+                }
+                //删除文件记录
+                var file = db.Sale_HC_fileInfo.Where(f => f.sys_no == sysNum && f.file_name == fileName).FirstOrDefault();
+                if (file != null) {
+                    db.Sale_HC_fileInfo.DeleteOnSubmit(file);
+                    db.SubmitChanges();
                 }
             }
             catch (Exception ex) {
@@ -591,7 +608,23 @@ namespace TestCRM.Controllers.Sales
             }
         }
 
-        
+        //查询已上传附件
+        public JsonResult GetUploadedFiles(string sysNum)
+        {
+            var fileInfo = db.Sale_HC_fileInfo.Where(h => h.sys_no == sysNum).ToList();
+            var fileResult = (from fi in fileInfo
+                              join at in utl.GetAttachmentInfo(sysNum) on fi.file_name equals at.file_name
+                              select new AttachmentModelNew()
+                              {
+                                  file_name = fi.file_name,
+                                  file_id = at.file_id,
+                                  file_size = at.file_size,
+                                  uploader = fi.uploader,
+                                  file_status = "已上传",
+                              }).Distinct().ToList();
+
+            return Json(fileResult);
+        }
 
     }
 

@@ -38,7 +38,9 @@
         function getFormComboboxText($form) {
             var obj = {};
             $form.find(".combobox-f,.combogrid-f").each(function (i, n) {
-                obj[$(n).attr("id").replace(/_no$|_id$/, "_name")] = $(n).combobox("getText");
+                if ($(n).attr("id")) {
+                    obj[$(n).attr("id").replace(/_no$|_id$/, "_name")] = $(n).combobox("getText");
+                }
             });
             return obj;
         }

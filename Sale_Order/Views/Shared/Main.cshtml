@@ -67,17 +67,17 @@
             <span id="logOut">@Html.ActionLink(Html.Lang("log_out"), "LogOut", "Account")</span>
         </div>
     </div>
-    <div region="south" border="false" style="height: 20px; padding: 3px; background: #efefef;">
+    <div region="south" border="false" style="height: 22px; padding: 3px; background: #efefef;">
         <div>
              <span style="margin:0 50px;">@Html.Lang("current_log_user"): @ViewData["username"]</span>
              <span style="margin:0 50px;">@Html.Lang("department"): @ViewData["depName"]</span>   
              <span style="margin:0 0 0 50px;">@Html.Lang("accountset"): 信利光电股份有限公司</span>  
         </div>
     </div>
-    <div region="west" split="true" title="@Html.Lang("west_menu")" style="width:200px;padding:1px;">
+    <div region="west" split="true" title="@Html.Lang("west_menu")" style="width:210px;padding:1px;">
         @Html.Partial("_LoginPartial") 
     </div>
-    <div id="main_layout" region="center" style="+position:relative;overflow:hidden" title="@Html.Lang("main")">
+    <div id="main_layout" region="center" style="overflow:hidden" title="@Html.Lang("main")">
         <iframe frameborder="0" style="width:100%;height:100%;padding:0;margin:0;" src="@Url.Content("~/Home/Index")">
         </iframe>
     </div>

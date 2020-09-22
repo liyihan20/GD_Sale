@@ -7,6 +7,7 @@ using Sale_Order.Utils;
 using Sale_Order.Filter;
 using Sale_Order.Models;
 using System.Configuration;
+using Newtonsoft.Json;
 
 namespace Sale_Order.Controllers
 {
@@ -294,7 +295,7 @@ namespace Sale_Order.Controllers
                 detail.has_red_qty = 0;
                 detail.has_replace_qty = 0;
                 details.Add(detail);
-            }
+            }            
 
             try {
                 //如果已存在，则删除
@@ -601,6 +602,7 @@ namespace Sale_Order.Controllers
             apply.ip = Request.UserHostAddress;
             apply.order_type = "TH";
             apply.p_model = db.VwReturnBill.Where(v => v.sys_no == sys_no).First().product_model;
+            apply.account = "光电总部";
 
             db.Apply.InsertOnSubmit(apply);
 

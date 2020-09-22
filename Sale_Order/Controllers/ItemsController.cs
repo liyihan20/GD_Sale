@@ -470,14 +470,15 @@ namespace Sale_Order.Controllers
        
 
         //获取可以上传品质报告的客退编号
-        public JsonResult getUnfinishedSysNo() {            
+        public JsonResult getUnfinishedSysNo() {
             var result = (from ad in db.ApplyDetails
-                         where ad.user_id == currentUser.userId
-                         && ad.Apply.success == null
-                         && ad.pass == true
-                         select new { name = ad.Apply.sys_no }).ToList();
+                          join a in db.Apply on ad.apply_id equals a.id
+                          where ad.user_id == currentUser.userId
+                          && ad.pass == true
+                          && a.success == null
+                          && a.order_type == "TH"
+                          select new { name = ad.Apply.sys_no }).Distinct().ToList();
             return Json(result);
-
         }
 
         public JsonResult GetDotMatrix() {

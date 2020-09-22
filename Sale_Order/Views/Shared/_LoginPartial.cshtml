@@ -12,8 +12,8 @@
                 <ul>
                     @if (Array.IndexOf(powers, Powers.new_order.ToString()) != -1)
                     {
-                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder&companys=光电总部,光电仁寿,光电科技"><span>@Html.Lang("new_sale_order")</span> </li>   
-                        <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>                
+                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder&companys=光电总部,光电仁寿"><span>@Html.Lang("new_sale_order")</span> </li>   
+                        <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>
                     }
                     @if (Array.IndexOf(powers, Powers.ceo_excel.ToString()) != -1)
                     {

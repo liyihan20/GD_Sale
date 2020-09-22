@@ -55,6 +55,12 @@ function returnNumber(){
     function getYpNumber() {
         var currencyNo = $("#currencyNo").combobox("getValue");
         var isFree = $("#isFree").combobox("getValue");
+        var account = $("#account").combobox("getValue");
+
+        if (account == "") {
+            alert("必须选择公司");
+            return;
+        }
         if (currencyNo == "") {
             alert("必须选择币别");
             return;
@@ -63,7 +69,7 @@ function returnNumber(){
             alert("必须选择是否免费");
             return;
         }
-        $.post("@Url.Content("~/Authority/GetNextSBBillNumber")", {currencyNo:currencyNo,isFree:isFree},
+        $.post("@Url.Content("~/Authority/GetNextSBBillNumber")", {currencyNo:currencyNo,isFree:isFree,account:account},
         function (result) {
             if (result.suc) {
                 $("#ypNumber").val(result.data);
@@ -157,6 +163,9 @@ function returnNumber(){
     <table>
         <tr>
             <td>
+                公司:
+            </td>
+            <td>
                 币别:
             </td>
             <td>
@@ -170,6 +179,20 @@ function returnNumber(){
             </td>
         </tr>
         <tr>
+            <td>
+                <input class="easyui-combobox" id="account" style="width: 80px" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 'auto',
+                        editable:false,
+		                data: [{
+			                label: '光电总部',
+			                value: '光电总部'
+		                },{
+			                label: '光电仁寿',
+			                value: '光电仁寿'
+		                }]" />
+            </td>
             <td>
                 <input class="easyui-combobox" id="currencyNo" style="width: 80px" data-options="
 		                valueField: 'value',

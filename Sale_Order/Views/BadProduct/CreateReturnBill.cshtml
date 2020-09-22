@@ -4,6 +4,19 @@
     ReturnBill bill = (ReturnBill)ViewData["bill"];
     List<ReturnBillDetail> details = (List<ReturnBillDetail>)ViewData["details"];
 }
+<link rel="stylesheet" href="@Url.Content("~/Scripts/webuploader/webuploader.css")" />
+<script src="@Url.Content("~/Scripts/webuploader/webuploader.withoutimage.js")"></script>
+<script src="@Url.Content("~/Scripts/MyUploader.js")"></script>
+<script>
+    $(function () {
+        $("#file_div").myUploader({
+            sysNum: "@bill.sys_no",
+            uploadUser: "@ViewData["userName"]",
+            canUpload:true
+        });
+    })
+</script>
+
 <script type="text/javascript">    
     $(function () {
         var isCurrentMonth='@ViewData["isCurrentMonth"]';
@@ -192,6 +205,13 @@
             if(!$('#bill_form').form('validate')){
                 return;
             }
+
+            var fileInfo = $("#file_div").GetMyFileInfo("@bill.sys_no", "@ViewData["userName"]");
+            if (fileInfo.length < 1) {
+                tip("必须上传附件才能保存");
+                return;
+            }
+
             handling();
 
             //表体字段：
@@ -248,7 +268,7 @@
                     param.product_model=product_model;
                     param.aux_qty=aux_qty;
                     param.qty=qty;
-                    param.can_apply_qty=can_apply_qty;
+                    param.can_apply_qty = can_apply_qty;
 //                    param.customer_back_qty=customer_back_qty;
 //                    param.qc_good_qty=qc_good_qty;
 //                    param.qc_bad_qty=qc_bad_qty;
@@ -350,15 +370,15 @@
        
 
 </script>
+
 <form id="bill_form" method="post" action="">
 <input type="hidden" id="sys_no" name="sys_no" value="@bill.sys_no" />
 <input type="hidden" name="customer_number" value="@bill.customer_number" />
 <input type="hidden" name="customer_name" value="@bill.customer_name" />
-<div id="order_div" class="easyui-panel" title="新增退货申请" style="width: 780px; padding: 10px;
-    background: #fafafa; +position: relative;">
+<div id="order_div" class="easyui-panel" title="新增退货申请" style="width: 780px; padding: 10px;background: #fafafa;">
     <div>
         @*表头*@
-        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+        <table border="0" cellpadding="0" cellspacing="3" width="740">
             <tr>
                 <td>
                     退货日期:
@@ -505,7 +525,7 @@
     <br />
     <div>
         @*表尾*@
-        <table border="0" cellpadding="0" cellspacing="3px" width="740px">
+        <table border="0" cellpadding="0" cellspacing="3" width="740">
             <tr>
                 <td>
                     快递公司名称:
@@ -544,10 +564,14 @@
             </tr>
         </table>
     </div>
+
+    <div id="file_div" class="easyui-panel" title="附件清单" style="width: 740px;height:188px;">
+        @*存放附件table*@
+    </div>
+
     <div align="center">
-        <a id="saveAllBut" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">
-            保存表单</a> <a id="submitApply" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">
-                提交申请</a>
+        <a id="saveAllBut" class="easyui-linkbutton" iconcls='icon-save' style="margin: 10px 20px;">保存表单</a> 
+        <a id="submitApply" class="easyui-linkbutton" iconcls='icon-document' style="margin: 10px 20px;">提交申请</a>
     </div>
 
     <div style="line-height:18px;margin-top:8px;">

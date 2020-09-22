@@ -1390,10 +1390,10 @@ namespace Sale_Order.Controllers
             return Json(result);
         }
 
-        public JsonResult GetNextSBBillNumber(string currencyNo, bool isFree)
+        public JsonResult GetNextSBBillNumber(string currencyNo, bool isFree,string account="光电总部")
         {
             try {
-                string billNo = utl.getYPBillNo(currencyNo, isFree);
+                string billNo = utl.getYPBillNo(currencyNo, isFree, account);
                 utl.writeEventLog("手动获取样品单编号", "获取成功:" + billNo, "", Request);
                 return Json(new { suc = true, data = billNo, msg = "样品单编号获取成功" });
             }
@@ -1574,6 +1574,7 @@ namespace Sale_Order.Controllers
                 ViewBag.tip = " 没有权限";
                 return View("Tip");
             }
+            ViewData["userName"] = currentUser.realName;
             return View();
         }
 

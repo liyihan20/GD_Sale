@@ -5,6 +5,18 @@
     List<ReturnBillDetail> details = (List<ReturnBillDetail>)ViewData["details"];
     var sys_no = bill.sys_no;
 }
+<link rel="stylesheet" href="@Url.Content("~/Scripts/webuploader/webuploader.css")" />
+<script src="@Url.Content("~/Scripts/webuploader/webuploader.withoutimage.js")"></script>
+<script src="@Url.Content("~/Scripts/MyUploader.js")"></script>
+<script>
+    $(function () {
+        $("#file_div").myUploader({
+            sysNum: "@bill.sys_no",            
+            canUpload:false
+        });
+    })
+</script>
+
 <script type="text/javascript">
     $(function () {
         $("#bill_detail").datagrid({
@@ -242,6 +254,9 @@
                         </td>                        
                     </tr>
                 </table>
+            </div>
+            <div id="file_div" class="easyui-panel" title="附件清单" style="width: 740px;height:188px;">
+                @*存放附件table*@
             </div>
             <div id="downloadPanel">
                 <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 750px;"

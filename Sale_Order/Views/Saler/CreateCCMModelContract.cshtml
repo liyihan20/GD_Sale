@@ -1,7 +1,13 @@
 ﻿@using Sale_Order.Models;
 @{
-    CcmModelContract cmc = (CcmModelContract)ViewData["cmc"];
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    CcmModelContract cmc = (CcmModelContract)ViewData["cmc"];    
 }
+<style type="text/css">
+    #order_div input {
+        width: 140px;
+    }
+</style>
 <script type="text/javascript">
 
     $(function () {
@@ -356,6 +362,7 @@ else
                     param.oversea_customer_name=$('#oversea_customer_no').combogrid('getText');
                 },
                 success: function (data) {
+                    console.log(data);
                     var result = eval('('+ data +')');
                     if(result.suc){
                         $('#okFlag').val('true');
@@ -491,18 +498,17 @@ else
     }
     <div data-options="region:'center'">
         <form id="order_form" method="post">
-            <div id="order_div" class="easyui-panel" title="@Html.Lang("new_create_model_contract")" style="width: 840px; padding: 10px;
-    background: #fafafa;+position: relative;">
+            <div id="order_div" class="easyui-panel" title="@Html.Lang("new_create_model_contract")" style="width: 940px; padding: 10px; background: #fafafa;">
                 <div>
                     @*表头*@
-                    <table border="0" cellpadding="0" cellspacing="3px" width="800px">
+                    <table border="0" cellpadding="0" cellspacing="3" width="900">
                         @if (4 == cmc.step_version) {
                             <tr>
                                 <td>
                                     @Html.Lang("order_no"):
                                 </td>
                                 <td>
-                                    <input type="text" name="old_bill_no" id="old_bill_no" style="width:115px" value="@cmc.old_bill_no" />
+                                    <input class="easyui-textbox" name="old_bill_no" id="old_bill_no" alue="@cmc.old_bill_no" />
                                 </td>
                                 @for (var i = 0; i < 6; i++) {
                                     <td></td>
@@ -514,15 +520,15 @@ else
                                 @Html.Lang("order_date"):
                             </td>
                             <td>
-                                <input class="easyui-datebox" name="bill_date" style="width: 120px" required="true" editable="false" value="@(((DateTime)cmc.bill_date).ToString("yyyy-MM-dd"))" />
+                                <input class="easyui-datebox" name="bill_date" required="true" editable="false" value="@(((DateTime)cmc.bill_date).ToString("yyyy-MM-dd"))" />
                             </td>
                             <td>
                                 @Html.Lang("pro_type"):
                             </td>
                             <td>
-                                @*<input type="text" name="product_type" style="width: 115px" value="@cmc.product_type" readonly="readonly" />*@
+                                @*<input class="easyui-textbox" name="product_type"  value="@cmc.product_type" readonly="readonly" />*@
 
-                                <input class="easyui-combobox" id="product_type" name="product_type" style="width: 120px"
+                                <input class="easyui-combobox" id="product_type" name="product_type" 
                                data-options="textField:'name',valueField:'name', required:true,editable:false,"
                                url="@Url.Content("~/Items/getItems?what=product_type")" value="@cmc.product_type"
                                 />
@@ -531,7 +537,7 @@ else
                                 @Html.Lang("model_type"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" style="width: 120px" name="model_type" id="model_type"
+                                <input class="easyui-combobox"  name="model_type" id="model_type"
                                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
                                            {value:'开模'},{value:'改模'}
@@ -541,7 +547,7 @@ else
                                 @Html.Lang("sys_num"):
                             </td>
                             <td>
-                                <input type="text" name="sys_no" id="sys_no" style="width:115px" readonly="readonly" value="@cmc.sys_no" />
+                                <input class="easyui-textbox" name="sys_no" id="sys_no" readonly="readonly" value="@cmc.sys_no" />
                             </td>
                         </tr>
                         <tr>
@@ -549,26 +555,26 @@ else
                                 @Html.Lang("agency"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" name="agency_no" style="width: 120px" editable="false"
+                                <input class="easyui-combobox" name="agency_no"  editable="false"
                                        panelwidth="140" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=agency")" required="true" value="@cmc.agency_no" />
                             </td>
                             <td>
                                 @Html.Lang("clerk"):
                             </td>
                             <td>
-                                <input id="clerk_no" class="remotebox" name="clerk_no" style="width: 120px" value="@cmc.clerk_no" />
+                                <input id="clerk_no" class="remotebox" name="clerk_no"  value="@cmc.clerk_no" />
                             </td>
                             <td>
                                 @Html.Lang("tel_num"):
                             </td>
                             <td>
-                                <input class="easyui-validatebox" name="telephone" style="width: 115px" required="true" value="@cmc.telephone" />
+                                <input class="easyui-textbox" name="telephone"  required="true" value="@cmc.telephone" />
                             </td>
                             <td>
                                 EMAIL:
                             </td>
                             <td>
-                                <input class="easyui-validatebox" name="email" style="width: 115px" data-options="validType:'email',required:true" value="@cmc.email" />
+                                <input class="easyui-textbox" name="email"  data-options="validType:'email',required:true" value="@cmc.email" />
                             </td>
                         </tr>
                         <tr>
@@ -576,27 +582,27 @@ else
                                 @Html.Lang("project_team"):
                             </td>
                             <td>
-                                <input id="project_team" name="project_team" style="width: 120px" />
+                                <input id="project_team" name="project_team"  />
                             </td>
                             @*<td>
                                 @Html.Lang("quotation_clerk"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id" style="width: 120px" editable="false"
+                                <input class="easyui-combobox" id="quotation_clerk_id" name="quotation_clerk_id"  editable="false"
                                        valuefield="value" textfield="text" url="@Url.Content("~/Items/GetGroupMembers?group_name=报价员组")" value="@cmc.quotation_clerk_id" />
                             </td>*@
                             <td>
                                 @Html.Lang("quote_num"):
                             </td>
                             <td>
-                                <input class="easyui-validatebox" name="quote_num" id="quote_num" style="width: 115px" required="true" value="@cmc.quote_num" />
+                                <input class="easyui-textbox" name="quote_num" id="quote_num"  required="true" value="@cmc.quote_num" />
                             </td>
                             <td>
                                 @Html.Lang("currency"):
                             </td>
                             <td>
                                 <input id="currency_no" class="easyui-combobox" name="currency_no" panelheight="150" url="@Url.Content("~/Items/getItems?what=currency")" editable="false"
-                                       valuefield="no" textfield="name" style="width: 120px" required="true" value="@cmc.currency_no" />
+                                       valuefield="no" textfield="name"  required="true" value="@cmc.currency_no" />
                             </td>
                         </tr>
                         <tr>
@@ -605,26 +611,26 @@ else
                             </td>
                             <td>
                                 <input class="easyui-combobox" id="clear_way" name="clear_way" url="@Url.Content("~/Items/getItems?what=clearing_way")"
-                                       valuefield="name" textfield="name" style="width: 120px" panelwidth="240" required="true" value="@cmc.clear_way" />
+                                       valuefield="name" textfield="name"  panelwidth="240" required="true" value="@cmc.clear_way" />
                             </td>
                             <td>
                                 @Html.Lang("delivery_date"):
                             </td>
                             <td>
-                                <input id="fetch_date" class="easyui-datebox" name="fetch_date" style="width: 120px" required="true" editable="false" value="@(cmc.fetch_date == null ? "" : ((DateTime)cmc.fetch_date).ToString("yyyy-MM-dd"))" />
+                                <input id="fetch_date" class="easyui-datebox" name="fetch_date"  required="true" editable="false" value="@(cmc.fetch_date == null ? "" : ((DateTime)cmc.fetch_date).ToString("yyyy-MM-dd"))" />
                             </td>
                             <td>
                                 @Html.Lang("delivery_place"):
                             </td>
                             <td>
                                 <input class="easyui-combobox" id="fetch_add_no" name="fetch_add_no" url="@Url.Content("~/Items/getItems?what=delivery_place")" editable="false"
-                                       valuefield="no" textfield="name" panelheight="130" panelwidth="200" style="width: 120px" required="true" value="@cmc.fetch_add_no" />
+                                       valuefield="no" textfield="name" panelheight="130" panelwidth="200"  required="true" value="@cmc.fetch_add_no" />
                             </td>
                             <td>
                                 @Html.Lang("trade_type"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" id="trade_type_no" name="trade_type_no" style="width: 120px" editable="false"
+                                <input class="easyui-combobox" id="trade_type_no" name="trade_type_no"  editable="false"
                                        panelheight="100" valuefield="no" textfield="name" url="@Url.Content("~/Items/getItems?what=trade_type")" required="true" value="@cmc.trade_type_no" />
                             </td>
                         </tr>
@@ -640,20 +646,20 @@ else
                                     <input type="hidden" name="product_unit" id="product_unit" value="@cmc.product_unit" />
                                 }
                                 else {
-                                    <input class="easyui-validatebox" name="product_model" required="true" style="width: 300px" value="@cmc.product_model" />
+                                    <input class="easyui-textbox" name="product_model" required="true" style="width: 300px" value="@cmc.product_model" />
                                 }
                             </td>
                             <td>
                                 @Html.Lang("customer_name"):
                             </td>
                             <td>
-                                <input id="customer_no" class="customerbox" name="customer_no" style="width: 120px" panelwidth="240px" value="@cmc.customer_no" />
+                                <input id="customer_no" class="customerbox" name="customer_no"  panelwidth="240px" value="@cmc.customer_no" />
                             </td>
                             <td>
                                 @Html.Lang("plan_firm"):
                             </td>
                             <td>
-                                <input id="plan_firm_no" class="customerbox" name="plan_firm_no" style="width: 120px" panelwidth="240px" value="@cmc.plan_firm_no" />
+                                <input id="plan_firm_no" class="customerbox" name="plan_firm_no"  panelwidth="240px" value="@cmc.plan_firm_no" />
                             </td>
                         </tr>
                         <tr>
@@ -661,19 +667,19 @@ else
                                 @Html.Lang("end_customer"):
                             </td>
                             <td>
-                                <input id="zz_customer_no" class="customerbox" name="zz_customer_no" style="width: 120px" panelwidth="240px" value="@cmc.zz_customer_no" />
+                                <input id="zz_customer_no" class="customerbox" name="zz_customer_no"  panelwidth="240px" value="@cmc.zz_customer_no" />
                             </td>
                             <td>
                                 @Html.Lang("oversea_customer"):
                             </td>
                             <td>
-                                <input id="oversea_customer_no" class="customerbox" name="oversea_customer_no" style="width: 120px" panelwidth="240px" value="@cmc.oversea_customer_no" />
+                                <input id="oversea_customer_no" class="customerbox" name="oversea_customer_no"  panelwidth="240px" value="@cmc.oversea_customer_no" />
                             </td>
                             <td>
                                 @Html.Lang("is_free"):
                             </td>
                             <td>
-                                <input class="easyui-combobox" style="width: 120px" name="is_free" id="is_free"
+                                <input class="easyui-combobox"  name="is_free" id="is_free"
                                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
                                            {value:'收费'},{value:'免费'}
@@ -683,7 +689,7 @@ else
                                 @Html.Lang("qty"):
                             </td>
                             <td>
-                                <input id="qty" class="easyui-numberbox" name="qty" style="width: 115px" required="true" value="@cmc.qty" />
+                                <input id="qty" class="easyui-numberbox" name="qty"  required="true" value="@cmc.qty" />
                             </td>
                         </tr>
                         <tr>
@@ -691,7 +697,7 @@ else
                                 @Html.Lang("price"):
                             </td>
                             <td>
-                                <input id="price" class="easyui-numberbox" name="price" style="width: 115px" precision="2" required="true" value="@cmc.price" />
+                                <input id="price" class="easyui-numberbox" name="price"  precision="2" required="true" value="@cmc.price" />
                             </td>
                             <td>
                                 @Html.Lang("model_fee"):
@@ -705,17 +711,17 @@ else
                             </td>
                             <td colspan="2">
                                 @if (!string.IsNullOrWhiteSpace(cmc.count_in_bus_dep)) {
-                                    <input type="checkbox" name="count_in_bus_dep" value="计入事业部" checked="checked" /><span>计入事业部</span>
+                                    <input type="checkbox" name="count_in_bus_dep" value="计入事业部" checked="checked" style="width:20px;" /><span>计入事业部</span>
                                 }
                                 else {
-                                    <input type="checkbox" name="count_in_bus_dep" value="计入事业部" /><span>计入事业部</span>
+                                    <input type="checkbox" name="count_in_bus_dep" value="计入事业部" style="width:20px;"  /><span>计入事业部</span>
                                 }
                                 &nbsp;
                                 @if (!string.IsNullOrWhiteSpace(cmc.special_model)) {
-                                    <input type="checkbox" name="special_model" value="特殊开模单" checked="checked" /><span>特殊开模单</span>
+                                    <input type="checkbox" name="special_model" value="特殊开模单" checked="checked" style="width:20px;" /><span>特殊开模单</span>
                                 }
                                 else {
-                                    <input type="checkbox" name="special_model" value="特殊开模单" /><span>特殊开模单</span>
+                                    <input type="checkbox" name="special_model" value="特殊开模单" style="width:20px;" /><span>特殊开模单</span>
                                 }
                             </td>
                         </tr>
@@ -724,43 +730,43 @@ else
                                 @Html.Lang("customer_model"):
                             </td>
                             <td>
-                                <input id="project_name" class="easyui-textbox" name="project_name" style="width: 115px" required="true" value="@cmc.project_name" />
+                                <input id="project_name" class="easyui-textbox" name="project_name"  required="true" value="@cmc.project_name" />
                             </td>
                             <td>
                                 @Html.Lang("project_model"):
                             </td>
                             <td>
-                                <input id="project_model" class="easyui-textbox" name="project_model" style="width: 115px" required="true" value="@cmc.project_model" />
+                                <input id="project_model" class="easyui-textbox" name="project_model"  required="true" value="@cmc.project_model" />
                             </td>
                             <td>
                                 @Html.Lang("pic_number"):
                             </td>
                             <td>
-                                <input id="pic_number" class="easyui-textbox" name="pic_number" style="width: 115px" required="true" value="@cmc.pic_number" />
+                                <input id="pic_number" class="easyui-textbox" name="pic_number"  required="true" value="@cmc.pic_number" />
                             </td>
                             <td>
                                 @Html.Lang("pic_version"):
                             </td>
                             <td>
-                                <input id="pic_version" class="easyui-validatebox" name="pic_version" style="width: 115px" required="true" value="@cmc.pic_version" />
+                                <input id="pic_version" class="easyui-textbox" name="pic_version"  required="true" value="@cmc.pic_version" />
                             </td>
                         </tr>
                         <tr>
                             <td colspan="4">
                                 客户主板平台商或DSP型号:
-                                <input id="DSP_model" class="easyui-validatebox" name="DSP_model" style="width: 220px" value="@cmc.DSP_model" />
+                                <input id="DSP_model" class="easyui-textbox" name="DSP_model" style="width: 220px" value="@cmc.DSP_model" />
                             </td>
                             <td>
                                 @Html.Lang("pro_use"):
                             </td>
                             <td>
-                                <input class="easyui-validatebox" style="width: 115px" name="product_use" id="product_use" value="@cmc.product_use" required="true" />
+                                <input class="easyui-textbox"  name="product_use" id="product_use" value="@cmc.product_use" required="true" />
                             </td>
                             <td>
                                 @Html.Lang("plan_production_date"):
                             </td>
                             <td>
-                                <input class="easyui-datebox" name="plan_start_date" id="plan_start_date" style="width: 115px;" required="true" editable="false" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))" />
+                                <input class="easyui-datebox" name="plan_start_date" id="plan_start_date" required="true" editable="false" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))" />
                             </td>
                         </tr>
                         <tr>
@@ -768,7 +774,7 @@ else
                                 @Html.Lang("end_time"):
                             </td>
                             <td>
-                                <input class="easyui-datebox" name="plan_finish_date" id="plan_finish_date" style="width: 115px" required="true" editable="false" value="@(cmc.plan_finish_date == null ? "" : ((DateTime)cmc.plan_finish_date).ToString("yyyy-MM-dd"))" />
+                                <input class="easyui-datebox" name="plan_finish_date" id="plan_finish_date"  required="true" editable="false" value="@(cmc.plan_finish_date == null ? "" : ((DateTime)cmc.plan_finish_date).ToString("yyyy-MM-dd"))" />
                             </td>
                             <td>
                                 @Html.Lang("estimated_quantity"):
@@ -781,13 +787,13 @@ else
                                 @Html.Lang("contract_num"):
                             </td>
                             <td>
-                                <input id="contract_po_no" class="easyui-validatebox" name="contract_po_no" style="width: 115px" value="@cmc.contract_po_no" />
+                                <input id="contract_po_no" class="easyui-textbox" name="contract_po_no"  value="@cmc.contract_po_no" />
                             </td>
                             <td>
                                 @Html.Lang("biller"):
                             </td>
                             <td>
-                                <input class="easyui-textbox" id="create_user" name="create_user" value="@ViewData["username"]" readonly="readonly" style="width: 115px" />
+                                <input class="easyui-textbox" id="create_user" name="create_user" value="@ViewData["username"]" readonly="readonly"  />
                             </td>
                         </tr>
                         <tr>
@@ -805,7 +811,7 @@ else
                                 结构要求:
                             </td>
                             <td colspan="7">
-                                <input class="easyui-validatebox" name="structure_special_demand" id="structure_special_demand" style="width: 580px" value="@cmc.structure_special_demand" />
+                                <input class="easyui-textbox" name="structure_special_demand" id="structure_special_demand" style="width: 580px" value="@cmc.structure_special_demand" />
                             </td>
                         </tr>
                         <tr>
@@ -823,34 +829,34 @@ else
                                 电气要求:
                             </td>
                             <td colspan="7">
-                                <input class="easyui-validatebox" name="ele_special_demand" id="ele_special_demand" style="width: 580px" value="@cmc.ele_special_demand" />
+                                <input class="easyui-textbox" name="ele_special_demand" id="ele_special_demand" style="width: 580px" value="@cmc.ele_special_demand" />
                             </td>
                         </tr>
                         <tr>
                             <td colspan="8">
                                 环保是否有特殊要求:
-                                <input class="easyui-combobox" style="width: 120px" name="is_env_special" id="is_env_special"
+                                <input class="easyui-combobox"  name="is_env_special" id="is_env_special"
                                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
                                            {value:'否(默认ROHS)'},{value:'是'}
                                            ]" />
                                 &nbsp;&nbsp; <span id="env_special_span">
                                     要求为：
-                                    <input class="easyui-validatebox" name="env_special_demand" id="env_special_demand" style="width: 300px" value="@cmc.env_special_demand" />
+                                    <input class="easyui-textbox" name="env_special_demand" id="env_special_demand" style="width: 300px" value="@cmc.env_special_demand" />
                                 </span>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="8">
                                 可靠性是否有特殊要求:
-                                <input class="easyui-combobox" style="width: 120px" name="is_reliability_special" id="is_reliability_special"
+                                <input class="easyui-combobox"  name="is_reliability_special" id="is_reliability_special"
                                        data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
                                            data:[
                                            {value:'否(Truly标准)'},{value:'是'}
                                            ]" />
                                 &nbsp;&nbsp; <span id="reliability_special_span">
                                     要求为：
-                                    <input class="easyui-validatebox" name="reliability_special_demand" id="reliability_special_demand" style="width: 300px" value="@cmc.reliability_special_demand" />
+                                    <input class="easyui-textbox" name="reliability_special_demand" id="reliability_special_demand" style="width: 300px" value="@cmc.reliability_special_demand" />
                                 </span>
                             </td>
                         </tr>
@@ -859,7 +865,7 @@ else
                                 @Html.Lang("comment"):
                             </td>
                             <td colspan="7">
-                                <textarea cols="84" rows="2" name="comment" id="comment" style="margin: 0;">@cmc.comment</textarea>
+                                <input class="easyui-textbox" name="comment" id="comment" multiline="true" style="width:700px;height:40px" value="@cmc.comment" />
                             </td>
                         </tr>
                     </table>

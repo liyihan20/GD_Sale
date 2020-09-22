@@ -1,5 +1,4 @@
 ﻿@using Sale_Order.Models;
-@using System.Linq;
 @{
     ReturnBill bill = (ReturnBill)ViewData["bill"];
     List<ReturnBillDetail> details = (List<ReturnBillDetail>)ViewData["details"];
@@ -12,287 +11,135 @@
 <script>
     $(function () {
         $("#file_div").myUploader({
-            sysNum: "@bill.sys_no",
-            uploadUser: "@ViewData["currentAuditor"]",
-            canUpload:true
+            sysNum: "@bill.sys_no",            
+            canUpload:false
         });
     })
 </script>
 <script type="text/javascript">
     $(function () {
         $("#bill_detail").datagrid({
-            //height: "140",
             width: "900",
             fitColumns: true,
             rownumbers: true,
             singleSelect: true,
-            onRowContextMenu:function(e, rowIndex, rowData){
-                e.preventDefault();
-                $("#bill_detail").datagrid("selectRow",rowIndex);
-                $('#mm').menu('show', {
-                    left:e.pageX,
-                    top:e.pageY
-                }); 
-            },
-            columns: [[                        
-    					//{ field: 'product_number', title: '产品编码', width: 120 },
-                        { field: 'entry_no',title:'行号',width:50 , align: 'center'},
+            columns: [[
+                        { field: 'entry_no', title: '行号', width: 50, align: 'center' },
     					{ field: 'product_name', title: '产品名称', width: 120 },
                         { field: 'product_model', title: '规格型号', width: 150 },
                         { field: 'aux_qty', title: '已发数量', width: 70, align: 'right' },
-    					{ field: 'qty', title: '退货数量', width: 70, align: 'right' },                        
-                        { field: 'real_qty', title: '实退数量', width: 70, align: 'right', editor: { type: 'numberbox', options: { precision: 4}} },    
-                        { field: 'is_online', title: '是否已上线',width: 70, align: 'center', editor:{ type: 'checkbox', options: { on:'已上线',off:'未上线'}},
-                        styler: function(value,row,index){
-				            if (value == '已上线'){
-					            return 'color:green;';
-				            }else{
-                                return 'color:red;';
-                            }
-			            } },
-                        { field: 'ch_dep_name', title: '出货组', width: 100, 
-                        editor: { type: 'combobox', 
-                            options: 
-                                {
-                                    valueField:'text',
-                                    textField:'text',
-                                    url:'@Url.Content("~/Items/getAllCHZAuditors")',
-                                    panelheight:'auto',
-                                    editable:'false',
-                                    required:true
+    					{ field: 'qty', title: '退货数量', width: 70, align: 'right' },
+                        { field: 'real_qty', title: '实退数量', width: 70, align: 'right' },
+                        {
+                            field: 'is_online', title: '是否已上线', width: 70, align: 'center', editor: { type: 'checkbox', options: { on: '已上线', off: '未上线' } },
+                            styler: function (value, row, index) {
+                                if (value == '已上线') {
+                                    return 'color:green;';
+                                } else {
+                                    return 'color:red;';
                                 }
-                            } 
+                            }
                         },
-//                        { field: 'has_replace_qty', title: '已换货数量', width: 100, align: 'right' },
-//                        { field: 'has_red_qty', title: '已退红字数量', width: 100, align: 'right' },
-//                        { field: 'customer_back_qty', title: '客户退货数量', width: 100, align: 'right' },
-//                        { field: 'qc_good_qty', title: 'QC复检后良品数量', width: 100, align: 'right' },
-//                        { field: 'qc_bad_qty', title: 'QC复检后不良品数量', width: 120, align: 'right' },
+                        { field: 'ch_dep_name', title: '出货组', width: 100 },
                         { field: 'seorder_no', title: '销售订单编号', width: 100 },
                         { field: 'stock_no', title: '销售出库单号', width: 100 }
-//                        { field: 'qc_comment', title: '驻点QC复检情况', width: 300 }
-    				]],
-            toolbar: [{
-                text: "复制行",
-                iconCls: 'icon-add',
-                handler: addRow
-            },{
-                text: "删除行",
-                iconCls: 'icon-remove',
-                handler: removeRow
-            }],
-            //onClickCell: onClickCell,
-            onClickRow: onClickRow
-//            function(index,row){
-//                onClickCell(index,"real_qty");
-//                $(".datagrid-editable-input").focus();
-//            }
+            ]]
         });
-        
+
         $("#order_div input[type='text'],#comment,#saler_comment,#market_comment").attr("readonly", "readonly");
         $("input[type='radio']").not("input:checked").attr("disabled", "true");
-        $("#agency_div").click(function () { endEditing(); });
     });
 
-     var editIndex = undefined;
-        function endEditing(){
-            if (editIndex == undefined){return true}
-            if ($('#bill_detail').datagrid('validateRow', editIndex)){                
-                $('#bill_detail').datagrid('endEdit', editIndex);
-                editIndex = undefined;
-                return true;
-            } else {
-                return false;
-            }
-        }
-        function onClickRow(index){
-            if (editIndex != index){
-                if (endEditing()){
-                    $('#bill_detail').datagrid('selectRow', index)
-                            .datagrid('beginEdit', index);
-                    editIndex = index;
-                } else {
-                    $('#bill_detail').datagrid('selectRow', editIndex);
-                }
-            }
-        }
-
-        function addRow() {
-            var row = $('#bill_detail').datagrid('getSelected');                    
-            if (row) {
-                if(endEditing()){
-                    var rowIndex=$('#bill_detail').datagrid('getRowIndex',row) + 1;
-                    var newRow=jQuery.extend(true,{}, row);
-                    newRow.real_qty='';
-                    newRow.is_online='未上线';
-                    $('#bill_detail').datagrid('insertRow',{index:rowIndex,row:newRow});
-                }
-            }else{
-                alert("请先选择某一行再复制");
-            }
-        }
-
-        function removeRow() {
-            var row = $('#bill_detail').datagrid('getSelected');
-            if (row) {
-                $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
-                    if (r) {
-                        var index = $('#bill_detail').datagrid('getRowIndex', row);
-                        $('#bill_detail').datagrid('deleteRow', index);
-                    }
-                });
-            }
-        }
-
-    function okClick(){
-        var fileInfo = $("#file_div").GetMyFileInfo("@bill.sys_no", "@ViewData["currentAuditor"]");
-        if (fileInfo.length < 1) {
-            alert("客服部审核必须上传品质报告！");
+    function okClick() {
+        if ($("#express_fee").numberbox("getValue") == "") {
+            tip("运输费用必须填写");
             return;
         }
-
-        //检测退货数量与实退数量是否一致，不一致的话需要审核人确认
-        var details=$("#bill_detail").datagrid("getRows");
-        var isSame=true;
-        for(var i=0;i<details.length;i++){
-            if(details[i].qty - details[i].real_qty > 0.00001){
-                isSame=false;
-                break;
+        if ($("#who_to_blame").combobox("getValue") == "") {
+            tip("责任方必须选择")
+            return;
+        }
+        $("#okFlag").val("true");
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
+            if (r) {
+                submitForm();
             }
-        }        
-        $("#okFlag").val("true");        
-        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function(r){
-	        if (r){
-                if(!isSame){
-                    $.messager.confirm('@Html.Lang("confirm")', '退货数量与实退数量不一致，确定提交吗?', function(r2){
-	                    if (r2){
-                            submitForm();
-	                    }
-                    });             
-                }else{
-                    submitForm();
-                }
-	        }
-        });                
+        });
     }
 
-    function noClick(){
-        $("#okFlag").val("false");        
-        if(parseInt("@ViewData["step"]")>1){
+    function noClick() {
+        $("#okFlag").val("false");
+        if (parseInt("@ViewData["step"]") > 1) {
             //可以退回下单者或者上一审批人
             $("#dlg_No").dialog("open");
-        }else{
-            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function(r){
-	            if (r){                    
+        } else {
+            $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function (r) {
+                if (r) {
                     submitForm();
                 }
             });
         }
     }
 
-    function NoToSalerClick(){
+    function NoToSalerClick() {
         $("#backToPrevious").val("0");
         $("#dlg_No").dialog("close");
         submitForm();
     }
 
-    function NoToPreviousClick(){
+    function NoToPreviousClick() {
         $("#backToPrevious").val("1");
         $("#dlg_No").dialog("close");
         submitForm();
     }
 
-    function block(){
-        var reason=$("#agency_comment").val();
-        if($.trim(reason)==""){
+    function block() {
+        var reason = $("#agency_comment").val();
+        if ($.trim(reason) == "") {
             $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "挂起操作必须写明原因，提交失败"
-                });   
-        }else{
-             $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function(r){
-	         if (r){
-                 $.messager.progress();
-                 $("#audit_fm").form("submit",{
-                    url:"@Url.Content("~/Audit/BlockOrder")",
-                    success:function(data){
-                        $.messager.progress('close');
-                        var result=eval("("+data+")"); 
-                        $.messager.show({
-                            title: '@Html.Lang("tip")',
-                            msg: result.msg + ",正在跳转..."
-                        });
-                        setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
-                    }
-                });
-            }
-            });  
+                title: '@Html.Lang("tip")',
+                msg: "挂起操作必须写明原因，提交失败"
+            });
+        } else {
+            $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function (r) {
+                if (r) {
+                    $.messager.progress();
+                    $("#audit_fm").form("submit", {
+                        url: "@Url.Content("~/Audit/BlockOrder")",
+                        success: function (data) {
+                            $.messager.progress('close');
+                            var result = eval("(" + data + ")");
+                            $.messager.show({
+                                title: '@Html.Lang("tip")',
+                                msg: result.msg + ",正在跳转..."
+                            });
+                            setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 1500);
+                        }
+                    });
+                }
+            });
         }
     }
 
     function submitForm() {
-        if ($("#okFlag").val() == "true") {
-            if (!validateQty()) return;
-            var FRealQty = new Array();
-            var FEntryNo = new Array();
-            var FIsOnline = new Array();
-            var FChDepName = new Array();
-            var FQtyComment = $("#qty_comment").val();
-            var details = $("#bill_detail").datagrid("getRows");
-            for (var i = 0; i < details.length; i++) {
-                FRealQty[i] = details[i].real_qty;
-                FEntryNo[i] = details[i].entry_no;
-                FIsOnline[i] = details[i].is_online;
-                FChDepName[i] = details[i].ch_dep_name;
-            }
-        }
         $.messager.progress();
-        $("#audit_fm").form("submit",{
-            url:"@Url.Content("~/Audit/HandleQtyEditTHAudit")",
-            onSubmit: function(param){
-                param.FRealQty = FRealQty;
-                param.FEntryNo=FEntryNo;
-                param.FIsOnline=FIsOnline;
-                param.FQtyComment = FQtyComment;
-                param.FChDepName = FChDepName;
+        $("#audit_fm").form("submit", {
+            url: "@Url.Content("~/Audit/HandleAgencyAudit")",
+            onSubmit: function (param) {
+                param.express_fee = $("#express_fee").numberbox("getValue");
+                param.who_to_blame = $("#who_to_blame").combobox("getValue");
             },
-            success:function(data){
-            $.messager.progress('close');
-                var result=eval("("+data+")"); 
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: result.msg + ",正在跳转..."
-                });
-                setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';",1500);
+            success: function (data) {
+                $.messager.progress('close');
+                var result = eval("(" + data + ")");
+                tip(result.msg);
+                if (result.success) {                    
+                    setTimeout("window.location.href='@Url.Content("~/Audit/CheckAuditList")';", 1500);
+                }
             }
         });
     }
 
-    function validateQty(){
-        endEditing();
-        var tmpEntryNo=0;
-        var tmpOnlineStatus="";
-        var details=$("#bill_detail").datagrid("getRows");
-        for(var i=0;i<details.length;i++){
-            var qty=details[i].qty;
-            var real_qty=details[i].real_qty;
-            if(real_qty == ""){
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "第"+(i+1)+"行的实退数量不能为空"
-                });
-                return false;
-            }
-            if(real_qty<=0){
-                $.messager.show({
-                    title: '@Html.Lang("tip")',
-                    msg: "第"+(i+1)+"行的实退数量必须大于0"
-                });
-                return false;
-            }
-        }
-        return true;
-    }
 </script>
 
 <div class="easyui-layout" data-options="fit:true" id="agency_div">
@@ -336,32 +183,23 @@
             </table>
         </div>
     }
-    <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa; padding: 8px 10px;">
-        @*<div class="easyui-layout" data-options="fit:true" id="audit_div">
-            <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa; padding: 8px 10px;">*@
-                <form id="audit_fm" method="post" action="">
-                    @Html.Lang("audit_opinion"):
-                    <input type="hidden" name="step" value="@ViewData["step"]" />
-                    <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
-                    <input type="hidden" name="okFlag" id="okFlag" value="" />
-                    <input type="hidden" name="sys_no" id="sys_no" value="@ViewData["sys_no"]" />
-                    <input type="hidden" name="backToPrevious" id="backToPrevious" value="0" />                
-                    <input id="agency_comment" name="agency_comment" style="width: 450px" />&nbsp; 
-                    <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a>
-                    <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
-                    <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
-                </form>
-            @*</div>
-            <div data-options="region:'center'">
-                <input type="hidden" value="@bill.sys_no" id="wu_sysNum" />
-                @Html.Partial("_UploadFilePartial_wu")
-            </div>
-        </div>*@ 
-    </div>
+    <div data-options="region:'south',collapsed:false" style="height: 42px; background: #fafafa;padding:6px;">        
+        <form id="audit_fm" method="post">
+                @Html.Lang("audit_opinion"):
+                <input type="hidden" name="step" value="@ViewData["step"]" />
+                <input type="hidden" name="applyId" value="@ViewData["applyId"]" />
+                <input type="hidden" name="okFlag" id="okFlag" value="" />
+                <input type="hidden" name="sys_no" id="sys_no" value="@ViewData["sys_no"]" />
+                <input type="hidden" name="backToPrevious" id="backToPrevious" value="0" />                
+                <input id="agency_comment" name="agency_comment" style="width: 450px" />&nbsp; 
+                <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a> 
+                <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+                <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
+        </form>
+    </div> 
     <div data-options="region:'center'">
     
-        <div id="order_div" class="easyui-panel" title="查看退货申请" style="width: 780px; padding: 10px;
-            background: #fafafa; +position: relative;">
+        <div id="order_div" class="easyui-panel" title="查看退货申请" style="width: 780px; padding: 10px; background: #fafafa;">
             <div>
                 @*表头*@
                 <table border="0" cellpadding="0" cellspacing="3" width="740">
@@ -431,7 +269,6 @@
                         @if (bill.need_resend == true)
                         {
                             <td>
-                                @*<input type="radio" name="need_resend" value="0" />不补货*@
                                 <input type="radio" name="need_resend" value="1" checked="checked" />需补货
                             </td>
                         }
@@ -439,7 +276,6 @@
                         { 
                             <td>
                                 <input type="radio" name="need_resend" value="0" checked="checked" />不补货
-                                @*<input type="radio" name="need_resend" value="1" />需补货*@
                             </td>
                         }
                         <td>
@@ -469,8 +305,6 @@
                         @foreach (var det in details)
                         { 
                             <tr>
-                                
-                                @*<td>@det.product_number</td>*@
                                 <td>@det.entry_no</td>
                                 <td>@det.product_name</td>
                                 <td>@det.product_model</td>
@@ -478,15 +312,9 @@
                                 <td>@det.return_qty</td>                                
                                 <td>@det.real_return_qty</td>
                                 <td>@(det.is_online==true?"已上线":"未上线")</td>
-                                @*<td>@det.has_replace_qty</td>
-                                <td>@det.has_red_qty</td>*@
-                                @*<td>@det.customer_back_qty</td>
-                                <td>@det.qc_good_qty</td>
-                                <td>@det.qc_bad_qty</td>*@
                                 <td>@det.ch_dep_name</td>
                                 <td>@det.seorder_no</td>
                                 <td>@det.stock_no</td>
-                                @*<td>@det.qc_comment</td>*@
                             </tr>
                         }
                     </table>
@@ -515,6 +343,25 @@
                         <td>
                             <input id="express_qty" type="text" name="express_qty" style="width: 120px" value="@bill.express_qty"/>
                         </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            运输费用(元):
+                        </td>
+                        <td>
+                            <input class="easyui-numberbox" name="express_fee" id="express_fee" style="width:120px" required value="@bill.express_fee" />
+                        </td>
+                        <td>
+                            责任方:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" style="width: 128px" name="who_to_blame" id="who_to_blame"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                           data:[
+                                           {value:'客户'},{value:'货运'},{value:'物流中心'},{value:'事业部品质'},{value:'营业员'}
+                                           ]" value="@bill.who_to_blame" />
+                        </td>
+                        <td></td><td></td>
                     </tr>
                     <tr>
                         <td>
@@ -547,11 +394,6 @@
                         <td colspan="5">
                             <textarea cols="83" rows="3" name="qty_comment" id="qty_comment" style="margin: 0;" >@bill.qty_comment</textarea>
                         </td>
-                        @*<td>选择出货组:</td>
-                        <td>
-                            <input class="easyui-combobox" id="ch_dep" name="ch_dep" url='@Url.Content("~/Items/getAllCHZAuditors")' 
-                    valuefield="value" textfield="text" style="width: 120px"  required="true" panelheight="120px" editable="false" />
-                        </td>*@
                     </tr>
                 </table>
             </div>
@@ -569,9 +411,7 @@
 	                <5>. 提交申请后，原出货未开发票的申请在市场部未办理好K3数据之前，千万不要通知会计部开票；如在办理期间通知会计部开票造成申请的开票状态与K3不同的，一律退回申请重新走流程，不另行通知。<br />
                 </div>
             </div>
-
-        </div>    
-   
+        </div>
    </div>
 </div>
 

@@ -41,24 +41,24 @@ namespace Sale_Order.Controllers
         }
 
         //默认搜索输入条件的结果
-        public JsonResult GetAuditList()
-        {
-            string sysNo = "", saler = "", fromDate = "", toDate = "",proModel = "";
-            int auditResult = 0, isFinish = 0;
-            var queryData = Request.Cookies["op_qd"];
-            if (queryData != null && queryData.Values.Get("au_so") != null)
-            {
-                sysNo = utl.DecodeToUTF8(queryData.Values.Get("au_so"));
-                saler = utl.DecodeToUTF8(queryData.Values.Get("au_sa"));
-                auditResult = Int32.Parse(queryData.Values.Get("au_ar"));
-                isFinish = Int32.Parse(queryData.Values.Get("au_fr"));
-                fromDate = queryData.Values.Get("au_fd");
-                toDate = queryData.Values.Get("au_td");
-                proModel = queryData.Values.Get("au_pm");
-            }
+        //public JsonResult GetAuditList()
+        //{
+        //    string sysNo = "", saler = "", fromDate = "", toDate = "",proModel = "";
+        //    int auditResult = 0, isFinish = 0;
+        //    var queryData = Request.Cookies["op_qd"];
+        //    if (queryData != null && queryData.Values.Get("au_so") != null)
+        //    {
+        //        sysNo = utl.DecodeToUTF8(queryData.Values.Get("au_so"));
+        //        saler = utl.DecodeToUTF8(queryData.Values.Get("au_sa"));
+        //        auditResult = Int32.Parse(queryData.Values.Get("au_ar"));
+        //        isFinish = Int32.Parse(queryData.Values.Get("au_fr"));
+        //        fromDate = queryData.Values.Get("au_fd");
+        //        toDate = queryData.Values.Get("au_td");
+        //        proModel = queryData.Values.Get("au_pm");
+        //    }
 
-            return SearchAuditBase(sysNo, saler,proModel, fromDate, toDate, auditResult, isFinish);
-        }
+        //    return SearchAuditBase(sysNo, saler,proModel, fromDate, toDate, auditResult, isFinish);
+        //}
 
         //审批人搜索单据
         [SessionTimeOutFilter()]
@@ -86,147 +86,283 @@ namespace Sale_Order.Controllers
             Response.AppendCookie(queryData);
 
             utl.writeEventLog("查询审核单据", fromDateString + "~" + toDateString + ";model:"+proModel+";auditResult:" + result + ";finalResult:" + finalResult, sysNo, Request);
-            return SearchAuditBase(sysNo, "",proModel, fromDateString, toDateString, Int32.Parse(result), Int32.Parse(finalResult));
+            return SearchAuditBaseNew(sysNo, "",proModel, fromDateString, toDateString, Int32.Parse(result), Int32.Parse(finalResult));
         }
 
-        //搜索单据base方法
-        [SessionTimeOutFilter()]
-        public JsonResult SearchAuditBase(string sysNo, string saler,string proModel, string from_date, string to_date, int auditResult, int isFinish)
+
+        public JsonResult SearchAuditBaseNew(string sysNo, string saler, string proModel, string from_date, string to_date, int auditResult, int isFinish)
         {
             DateTime fromDate = string.IsNullOrWhiteSpace(from_date) ? DateTime.Parse("1980-1-1") : DateTime.Parse(from_date);
             DateTime toDate = string.IsNullOrWhiteSpace(to_date) ? DateTime.Parse("2099-9-9") : DateTime.Parse(to_date).AddDays(1);
-            List<AuditListModel> list = new List<AuditListModel>();
-            int step;
+            List<AuditListModel> list = new List<AuditListModel>();            
             string status;
             string finalStatus;
-            Apply ap;
             bool? importFlag;
             int maxRecordNum = 200; //最多只能导出200条记录
-            int recordNum = 0;                       
+            int recordNum = 0;
 
-            var details = (from ad in db.ApplyDetails
-                           join a in db.Apply on ad.apply_id equals a.id
-                          where ad.user_id == currentUser.userId
-                          && a.sys_no.Contains(sysNo)
-                          //&& ad.Apply.User.real_name.Contains(saler)  去掉搜索申请者的过滤条件，大幅优化查询速度
-                          && a.start_date >= fromDate
-                          && a.start_date <= toDate
-                          && a.p_model.Contains(proModel)
-                          && (
-                          (isFinish == 10
-                          || a.success == true && isFinish == 1)
-                          || (a.success == null && isFinish == 0)
-                          || (a.success == false && isFinish == -1)
-                          )
-                          && (auditResult == 10
-                          || ((ad.pass == true || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == true).Count() > 0)) && auditResult == 1)
-                          || ((ad.pass == false || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == false).Count() > 0)) && auditResult == -1)
-                          || (((ad.countersign == true && ad.pass == null) || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass != null).Count() == 0)) && auditResult == 0)
-                          )
-                          select ad).ToList();
+            var result = from a in db.Apply
+                         join u in db.User on a.user_id equals u.id
+                         join dep in db.Department on u.department equals dep.id
+                         join ad in db.ApplyDetails on a.id equals ad.apply_id
+                         join pad in db.ApplyDetails on new { apply_id = ad.apply_id, step = ad.step - 1 } equals new { apply_id = pad.apply_id, step = pad.step } into tmpad
+                         from pre in tmpad.DefaultIfEmpty()
+                         join cad in db.ApplyDetails on new { apply_id = ad.apply_id, step = ad.step } equals new { apply_id = cad.apply_id, step = cad.step }
+                         join bo in db.BlockOrder on new { sysNo = a.sys_no, step = ad.step, user = ad.user_id } equals new { sysNo = bo.sys_no, step = bo.step, user = bo.@operator } into tmpbo
+                         from block in tmpbo.DefaultIfEmpty()
+                         where ad.user_id == currentUser.userId
+                         && a.start_date >= fromDate
+                         && a.start_date <= toDate
+                         select new
+                         {
+                             apply = a,
+                             detail = ad,
+                             p_detail = pre,
+                             c_detail = cad,
+                             userName = u.username,
+                             depName = dep.name,
+                             block = block
+                         };
+
+            if (!string.IsNullOrEmpty(sysNo)) {
+                result = result.Where(r => r.apply.sys_no.Contains(sysNo));
+            }
+            if (!string.IsNullOrEmpty(proModel)) {
+                result = result.Where(r => r.apply.p_model.Contains(proModel));
+            }
+            if (isFinish != 10) {
+                result = result.Where(r => (r.apply.success == true && isFinish == 1) || (r.apply.success == false && isFinish == -1) || r.apply.success == null && isFinish == 0);
+            }
+            
+            if (auditResult == 1) {
+                result = result.Where(r => r.detail.pass == true || ((r.detail.countersign == false || r.detail.countersign == null) && r.c_detail.pass == true));
+            }
+            else if (auditResult == -1) {
+                result = result.Where(r => r.detail.pass == false || ((r.detail.countersign == false || r.detail.countersign == null) && r.c_detail.pass == false));
+            }
+            else if (auditResult == 0) {
+                result = result.Where(r => r.detail.pass == null);
+            }
+
+            var data = result.ToList();
             var billTypes = db.Sale_BillTypeName.ToList();
-            foreach (var ad in details)
-            {
+            foreach (var d in data.Select(da => da.detail).Distinct().ToList()) {
+                var ap = data.Where(da => da.detail == d).Select(da => da.apply).First();
                 importFlag = null;
-                finalStatus = "----";
-                ap = ad.Apply;
-                step = (int)ad.step;
-                //string model = "";
+                finalStatus = (ap.success == true ? "PASS" : (ap.success == false ? "NG" : "----"));
 
-                //还没到这一步或者已经在之前结束
-                if (step >= 2 && (ap.ApplyDetails.Where(a => a.step == step - 1 && a.pass == true).Count() < 1))
-                {
-                    continue;
+                // 全部或未审批的需要先过滤掉还未到这一步的
+                if (Math.Abs(auditResult) != 1) {
+                    var pre = data.Where(da => da.detail == d).Select(da => da.p_detail).ToList();
+                    if (pre.First() != null) { 
+                        //存在上一步
+                        if (pre.First().countersign == true) {
+                            if (pre.Where(p => p.pass == null).Count() > 0) {
+                                continue;//上一步是会签且有人未审批
+                            }
+                        }
+                        else {
+                            if (pre.Where(p => p.pass == true).Count() < 1) {
+                                continue;//上一步是或签且没有人审批通过
+                            }
+                        }
+                    }
                 }
-                //如果上一步是会签，而且还未结束，即跳出当前循环
-                if (ap.ApplyDetails.Where(a => a.step == step - 1 && a.countersign == true && a.pass == null).Count() > 0)
-                {
-                    continue;
-                }
-                //status = (ad.pass == true ? "审核成功" : (ad.pass == false ? "审核失败" : "待审核"));
-                if (auditResult == 1 || ad.pass == true)
-                {
+                var curd = data.Where(da => da.detail == d).Select(da => da.c_detail).ToList();
+                if (d.pass == true || (true != d.countersign && curd.Where(c => c.pass == true).Count() > 0)) {
                     status = "审核成功";
-                }
-                else if (auditResult == -1 || ad.pass == false)
-                {
+                }else if (d.pass == false || (true != d.countersign && curd.Where(c => c.pass == false).Count() > 0)) {
                     status = "审核失败";
                 }
-                else if (auditResult == 0)
-                {
-                    status = "待审核";
-                }
-                else
-                {
-                    //获取组内其它人审核结果
-                    if ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == true).Count() > 0)
-                    {
-                        status = "审核成功";
+                else {
+                    if (ap.success != null) {
+                        status = "审核结束";
                     }
-                    else if ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == false).Count() > 0)
-                    {
-                        status = "审核失败";
-                    }
-                    else
-                    {
-                        if (ap.success != null)
-                        {
-                            status = "审核结束";
+                    else {
+                        if (data.Where(da => da.detail == d).Select(da => da.block).Where(b => b != null).Count() > 0) {
+                            status = "挂起中";
                         }
-                        else { 
-                            status = "待审核"; 
+                        else {
+                            status = "待审核";
                         }
                     }
                 }
-                if (ad.pass == null && db.BlockOrder.Where(b => b.sys_no == ap.sys_no && b.step == step && b.@operator == ad.user_id).Count() > 0)
-                {
-                    status = "挂起中";
-                }
-
-                finalStatus = (ap.success == true ? "PASS" : (ap.success == false ? "NG" : "----"));
-                if (ap.success == true)
-                {
-                    if (db.ImportSysNoLog.Where(im => im.sys_no == ap.sys_no).Count() > 0)
-                    {
+                if (ap.success == true) {
+                    if (db.ImportSysNoLog.Where(im => im.sys_no == ap.sys_no).Count() > 0) {
                         importFlag = true;
                     }
-                    else
-                    {
+                    else {
                         db.hasImportIntoK3(ap.sys_no, ap.order_type, ref importFlag);
-                        if (importFlag == true)
-                        {
+                        if (importFlag == true) {
                             db.ImportSysNoLog.InsertOnSubmit(new ImportSysNoLog() { sys_no = ap.sys_no });
                             db.SubmitChanges();
                         }
                     }
                 }
                 list.Add(new AuditListModel()
-                            {
-                                depName = ap.User.Department1.name,
-                                applyId = ap.id,
-                                previousStepTime = ((DateTime)ap.start_date).ToString("yyyy-MM-dd HH:mm"),//改成下单时间，之前是到达时间
-                                salerName = ap.User.real_name,
-                                step = step,
-                                stepName = ad.step_name,
-                                sysNum = ap.sys_no,
-                                status = status,
-                                hasImportK3 = (importFlag == true) ? "Y" : ((importFlag == false) ? "N" : ""),
-                                finalStatus = finalStatus,
-                                encryptNo = utl.myEncript(ap.sys_no),
-                                orderType = billTypes.Where(b => b.p_type == ap.order_type).Select(b => b.p_name).FirstOrDefault(),
-                                model = ap.p_model
-                            });
-                recordNum++;
-                if (recordNum >= maxRecordNum)
                 {
+                    depName = data.Where(da=>da.detail==d).Select(da=>da.depName).FirstOrDefault(),
+                    applyId = ap.id,
+                    previousStepTime = ((DateTime)ap.start_date).ToString("yyyy-MM-dd HH:mm"),//改成下单时间，之前是到达时间
+                    salerName = data.Where(da => da.detail == d).Select(da => da.userName).FirstOrDefault(),
+                    step = (int)d.step,
+                    stepName = d.step_name,
+                    sysNum = ap.sys_no,
+                    status = status,
+                    hasImportK3 = (importFlag == true) ? "Y" : ((importFlag == false) ? "N" : ""),
+                    finalStatus = finalStatus,
+                    encryptNo = utl.myEncript(ap.sys_no),
+                    orderType = billTypes.Where(b => b.p_type == ap.order_type).Select(b => b.p_name).FirstOrDefault(),
+                    model = ap.p_model,
+                    account = ap.account
+                });
+                recordNum++;
+                if (recordNum >= maxRecordNum) {
                     break;
                 }
-
-            }
+            }            
             list = list.OrderBy(l => DateTime.Parse(l.previousStepTime)).ToList();
-
             return Json(list, "text/html");
         }
+        //搜索单据base方法
+        //[SessionTimeOutFilter()]
+        //public JsonResult SearchAuditBase(string sysNo, string saler,string proModel, string from_date, string to_date, int auditResult, int isFinish)
+        //{
+        //    DateTime fromDate = string.IsNullOrWhiteSpace(from_date) ? DateTime.Parse("1980-1-1") : DateTime.Parse(from_date);
+        //    DateTime toDate = string.IsNullOrWhiteSpace(to_date) ? DateTime.Parse("2099-9-9") : DateTime.Parse(to_date).AddDays(1);
+        //    List<AuditListModel> list = new List<AuditListModel>();
+        //    int step;
+        //    string status;
+        //    string finalStatus;
+        //    Apply ap;
+        //    bool? importFlag;
+        //    int maxRecordNum = 200; //最多只能导出200条记录
+        //    int recordNum = 0;                       
+
+        //    var details = (from ad in db.ApplyDetails
+        //                   join a in db.Apply on ad.apply_id equals a.id
+        //                  where ad.user_id == currentUser.userId
+        //                  && a.sys_no.Contains(sysNo)
+        //                  //&& ad.Apply.User.real_name.Contains(saler)  去掉搜索申请者的过滤条件，大幅优化查询速度
+        //                  && a.start_date >= fromDate
+        //                  && a.start_date <= toDate
+        //                  && a.p_model.Contains(proModel)
+        //                  && (
+        //                  (isFinish == 10
+        //                  || a.success == true && isFinish == 1)
+        //                  || (a.success == null && isFinish == 0)
+        //                  || (a.success == false && isFinish == -1)
+        //                  )
+        //                  && (auditResult == 10
+        //                  || ((ad.pass == true || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == true).Count() > 0)) && auditResult == 1)
+        //                  || ((ad.pass == false || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == false).Count() > 0)) && auditResult == -1)
+        //                  || (((ad.countersign == true && ad.pass == null) || ((ad.countersign == null || ad.countersign == false) && a.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass != null).Count() == 0)) && auditResult == 0)
+        //                  )
+        //                  select ad).ToList();
+        //    var billTypes = db.Sale_BillTypeName.ToList();
+        //    foreach (var ad in details)
+        //    {
+        //        importFlag = null;
+        //        finalStatus = "----";
+        //        ap = ad.Apply;
+        //        step = (int)ad.step;
+        //        //string model = "";
+
+        //        //还没到这一步或者已经在之前结束
+        //        if (step >= 2 && (ap.ApplyDetails.Where(a => a.step == step - 1 && a.pass == true).Count() < 1))
+        //        {
+        //            continue;
+        //        }
+        //        //如果上一步是会签，而且还未结束，即跳出当前循环
+        //        if (ap.ApplyDetails.Where(a => a.step == step - 1 && a.countersign == true && a.pass == null).Count() > 0)
+        //        {
+        //            continue;
+        //        }
+        //        //status = (ad.pass == true ? "审核成功" : (ad.pass == false ? "审核失败" : "待审核"));
+        //        if (auditResult == 1 || ad.pass == true)
+        //        {
+        //            status = "审核成功";
+        //        }
+        //        else if (auditResult == -1 || ad.pass == false)
+        //        {
+        //            status = "审核失败";
+        //        }
+        //        else if (auditResult == 0)
+        //        {
+        //            status = "待审核";
+        //        }
+        //        else
+        //        {
+        //            //获取组内其它人审核结果
+        //            if ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == true).Count() > 0)
+        //            {
+        //                status = "审核成功";
+        //            }
+        //            else if ((ad.countersign == null || ad.countersign == false) && ad.Apply.ApplyDetails.Where(ads => ads.step == ad.step && ads.pass == false).Count() > 0)
+        //            {
+        //                status = "审核失败";
+        //            }
+        //            else
+        //            {
+        //                if (ap.success != null)
+        //                {
+        //                    status = "审核结束";
+        //                }
+        //                else { 
+        //                    status = "待审核"; 
+        //                }
+        //            }
+        //        }
+        //        if (ad.pass == null && db.BlockOrder.Where(b => b.sys_no == ap.sys_no && b.step == step && b.@operator == ad.user_id).Count() > 0)
+        //        {
+        //            status = "挂起中";
+        //        }
+
+        //        finalStatus = (ap.success == true ? "PASS" : (ap.success == false ? "NG" : "----"));
+        //        if (ap.success == true)
+        //        {
+        //            if (db.ImportSysNoLog.Where(im => im.sys_no == ap.sys_no).Count() > 0)
+        //            {
+        //                importFlag = true;
+        //            }
+        //            else
+        //            {
+        //                db.hasImportIntoK3(ap.sys_no, ap.order_type, ref importFlag);
+        //                if (importFlag == true)
+        //                {
+        //                    db.ImportSysNoLog.InsertOnSubmit(new ImportSysNoLog() { sys_no = ap.sys_no });
+        //                    db.SubmitChanges();
+        //                }
+        //            }
+        //        }
+        //        list.Add(new AuditListModel()
+        //                    {
+        //                        depName = ap.User.Department1.name,
+        //                        applyId = ap.id,
+        //                        previousStepTime = ((DateTime)ap.start_date).ToString("yyyy-MM-dd HH:mm"),//改成下单时间，之前是到达时间
+        //                        salerName = ap.User.real_name,
+        //                        step = step,
+        //                        stepName = ad.step_name,
+        //                        sysNum = ap.sys_no,
+        //                        status = status,
+        //                        hasImportK3 = (importFlag == true) ? "Y" : ((importFlag == false) ? "N" : ""),
+        //                        finalStatus = finalStatus,
+        //                        encryptNo = utl.myEncript(ap.sys_no),
+        //                        orderType = billTypes.Where(b => b.p_type == ap.order_type).Select(b => b.p_name).FirstOrDefault(),
+        //                        model = ap.p_model,
+        //                        account = ap.account
+        //                    });
+        //        recordNum++;
+        //        if (recordNum >= maxRecordNum)
+        //        {
+        //            break;
+        //        }
+
+        //    }
+        //    list = list.OrderBy(l => DateTime.Parse(l.previousStepTime)).ToList();
+
+        //    return Json(list, "text/html");
+        //}
 
         //审批人审核
         [SessionTimeOutFilter()]
@@ -347,8 +483,17 @@ namespace Sale_Order.Controllers
                         ViewData["details"] = bill.ReturnBillDetail.OrderBy(r => r.entry_no).ToList();
                         ViewData["userName"] = bill.User.real_name;
                         ViewData["status"] = "审核中";
+                        ViewData["currentAuditor"] = currentUser.realName;
                         ViewData["return_dep"] = db.Department.Where(d => d.dep_type == "退货事业部" && d.dep_no == bill.return_dept).First().name;
-                        return View("EditReturnBillQty");
+                        if (ad.step_name.Contains("客服")) {
+                            return View("EditReturnBillQty");
+                        }
+                        else if (ad.step_name.Contains("物流")) {
+                            return View("LogEditReturnBill");
+                        }
+                        else {
+                            return View("Error");
+                        }
                     case "PJ":
                         ViewData["bill"] = db.Project_bills.Single(r => r.sys_no == ap.sys_no);
                         return View("ProjectBillEdit");
@@ -391,35 +536,7 @@ namespace Sale_Order.Controllers
             {
                 utl.writeEventLog("审核单据", "该订单已被审核:", ap.sys_no + ":" + step.ToString(), Request, 100);
                 return Json(new { success = false, msg = "该订单已被审核" }, "text/html");
-            }            
-
-            #region 备料单特殊处理
-
-           //if (ap.order_type.Equals("BL")) {
-                //Sale_BL bl = db.Sale_BL.Single(s => s.sys_no == ap.sys_no);
-
-                //计划经理审批后
-                //if (thisDetail.step_name.Contains("计划经理") && isOK) {
-                    //if (bl.bus_dep.Contains("TDD")) {
-                    //    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
-                    //}
-                    //utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
-                    //string busDep = bl.bus_dep;
-                    //utl.AppendStepAtLast(ap.id, "计划审批", new int?[] { bl.planner_id }, step, true);
-                //}
-                //计划经理审批后，如果有修改，则在最后插入营业审批
-                //if (thisDetail.step_name.Contains("计划审批") && isOK) {
-                    //int?[] orderIds = bl.order_ids.Split(new char[] { ',' }).Select(i => { int? id = Int32.Parse(i); return id; }).ToArray();
-                    //utl.AppendStepAtLast(ap.id, "订料会签", orderIds, step, true, false, true);
-                    //utl.AppendStepAtLast(ap.id, "营业员确认", new int?[] { bl.original_user_id }, step);
-                    //if (bl.bus_dep.Contains("TDD")) {
-                    //    utl.AppendStepAtLast(ap.id, "运作中心二审", new int?[] { 411 }, step); //李卓明
-                    //}
-                    //utl.AppendStepAtLast(ap.id, "市场总部审批", new int?[] { 87 }, step); //施培串
-                //}
-            //}
-
-            #endregion
+            }
 
             int maxStep = (int)db.ApplyDetails.Where(ad => ad.apply_id == ap.id).Max(ad => ad.step);
 
@@ -453,18 +570,16 @@ namespace Sale_Order.Controllers
                         comment = "";
                     }
                 }
-            }
-            #endregion
 
-            #region 客户立项特殊处理
-            if (ap.order_type.Equals("PJ"))
-            {
-                if (step == maxStep)
-                {
-                    string researchComment = fc.Get("researchComment");
-                    Project_bills p_bill = db.Project_bills.Single(p => p.sys_no == ap.sys_no);
-                    p_bill.comment = researchComment;
+                //2020-9-14 物流需保存运输费用和责任方
+                string expressFee = fc.Get("express_fee");
+                string whoToBlame = fc.Get("who_to_blame");
+                if (!string.IsNullOrEmpty(expressFee)) {
+                    var returnBill = db.ReturnBill.Single(r => r.sys_no == ap.sys_no);
+                    returnBill.express_fee = decimal.Parse(expressFee);
+                    returnBill.who_to_blame = whoToBlame;
                 }
+
             }
             #endregion
 
@@ -515,28 +630,8 @@ namespace Sale_Order.Controllers
                         } else if (ap.order_type.Equals("SB")) {
                             //写入样品单号
                             var sb = db.SampleBill.Single(s => s.sys_no == ap.sys_no);
-                            sb.bill_no = utl.getYPBillNo(sb.currency_no, sb.is_free == "免费");
+                            sb.bill_no = utl.getYPBillNo(sb.currency_no, sb.is_free == "免费",sb.account);
                         }
-                    }
-                    else
-                    {
-                        //将订单号回收
-                        //if (ap.order_type.Equals("SO"))
-                        //{
-                        //    try
-                        //    {
-                        //        string orderNumber = db.Order.Where(o => o.sys_no == ap.sys_no).First().order_no;
-                        //        if (!string.IsNullOrEmpty(orderNumber))
-                        //        {
-                        //            db.put_number_in_recycle(orderNumber);
-                        //            utl.writeEventLog("审核单据", "不通过，收回订单号:" + orderNumber, ap.sys_no, Request);
-                        //        }
-                        //    }
-                        //    catch (Exception ex)
-                        //    {
-                        //        utl.writeEventLog("审核单据", "不通过，订单号收回失败!:" + ex.Message, ap.sys_no, Request, 100);
-                        //    }
-                        //}
                     }
                 }
                 //提交数据
@@ -632,6 +727,7 @@ namespace Sale_Order.Controllers
             string FQtyComment = fc.Get("FQtyComment");
             string msg = "审核成功";
             decimal sumRealQty = 0, sumReturnQty = 0;
+
             //如果审核状态不为空，说明已经被审核了
             if (ap.ApplyDetails.Where(ad => ad.step == step && ad.pass != null).Count() > 0)
             {
@@ -695,7 +791,7 @@ namespace Sale_Order.Controllers
                     }
 
                     //将旧的删除
-                    db.ReturnBillDetail.DeleteAllOnSubmit(dets);
+                    db.ReturnBillDetail.DeleteAllOnSubmit(dets);                                        
 
                 }
                 db.SubmitChanges();
@@ -1323,64 +1419,58 @@ namespace Sale_Order.Controllers
 
         //审核人保存样品单
 
-        public JsonResult AuditorSaveSampleBill(FormCollection fc)
-        {
-            int step = -1;
-            if (!Int32.TryParse(fc.Get("step"), out step))
-            {
-                return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
-            }
+        //public JsonResult AuditorSaveSampleBill(FormCollection fc)
+        //{
+        //    int step = -1;
+        //    if (!Int32.TryParse(fc.Get("step"), out step)) {
+        //        return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
+        //    }
 
-            string saveResult = utl.saveSampleBill(fc, step, currentUser.userId);
-            if (string.IsNullOrWhiteSpace(saveResult))
-            {
-                return Json(new { suc = true }, "text/html");
-            }
-            else
-            {
-                return Json(new { suc = false, msg = saveResult }, "text/html");
-            }
-        }
+        //    string saveResult = utl.saveSampleBill(fc, step, currentUser.userId);
+        //    if (string.IsNullOrWhiteSpace(saveResult)) {
+        //        return Json(new { suc = true }, "text/html");
+        //    }
+        //    else {
+        //        return Json(new { suc = false, msg = saveResult }, "text/html");
+        //    }
+        //}
 
-        //审核人保存CCM开改模单
+        ////审核人保存CCM开改模单
         public JsonResult AuditorSaveCCMModelContract(FormCollection fc)
         {
             int step = -1;
-            if (!Int32.TryParse(fc.Get("step"), out step))
-            {
+            if (!Int32.TryParse(fc.Get("step"), out step)) {
                 return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
             }
 
             string saveResult = utl.saveCCMModelContract(fc, step, currentUser.userId);
-            if (string.IsNullOrWhiteSpace(saveResult))
-            {
+            if (string.IsNullOrWhiteSpace(saveResult)) {
                 return Json(new { suc = true }, "text/html");
             }
-            else
-            {
+            else {
                 return Json(new { suc = false, msg = saveResult }, "text/html");
             }
         }
 
         //审核人保存开改模单
-        public JsonResult AuditorSaveModelContract(FormCollection fc)
-        {
-            int step = -1;
-            if (!Int32.TryParse(fc.Get("step"), out step))
-            {
-                return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
-            }
+        //public JsonResult AuditorSaveModelContract(FormCollection fc)
+        //{
+        //    int step = -1;
+        //    if (!Int32.TryParse(fc.Get("step"), out step))
+        //    {
+        //        return Json(new { suc = false, msg = "步骤不对，保存失败" }, "text/html");
+        //    }
 
-            string saveResult = utl.saveModelContract(fc, step, currentUser.userId);
-            if (string.IsNullOrWhiteSpace(saveResult))
-            {
-                return Json(new { suc = true }, "text/html");
-            }
-            else
-            {
-                return Json(new { suc = false, msg = saveResult }, "text/html");
-            }
-        }
+        //    string saveResult = utl.saveModelContract(fc, step, currentUser.userId);
+        //    if (string.IsNullOrWhiteSpace(saveResult))
+        //    {
+        //        return Json(new { suc = true }, "text/html");
+        //    }
+        //    else
+        //    {
+        //        return Json(new { suc = false, msg = saveResult }, "text/html");
+        //    }
+        //}
 
         //审核人保存备料单
         public JsonResult AuditorSaveBLBill(FormCollection fc)

@@ -9,8 +9,6 @@
     $(function () {
         $("#orderList").datagrid({
             fit: true,
-            //            url:"@Url.Content("~/Saler/GetDefaultOrders")",
-            //fitColumns: true,
             rownumbers: true,
             singleSelect: true,
             onRowContextMenu: function (e, rowIndex, rowData) {
@@ -32,7 +30,7 @@
     					{ field: 'qty', title: '@Html.Lang("qty")', width: 80, align: 'right' },
                         { field: 'deal_price', title: '@Html.Lang("deal_price")', width: 80, align: 'right' },
                         {
-                            field: 'apply_status', title: '@Html.Lang("apply_status")', width: 60, align: 'center',
+                            field: 'apply_status', title: '@Html.Lang("apply_status")', width: 80, align: 'center',
                             styler: function (value, row, index) {
                                 if (value == '申请失败') {
                                     return 'color:red;';

@@ -208,7 +208,7 @@
                     });
                 }
             }
-        })
+        });
 
         $("#item_no").combogrid({
             idField: "number",
@@ -590,17 +590,14 @@
                     } else {
                         $("#submitApply").linkbutton('enable');
                         $('#saveAllBut').linkbutton('enable');
-                        tip(data.msg);
+                        tip("请先保存单据后再提交！");
                     }
                 });
             });
         });        
 
         function nowApply() {
-            $.messager.show({
-                title: '@Html.Lang("tip")',
-                msg: "正在提交，请等待跳转。。。"
-            });
+            tip("正在提交，请等待跳转。。。");
             setTimeout(function(){ window.location.href="@Url.Content("~/Saler/BeginApplySO?sys_no=")"+"@order.sys_no";}, 2000);
         }
 
