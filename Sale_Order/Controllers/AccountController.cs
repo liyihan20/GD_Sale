@@ -137,8 +137,6 @@ namespace Sale_Order.Controllers
             return Json(new { success = true, cop = cop }, "text/html");
 
         }
-        //
-        // GET: /Account/LogOff
 
         public ActionResult LogOut()
         {
