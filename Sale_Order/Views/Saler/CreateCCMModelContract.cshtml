@@ -5,7 +5,7 @@
 }
 <style type="text/css">
     #order_div input {
-        width: 140px;
+        width: 130px;
     }
 </style>
 <script type="text/javascript">
@@ -15,7 +15,7 @@
         $("#structure_tr").hide();
         $("#ele_tr").hide();
         $("#env_special_span").hide();
-        $("#reliability_special_span").hide();               
+        $("#reliability_special_span").hide();
 
         $("#is_structure_special").combobox({
             onChange: function (newValue, oldValue) {
@@ -165,7 +165,7 @@
         //});
 
         //设置值
-        $('#clerk_no').combobox('setText','@cmc.clerk_name');
+        $('#clerk_no').combobox('setText', '@cmc.clerk_name');
         $('#customer_no').combogrid('setText', '@Html.Raw(cmc.customer_name)');
         $('#zz_customer_no').combogrid('setText', '@Html.Raw(cmc.zz_customer_name)');
         $('#plan_firm_no').combogrid('setText', '@Html.Raw(cmc.plan_firm_name)');
@@ -175,6 +175,7 @@
         $('#is_ele_special').combobox('setValue', '@cmc.is_ele_special');
         $('#is_env_special').combobox('setValue', '@cmc.is_env_special');
         $('#is_reliability_special').combobox('setValue', '@cmc.is_reliability_special');
+        $("#is_panel").combobox('setValue', '@cmc.is_panel');
 
         $("#agency_div").css("visibility", "visible");
     });
@@ -229,6 +230,15 @@
             }
             if ($("#clear_way").combobox("getValue") == "*") {
                 alert("保存失败：支付方式不能选择【*】");
+                return;
+            }
+
+            if ($("#is_panel").combobox("getValue") == "") {
+                alert("必须选择【是否PANEL】后才能保存");
+                return;
+            }
+            if ($("#cost").numberbox("getValue") == "") {
+                alert("必须填写【成本】后才能保存");
                 return;
             }
 
@@ -604,6 +614,16 @@ else
                                 <input id="currency_no" class="easyui-combobox" name="currency_no" panelheight="150" url="@Url.Content("~/Items/getItems?what=currency")" editable="false"
                                        valuefield="no" textfield="name"  required="true" value="@cmc.currency_no" />
                             </td>
+                            <td>
+                                是否PANEL:
+                            </td>
+                            <td>
+                                <input class="easyui-combobox" name="is_panel" id="is_panel"
+                            data-options="textField:'value',valueField:'value',panelHeight:'auto',editable:false,
+                                               data:[
+                                               {value:'是'},{value:'否'}
+                                               ]" />
+                            </td>
                         </tr>
                         <tr>
                             <td>
@@ -727,6 +747,12 @@ else
                         </tr>
                         <tr>
                             <td>
+                                模费成本:
+                            </td>
+                            <td>
+                                <input id="cost" class="easyui-numberbox" name="cost" precision="2" value="@cmc.cost" />
+                            </td>
+                            <td>
                                 @Html.Lang("customer_model"):
                             </td>
                             <td>
@@ -744,14 +770,14 @@ else
                             <td>
                                 <input id="pic_number" class="easyui-textbox" name="pic_number"  required="true" value="@cmc.pic_number" />
                             </td>
+                        </tr>
+                        <tr>
                             <td>
                                 @Html.Lang("pic_version"):
                             </td>
                             <td>
                                 <input id="pic_version" class="easyui-textbox" name="pic_version"  required="true" value="@cmc.pic_version" />
                             </td>
-                        </tr>
-                        <tr>
                             <td colspan="4">
                                 客户主板平台商或DSP型号:
                                 <input id="DSP_model" class="easyui-textbox" name="DSP_model" style="width: 220px" value="@cmc.DSP_model" />
@@ -762,14 +788,14 @@ else
                             <td>
                                 <input class="easyui-textbox"  name="product_use" id="product_use" value="@cmc.product_use" required="true" />
                             </td>
+                        </tr>
+                        <tr>
                             <td>
                                 @Html.Lang("plan_production_date"):
                             </td>
                             <td>
                                 <input class="easyui-datebox" name="plan_start_date" id="plan_start_date" required="true" editable="false" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))" />
                             </td>
-                        </tr>
-                        <tr>
                             <td>
                                 @Html.Lang("end_time"):
                             </td>
@@ -789,11 +815,13 @@ else
                             <td>
                                 <input id="contract_po_no" class="easyui-textbox" name="contract_po_no"  value="@cmc.contract_po_no" />
                             </td>
+                        </tr>
+                        <tr>                            
                             <td>
                                 @Html.Lang("biller"):
                             </td>
                             <td>
-                                <input class="easyui-textbox" id="create_user" name="create_user" value="@ViewData["username"]" readonly="readonly"  />
+                                <input class="easyui-textbox" id="create_user" name="create_user" value="@cmc.User.real_name" readonly="readonly"  />
                             </td>
                         </tr>
                         <tr>

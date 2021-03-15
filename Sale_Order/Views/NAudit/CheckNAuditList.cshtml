@@ -1,0 +1,270 @@
+﻿@using Sale_Order.Models
+@{    
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    AuditSearchParamModel pm = (AuditSearchParamModel)ViewData["queryParams"];
+}
+
+<script type="text/javascript">
+    $(function () {
+        $("#AuditList").datagrid({
+            fit: true,
+            fitColumns: true,
+            url: "GetDefaultAuditList",
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'applyId', title: 'ID', width: 10, hidden: true },
+                        { field: 'previousStepTime', title: '@Html.Lang("order_date")', width: 120 },
+                        { field: 'orderType', title: '@Html.Lang("bill_type")', width: 120 },
+                        { field: 'account', title: '公司', width: 80 },
+                        { field: 'sysNum', title: '@Html.Lang("sys_num")', width: 100 },
+                        { field: 'model', title: '@Html.Lang("pro_model")', width: 160 },
+    					{ field: 'depName', title: '@Html.Lang("agency")', width: 100 },
+    					{ field: 'salerName', title: '@Html.Lang("apply_user")', width: 80 },
+                        { field: 'step', title: '@Html.Lang("audit_step")', width: 100, hidden: true },
+                        { field: 'stepName', title: '@Html.Lang("audit_step")', width: 100 },
+                        {
+                            field: 'status', title: '@Html.Lang("audit_result")', width: 80, align: 'center',
+                            styler: function (value, row, index) {
+                                if (value == '审核失败') {
+                                    return 'color:red;';
+                                } else if (value == '审核成功') {
+                                    return 'color:green;';
+                                } else if (value == '挂起中') {
+                                    return 'color:#CC0000;';
+                                }
+                            }
+                        },
+                        {
+                            field: 'finalStatus', title: '@Html.Lang("final_status")', width: 80, align: 'center',
+                            styler: function (value, row, index) {
+                                if (value == 'NG') {
+                                    return 'color:red;';
+                                } else if (value == 'PASS') {
+                                    return 'color:green;';
+                                }
+                            }
+                        },
+                        {
+                            field: 'hasImportK3', title: '@Html.Lang("imported_k3")', width: 80, align: 'center',
+                            styler: function (value, row, index) {
+                                if (value == 'N') {
+                                    return 'color:red;';
+                                } else if (value == 'Y') {
+                                    return 'color:green;';
+                                }
+                            }
+                        }
+            ]],
+            toolbar: '#audit_tb',
+            onDblClickRow: EditOrder
+        });
+
+        $("#checkBt").click(function () {
+            $.messager.progress();
+            $("#fm").form("submit", {
+                url: "@Url.Content("~/NAudit/SearchAuditList")",
+                success: function (data) {
+                    var result = eval("(" + data + ")");
+                    $("#AuditList").datagrid("loadData", result);
+                    $.messager.progress("close");
+                }
+            });
+        });
+
+        $("#contDiv").css("visibility", "visible");
+    });
+
+    function EditOrder() {
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+            window.location.href = "@Url.Content("~/NAudit/BeginNAudit")" + "?step=" + row.step + "&applyId=" + row.applyId;
+        }
+    }
+
+    function AuditorCheckStatus() {
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+            CheckStatus(row.sysNum);
+        }
+    }
+
+    function CheckReport() {
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+            window.open("@Url.Content("~/NFile/PrintReport")" + "?sysNo=" + row.sysNum);
+            @*if (row.sysNum.substring(0, 2) == "SO") {
+                window.open("@Url.Content("~/Files/printReport")" + "?sysNo=" + row.encryptNo);
+            } else if (row.orderType == "退换货") {
+                window.open("@Url.Content("~/Files/printTHReport")" + "?sysNo=" + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "SB") {
+                window.open('@Url.Content("~/Files/printSBYFReport")' + '?sysNo=' + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "CC") {
+                window.open('@Url.Content("~/Files/printCCYFReport")' + '?sysNo=' + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "CM") {
+                window.open('@Url.Content("~/Files/printCMYFReport")' + '?sysNo=' + row.sysNum);
+            } else if (row.sysNum.substring(0, 2) == "BL") {
+                window.open('@Url.Content("~/Files/printBLReport")' + '?sysNo=' + row.sysNum);
+            } else {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "不能导出报表。"
+                });
+            }*@
+        }
+    }
+
+    function PrintTHQS() {
+        var row = $("#AuditList").datagrid("getSelected");
+        if (row) {
+            if (row.orderType == "退换货") {
+                window.open("@Url.Content("~/Files/printTHQSReport")" + "?sysNo=" + row.sysNum);
+            }
+            else {
+                $.messager.show({
+                    title: '@Html.Lang("tip")',
+                    msg: "不能导出报表。"
+                });
+            }
+        }
+    }
+
+    function ExportAuditorExcel(typ) {
+        tip("正在导出符合查询条件且已审核的数据，请稍等...");
+
+        $("#fm").form("submit", {
+            url: "@Url.Content("~/NFile/ExportAuditorExcel?billType=")" + typ,
+            success: function () {
+
+            }
+    });
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true"  style="visibility:hidden" id="contDiv">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 65px; background: #fafafa;padding: 1px;">
+        <form id="fm" method="post" style="padding:2px 5px;">
+        <table cellpadding="0" cellspacing="0" border="0" width="800">
+            <thead>
+                <tr>                    
+                    <td>
+                        @Html.Lang("sys_num"):
+                    </td>
+                    <td>
+                        @Html.Lang("pro_model"):
+                    </td>
+                    @*<td>
+                        @Html.Lang("apply_user"):
+                    </td>*@
+                    <td>
+                        @Html.Lang("order_date"):
+                    </td>
+                    <td>
+                        @Html.Lang("to")
+                    </td>
+                    <td>
+                        @Html.Lang("audit_result"):
+                    </td>
+                    <td>
+                        @Html.Lang("final_status"):
+                    </td>
+                    <td>
+                    
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input class="easyui-textbox" id="sysNo" name="sysNo" style="width: 120px" value="@pm.sysNo"/>
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" id="proModel" name="proModel" style="width: 120px" value="@pm.proModel"/>
+                    </td>
+                    <td>
+                        <input id="fromDate" class="easyui-datebox" name="from_date" style="width: 120px" value="@pm.from_date"/>
+                    </td>
+                    <td>
+                        <input id="toDate" class="easyui-datebox" name="to_date" style="width: 120px" value="@pm.to_date"/>
+                    </td>
+                    <td>
+                        <input id="auditResult" name="auditResult" style="width: 90px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 'auto',
+                        panelWidth:140,
+                        editable:false,
+                        value:'@pm.auditResult',
+		                data: [{
+			                label: '@Html.Lang("all")',
+			                value: '10'
+		                },{
+			                label: '@Html.Lang("not_audit")',
+			                value: '0'
+		                },{
+			                label: '@Html.Lang("success")',
+			                value: '1'
+		                },{
+			                label: '@Html.Lang("failure")',
+			                value: '-1'
+		                }]" />
+                    </td>
+                    <td>
+                        <input id="isFinish" name="isFinish" style="width: 100px" class="easyui-combobox" data-options="
+		                valueField: 'value',
+		                textField: 'label',
+                        panelHeight: 'auto',
+                        panelWidth:120,
+                        editable:false,
+                        value:'@pm.isFinish',
+		                data: [{
+			                label: '@Html.Lang("all")',
+			                value: '10'
+		                },{
+			                label: '@Html.Lang("not_finish")',
+			                value: '0'
+		                },{
+			                label: '@Html.Lang("is_finish")_Pass',
+			                value: '1'
+		                },{
+			                label: '@Html.Lang("is_finish")_NG',
+			                value: '-1'
+		                }]" />
+                    </td>
+                    <td>
+                        <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">
+                        @Html.Lang("search")</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="AuditList" class="easyui-datagrid"></table>
+    </div>
+</div>
+
+<div style="visibility:hidden">
+    <div id="audit_tb">
+        <a href="#" onclick="EditOrder()" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true"> @Html.Lang("audit_bill") </a>
+        <a href="#" onclick="AuditorCheckStatus()" class="easyui-linkbutton" data-options="iconCls:'icon-help',plain:true"> @Html.Lang("check_status") </a>
+        <a href="#" onclick="CheckReport()" class="easyui-linkbutton" data-options="iconCls:'icon-document',plain:true"> @Html.Lang("chk_report") </a>
+        <a href="#" class="easyui-menubutton" data-options="menu:'#xls_mm',iconCls:'icon-xls',plain:true"> 导出Excel </a>
+        <a href="#" onclick="PrintTHQS()" class="easyui-linkbutton" data-options="iconCls:'icon-document',plain:true"> @Html.Lang("print_returned_report") </a>
+    </div>
+    <div id="xls_mm" style="width:150px;">
+        <div onclick="ExportAuditorExcel('SO')" data-options="iconCls:'icon-xls'">@Html.Lang("export_so_excel")</div>
+        <div class="menu-sep"></div>
+        <div onclick="ExportAuditorExcel('TH')" data-options="iconCls:'icon-xls'">@Html.Lang("export_th_excel")</div>
+        <div class="menu-sep"></div>
+        <div onclick="ExportAuditorExcel('SB')" data-options="iconCls:'icon-xls'">@Html.Lang("sb_excel")</div>
+        <div class="menu-sep"></div>
+        <div onclick="ExportAuditorExcel('CX')" data-options="iconCls:'icon-xls'">@Html.Lang("export_cm_excel")</div>
+        <div class="menu-sep"></div>
+        <div onclick="ExportAuditorExcel('BL')" data-options="iconCls:'icon-xls'">备料单Excel</div>
+    </div>
+</div>
+    @Html.Partial("_CheckAuditStatus")
+

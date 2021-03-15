@@ -16,6 +16,7 @@ namespace Sale_Order.Models
         public int step { get; set; }
         public string stepName { get; set; }
         public int applyId { get; set; }
+        public int applyDetailId { get; set; }
         public string sysNum { get; set; }
         public string depName { get; set; }
         public string salerName { get; set; }
@@ -28,6 +29,7 @@ namespace Sale_Order.Models
         public string orderType { get; set; }
         public string model { get; set; }
         public string account { get; set; }
+        public bool flag { get; set; }
     }
 
     //审核人查看自己待审核或审核过的变更单据列表
@@ -77,6 +79,12 @@ namespace Sale_Order.Models
         public string text { get; set; }
     }
 
+    public class SResultModel
+    {
+        public bool suc { get; set; }
+        public string msg { get; set; }
+    }
+
     public class CeoAuditListModel
     {
         public int? step { get; set; }
@@ -90,6 +98,13 @@ namespace Sale_Order.Models
         public string applyTimeStr { get; set; }
         public string orderType { get; set; }
         public string model { get; set; }
+    }
+
+    public class AuditResultModel
+    {
+        public bool canAudit { get; set; }
+        public string auditResult { get; set; }
+        public string comment { get; set; }
     }
 
     ////导出SO excel 报表

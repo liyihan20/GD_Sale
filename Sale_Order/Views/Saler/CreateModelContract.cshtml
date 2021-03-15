@@ -6,7 +6,7 @@
 }
 <style type="text/css">
     #order_div input {
-        width: 140px;
+        width: 130px;
     }
 </style>
 
@@ -29,7 +29,6 @@
                 valueField: valueField,
                 textField: "name",
                 url: "../Items/getItems?what=" + what + "&account=@account",
-                width: 140,
                 panelHeight: penelHeight,
                 panelWidth: panelWidth,
                 editable: editable,
@@ -313,6 +312,7 @@
         $('#env_demand').combobox('setValue', '@cmc.env_demand');
         $('#video_by_truly').combobox('setValue', '@cmc.video_by_truly');
         $('#panel_by_truly').combobox('setValue', '@cmc.panel_by_truly');
+        $("#is_panel").combobox('setValue', '@cmc.is_panel');
 
         $("#agency_div").css("visibility", "visible");
     });
@@ -346,11 +346,11 @@
                 return null;
             } else {
                 //国内贸易的必须填写合同编号，且格式是CM年月流水号，比如CM201801001
-                var pat = /CM\d{9}/;
-                if (!pat.test($("#contract_po_no").val())) {
-                    tip("保存失败：国内贸易的【合同编号P/O】字段必须符合以下格式：CM+年+月+流水号，例如CM201802001");
-                    return null;
-                }
+                //var pat = /CM\d{9}/;
+                //if (!pat.test($("#contract_po_no").val())) {
+                //    tip("保存失败：国内贸易的【合同编号P/O】字段必须符合以下格式：CM+年+月+流水号，例如CM201802001");
+                //    return null;
+                //}
             }
             if (fetchAdd.indexOf("GN") < 0) {
                 alert("保存失败：币别为人民币的交货地点必须选择【中国汕尾（GN）】");
@@ -418,6 +418,15 @@
             if (head == null) { return;}
 
             console.log(head);
+
+            if (head.is_panel == "") {
+                alert("请选择【是否PANEL】后再保存");
+                return;
+            }
+            if (head.cost == "") {
+                alert("请填写【成本】后再保存");
+                return;
+            }
 
             $.messager.progress();
             $('#saveAllBut').linkbutton('disable');
@@ -487,12 +496,10 @@ else
                     { contractNo: $("#contract_po_no").val(), sysNum: $("#sys_no").val(), billType: "CM" }, function (data) {
                         if (data.suc) {
                             saveForm();
-                            $.messager.progress();
                         } else {
                             $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
                                 if (r) {
                                     saveForm();
-                                    $.messager.progress();
                                 }
                             });
                         }
@@ -512,10 +519,9 @@ else
     function saveForm() {
         var head = beforeSaveForm();
         if (!head) {
-            $.messager.progress("close");
             return;
         }
-
+        $.messager.progress();
         $.post("@Url.Content("~/Saler/SalerSaveModelContract")", { head: JSON.stringify(head) }, function (data) {
             if (data.suc) {
                 $('#okFlag').val('true');
@@ -759,6 +765,16 @@ else
                         <td>
                             <input class="easyui-textbox" name="quote_num" id="quote_num" required="true" value="@cmc.quote_num"/>
                         </td>
+                        <td>
+                            是否PANEL:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="is_panel" id="is_panel"
+                        data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                           data:[
+                                           {value:'是'},{value:'否'}
+                                           ]" />
+                        </td>
                     </tr>
                     <tr>                    
                         <td>
@@ -889,6 +905,12 @@ else
                     </tr>
                     <tr>
                         <td>
+                            模费成本:
+                        </td>
+                        <td>
+                            <input id="cost" class="easyui-numberbox" name="cost" precision="2" value="@(cmc.cost??0)" />
+                        </td>
+                        <td>
                             产品用途:
                         </td>
                         <td>
@@ -906,14 +928,14 @@ else
                         <td>
                             <input id="pic_number" class="easyui-textbox" name="pic_number" required="true" value="@cmc.pic_number" />
                         </td>
+                    </tr>
+                    <tr>
                         <td>
                             出图版本号:
                         </td>
                         <td>
                             <input id="pic_version" class="easyui-textbox" name="pic_version" value="@cmc.pic_version" />
                         </td>
-                    </tr>
-                    <tr>
                         <td>
                             样品用途:
                         </td>

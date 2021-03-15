@@ -37,4 +37,25 @@ namespace Sale_Order.Models
         public string uploader { get; set; }
         public string file_status { get; set; }
     }
+
+    public class SalerSearchParamModel
+    {
+        public string billType { get; set; }
+        public string sysNo{get;set;}
+        public DateTime fromDate{get;set;}
+        public DateTime toDate{get;set;}
+        public int auditResult { get; set; }
+    }
+
+    public class AuditSearchParamModel
+    {
+        public string sysNo{ get; set; }
+        public string saler{ get; set; }
+        public string proModel{ get; set; }
+        public string from_date{ get; set; }
+        public string to_date{ get; set; }
+        public int auditResult{ get; set; } 
+        public int isFinish{ get; set; }
+    }
+   
 }

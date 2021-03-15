@@ -1,0 +1,121 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    string editType = (string)ViewData["canEdit"];
+    string sysNo = (string)ViewData["sysNo"];
+    int step = (int)ViewData["step"];
+    int applyId = (int)ViewData["applyId"];
+    string url = Url.Content("~/NSaler/");
+    
+    if ("m".Equals(editType)) {
+        url += "ModifyBill?sysNo=" + sysNo + "&stepVersion=" + step;
+    }
+    if ("r".Equals(editType)) {
+        url += "CheckBill?sysNo=" + sysNo;
+    }
+    
+}
+<script type="text/javascript">
+    $(function () {
+
+        getAuditResult();
+
+    });
+
+    function okClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_pass")?', function (r) {
+            if (r) {
+                $('#okFlag').val('true');
+                submitForm();
+            }
+        });
+
+    }
+    function noClick() {
+        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("confirm_reject")?', function (r) {
+            if (r) {
+                $('#okFlag').val('false');
+                submitForm();
+            }
+        });
+    }
+
+    function block() {
+        var reason = $("#auditor_comment").val();
+        if ($.trim(reason) == "") {
+            $.messager.show({
+                title: '@Html.Lang("tip")',
+                msg: "挂起操作必须写明原因，提交失败"
+            });
+        } else {
+            $.messager.confirm('@Html.Lang("confirm")', '确定要将订单挂起吗?', function (r) {
+                if (r) {
+                    $.messager.progress();
+                    $("#audit_fm").form("submit", {
+                        url: '@Url.Content("~/NAudit/BlockOrder")',
+                        success: function (data) {
+                            $.messager.progress('close');
+                            var result = eval("(" + data + ")");
+                            if (result.suc) {
+                                tip(result.msg + ",正在跳转...");
+                                setTimeout("window.location.href='@Url.Content("~/NAudit/CheckNAuditList")';", 1500);
+                            } else {
+                                tip(result.msg);
+                                setTimeout("window.location.href='@Url.Content("~/NAudit/CheckNAuditList")';", 3000);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    function submitForm() {
+        $.messager.progress();
+        $("#audit_fm").form("submit", {
+            url: '@Url.Content("~/NAudit/HandleAudit")',
+            success: function (data) {
+                $.messager.progress('close');
+                var result = eval("(" + data + ")");
+                if (result.suc) {
+                    tip(result.msg + ",正在跳转...");
+                    setTimeout("window.location.href='@Url.Content("~/NAudit/CheckNAuditList")';", 1000);
+                } else {
+                    tip(result.msg);
+                }
+            }
+        });
+    }    
+
+    //获取审批信息
+    function getAuditResult() {
+        $.post('@Url.Content("~/NAudit/GetStatusResult")',
+        { step: '@step', applyId: '@applyId' },
+        function (data) {
+            if (!data.canAudit) {
+                $("#auditor_comment").val(data.comment);
+                $("#auditor_comment").attr("readonly", "readonly");
+                $("#blockBt").hide();
+                $("#NOBt").hide();
+                $("#OKBt").linkbutton({ text: data.auditResult, });
+                $('#OKBt').linkbutton('disable');
+            }
+        });
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true" id="agency_div">    
+    <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;padding: 8px 10px;">
+        <form id="audit_fm" method="post" action="">
+        @Html.Lang("audit_opinion"):
+        <input type="hidden" name="step" value="@step" />
+        <input type="hidden" name="applyId" value="@applyId" />
+        <input type="hidden" name="okFlag" id="okFlag" value="" />
+        <input class="easyui-textbox" id="auditor_comment" name="auditor_comment" style="width: 500px" />&nbsp; 
+        <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a> 
+        <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+        <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
+        </form>
+    </div>
+    <div data-options="region:'center'" style="overflow:hidden">
+        <iframe frameborder="0" style="width:100%;height:100%;padding:0;margin:0;" src="@url"></iframe>
+    </div>
+</div>

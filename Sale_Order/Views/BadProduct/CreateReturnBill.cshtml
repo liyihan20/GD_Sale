@@ -490,7 +490,26 @@
                 <td>
                     <input type="text" name="old_sys_no" id="old_sys_no" style="width: 115px" value="@bill.old_sys_no" />
                 </td>
-                <td></td><td></td><td></td><td></td>
+                <td>
+                    责任方:
+                </td>
+                <td>
+                    <input class="easyui-combobox" style="width: 120px" name="who_to_blame" id="who_to_blame"
+                            data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                    data:[
+                                    {value:'客户'},{value:'货运公司'},{value:'物流中心'},{value:'事业部品质'},{value:'营业员'}
+                                    ]" value="@bill.who_to_blame" />
+                </td>              
+                <td>
+                    退货属性:
+                </td>
+                <td>
+                    <input class="easyui-combobox" style="width: 120px" name="return_type" id="return_type"
+                            data-options="textField:'value',valueField:'value',panelHeight:'auto', required:true,editable:false,
+                                    data:[
+                                    {value:'品质问题'},{value:'非品质问题'}
+                                    ]" value="@bill.return_type" />
+                </td>
             </tr>
         </table>
     </div>

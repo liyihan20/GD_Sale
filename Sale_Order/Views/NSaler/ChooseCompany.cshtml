@@ -1,0 +1,11 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    string[] companys = ViewData["companys"] as string[];
+}
+
+<div style="text-align:center;">
+    <h3>请选择需要下单到哪个公司：</h3>
+    @foreach (var com in companys) {
+        <a href="@string.Format("{0}/{1}/{2}?billType={3}&account={4}", Url.Content("~"), ViewData["controllerName"], ViewData["actionName"],ViewData["billType"], com)" class="easyui-linkbutton" data-options="iconCls:'icon-star'" style="padding:12px;margin-right:12px;"><span style="font-size:18px;">@com</span> </a>
+    }
+</div>

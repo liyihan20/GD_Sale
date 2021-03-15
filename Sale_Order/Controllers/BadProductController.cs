@@ -189,7 +189,7 @@ namespace Sale_Order.Controllers
             var bill = db.ReturnBill.Where(b => b.sys_no == sys_no).First();
             ViewData["details"] = bill.ReturnBillDetail.ToList();
 
-            bill.sys_no = utl.getReturnSystemNo(sys_no.Substring(0, 2));
+            bill.sys_no = utl.getReturnSystemNo(bill.customer_number.Substring(3, 2));
             bill.old_sys_no = sys_no;
             bill.id = 0;
             bill.fdate = DateTime.Now;
@@ -202,7 +202,7 @@ namespace Sale_Order.Controllers
         //保存退修单
         [HttpPost]
         public JsonResult saveReturnBill(FormCollection fc)
-        {
+        {            
             //表头
             string fDate = fc.Get("fdate");
             string sysNo = fc.Get("sys_no");
@@ -218,6 +218,8 @@ namespace Sale_Order.Controllers
             string comment = fc.Get("comment");
             string salerComment = fc.Get("saler_comment");
             string oldSysNo = fc.Get("old_sys_no");
+            string who_to_blame = fc.Get("who_to_blame");
+            string return_type = fc.Get("return_type");
 
             //表体
             string[] tSeorderNo = fc.Get("seorder_no").Split(',');
@@ -260,6 +262,8 @@ namespace Sale_Order.Controllers
             bill.express_name = expressName;
             bill.express_no = expressNo;
             bill.old_sys_no = oldSysNo;
+            bill.who_to_blame = who_to_blame;
+            bill.return_type = return_type;
             if (!string.IsNullOrEmpty(expressQty)) {
                 bill.express_qty = Int32.Parse(expressQty);
             }
@@ -438,10 +442,10 @@ namespace Sale_Order.Controllers
         }
 
         //退修单详情
-        public ActionResult CheckReturnBill(int id)
+        public ActionResult CheckReturnBill(int returnId)
         {
             string status;
-            var bill = db.ReturnBill.Single(r => r.id == id);
+            var bill = db.ReturnBill.Single(r => r.id == returnId);
             ViewData["bill"] = bill;
             ViewData["details"] = bill.ReturnBillDetail.ToList();
             ViewData["userName"] = bill.User.real_name;

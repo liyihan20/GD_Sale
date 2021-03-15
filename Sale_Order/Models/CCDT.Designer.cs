@@ -442,6 +442,10 @@ namespace Sale_Order.Models {
             
             private global::System.Data.DataColumn columnfree;
             
+            private global::System.Data.DataColumn columnis_panel;
+            
+            private global::System.Data.DataColumn columncost;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public Sale_ccm_model_contractDataTable() {
@@ -989,6 +993,22 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn is_panelColumn {
+                get {
+                    return this.columnis_panel;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public global::System.Data.DataColumn costColumn {
+                get {
+                    return this.columncost;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -1087,7 +1107,9 @@ namespace Sale_Order.Models {
                         string plan_firm_no, 
                         string product_unit, 
                         string clear_way_no, 
-                        decimal free) {
+                        decimal free, 
+                        string is_panel, 
+                        decimal cost) {
                 Sale_ccm_model_contractRow rowSale_ccm_model_contractRow = ((Sale_ccm_model_contractRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         null,
@@ -1153,7 +1175,9 @@ namespace Sale_Order.Models {
                         plan_firm_no,
                         product_unit,
                         clear_way_no,
-                        free};
+                        free,
+                        is_panel,
+                        cost};
                 rowSale_ccm_model_contractRow.ItemArray = columnValuesArray;
                 this.Rows.Add(rowSale_ccm_model_contractRow);
                 return rowSale_ccm_model_contractRow;
@@ -1247,6 +1271,8 @@ namespace Sale_Order.Models {
                 this.columnproduct_unit = base.Columns["product_unit"];
                 this.columnclear_way_no = base.Columns["clear_way_no"];
                 this.columnfree = base.Columns["free"];
+                this.columnis_panel = base.Columns["is_panel"];
+                this.columncost = base.Columns["cost"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -1380,6 +1406,10 @@ namespace Sale_Order.Models {
                 base.Columns.Add(this.columnclear_way_no);
                 this.columnfree = new global::System.Data.DataColumn("free", typeof(decimal), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnfree);
+                this.columnis_panel = new global::System.Data.DataColumn("is_panel", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnis_panel);
+                this.columncost = new global::System.Data.DataColumn("cost", typeof(decimal), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columncost);
                 this.Constraints.Add(new global::System.Data.UniqueConstraint("Constraint1", new global::System.Data.DataColumn[] {
                                 this.columnid}, true));
                 this.columnid.AutoIncrement = true;
@@ -1439,6 +1469,7 @@ namespace Sale_Order.Models {
                 this.columnplan_firm_no.MaxLength = 50;
                 this.columnproduct_unit.MaxLength = 20;
                 this.columnclear_way_no.MaxLength = 50;
+                this.columnis_panel.MaxLength = 10;
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -2945,6 +2976,38 @@ namespace Sale_Order.Models {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public string is_panel {
+                get {
+                    try {
+                        return ((string)(this[this.tableSale_ccm_model_contract.is_panelColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("表“Sale_ccm_model_contract”中列“is_panel”的值为 DBNull。", e);
+                    }
+                }
+                set {
+                    this[this.tableSale_ccm_model_contract.is_panelColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public decimal cost {
+                get {
+                    try {
+                        return ((decimal)(this[this.tableSale_ccm_model_contract.costColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("表“Sale_ccm_model_contract”中列“cost”的值为 DBNull。", e);
+                    }
+                }
+                set {
+                    this[this.tableSale_ccm_model_contract.costColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
             public bool Issys_noNull() {
                 return this.IsNull(this.tableSale_ccm_model_contract.sys_noColumn);
             }
@@ -3698,6 +3761,30 @@ namespace Sale_Order.Models {
             public void SetfreeNull() {
                 this[this.tableSale_ccm_model_contract.freeColumn] = global::System.Convert.DBNull;
             }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool Isis_panelNull() {
+                return this.IsNull(this.tableSale_ccm_model_contract.is_panelColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void Setis_panelNull() {
+                this[this.tableSale_ccm_model_contract.is_panelColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public bool IscostNull() {
+                return this.IsNull(this.tableSale_ccm_model_contract.costColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "4.0.0.0")]
+            public void SetcostNull() {
+                this[this.tableSale_ccm_model_contract.costColumn] = global::System.Convert.DBNull;
+            }
         }
         
         /// <summary>
@@ -4196,6 +4283,8 @@ namespace Sale_Order.Models.CCDTTableAdapters {
             tableMapping.ColumnMappings.Add("product_unit", "product_unit");
             tableMapping.ColumnMappings.Add("clear_way_no", "clear_way_no");
             tableMapping.ColumnMappings.Add("free", "free");
+            tableMapping.ColumnMappings.Add("is_panel", "is_panel");
+            tableMapping.ColumnMappings.Add("cost", "cost");
             this._adapter.TableMappings.Add(tableMapping);
             this._adapter.DeleteCommand = new global::System.Data.SqlClient.SqlCommand();
             this._adapter.DeleteCommand.Connection = this.Connection;
@@ -4217,19 +4306,20 @@ namespace Sale_Order.Models.CCDTTableAdapters {
                 "le_special_demand], [is_env_special], [env_special_demand], [is_reliability_spec" +
                 "ial], [reliability_special_demand], [comment], [quotation_clerk_id], [quotation_" +
                 "clerk_name], [project_team], [zz_customer_no], [oversea_customer_no], [plan_firm" +
-                "_no], [product_unit], [clear_way_no], [free]) VALUES (@sys_no, @user_id, @step_v" +
-                "ersion, @product_type, @model_type, @clear_way, @old_bill_no, @bill_date, @fetch" +
-                "_date, @agency_no, @agency_name, @clerk_no, @clerk_name, @currency_no, @currency" +
-                "_name, @customer_no, @customer_name, @zz_customer_name, @plan_firm_name, @overse" +
-                "a_customer_name, @product_number, @product_name, @product_model, @qty, @price, @" +
-                "charge, @is_free, @fetch_add_no, @fetch_add_name, @count_in_bus_dep, @special_mo" +
-                "del, @telephone, @email, @trade_type_no, @trade_type_name, @DSP_model, @product_" +
-                "use, @project_name, @project_model, @plan_start_date, @plan_finish_date, @estima" +
-                "ted_quantity, @pic_number, @pic_version, @quote_num, @is_structure_special, @str" +
-                "ucture_special_demand, @is_ele_special, @ele_special_demand, @is_env_special, @e" +
-                "nv_special_demand, @is_reliability_special, @reliability_special_demand, @commen" +
-                "t, @quotation_clerk_id, @quotation_clerk_name, @project_team, @zz_customer_no, @" +
-                "oversea_customer_no, @plan_firm_no, @product_unit, @clear_way_no, @free)";
+                "_no], [product_unit], [clear_way_no], [free], [is_panel], [cost]) VALUES (@sys_n" +
+                "o, @user_id, @step_version, @product_type, @model_type, @clear_way, @old_bill_no" +
+                ", @bill_date, @fetch_date, @agency_no, @agency_name, @clerk_no, @clerk_name, @cu" +
+                "rrency_no, @currency_name, @customer_no, @customer_name, @zz_customer_name, @pla" +
+                "n_firm_name, @oversea_customer_name, @product_number, @product_name, @product_mo" +
+                "del, @qty, @price, @charge, @is_free, @fetch_add_no, @fetch_add_name, @count_in_" +
+                "bus_dep, @special_model, @telephone, @email, @trade_type_no, @trade_type_name, @" +
+                "DSP_model, @product_use, @project_name, @project_model, @plan_start_date, @plan_" +
+                "finish_date, @estimated_quantity, @pic_number, @pic_version, @quote_num, @is_str" +
+                "ucture_special, @structure_special_demand, @is_ele_special, @ele_special_demand," +
+                " @is_env_special, @env_special_demand, @is_reliability_special, @reliability_spe" +
+                "cial_demand, @comment, @quotation_clerk_id, @quotation_clerk_name, @project_team" +
+                ", @zz_customer_no, @oversea_customer_no, @plan_firm_no, @product_unit, @clear_wa" +
+                "y_no, @free, @is_panel, @cost)";
             this._adapter.InsertCommand.CommandType = global::System.Data.CommandType.Text;
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sys_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sys_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@user_id", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "user_id", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4294,6 +4384,8 @@ namespace Sale_Order.Models.CCDTTableAdapters {
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@product_unit", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "product_unit", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@clear_way_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "clear_way_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@free", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "free", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@is_panel", global::System.Data.SqlDbType.NVarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "is_panel", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.InsertCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@cost", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "cost", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand = new global::System.Data.SqlClient.SqlCommand();
             this._adapter.UpdateCommand.Connection = this.Connection;
             this._adapter.UpdateCommand.CommandText = "UPDATE [dbo].[Sale_ccm_model_contract] SET [sys_no] = @sys_no, [user_id] = @user_" +
@@ -4322,7 +4414,8 @@ namespace Sale_Order.Models.CCDTTableAdapters {
                 "n_clerk_id, [quotation_clerk_name] = @quotation_clerk_name, [project_team] = @pr" +
                 "oject_team, [zz_customer_no] = @zz_customer_no, [oversea_customer_no] = @oversea" +
                 "_customer_no, [plan_firm_no] = @plan_firm_no, [product_unit] = @product_unit, [c" +
-                "lear_way_no] = @clear_way_no, [free] = @free WHERE (([id] = @Original_id))";
+                "lear_way_no] = @clear_way_no, [free] = @free, [is_panel] = @is_panel, [cost] = @" +
+                "cost WHERE (([id] = @Original_id))";
             this._adapter.UpdateCommand.CommandType = global::System.Data.CommandType.Text;
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sys_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "sys_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@user_id", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "user_id", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4387,6 +4480,8 @@ namespace Sale_Order.Models.CCDTTableAdapters {
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@product_unit", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "product_unit", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@clear_way_no", global::System.Data.SqlDbType.VarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "clear_way_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@free", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "free", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@is_panel", global::System.Data.SqlDbType.NVarChar, 0, global::System.Data.ParameterDirection.Input, 0, 0, "is_panel", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
+            this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@cost", global::System.Data.SqlDbType.Decimal, 0, global::System.Data.ParameterDirection.Input, 12, 2, "cost", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
             this._adapter.UpdateCommand.Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@Original_id", global::System.Data.SqlDbType.Int, 0, global::System.Data.ParameterDirection.Input, 0, 0, "id", global::System.Data.DataRowVersion.Original, false, null, "", "", ""));
         }
         
@@ -4403,7 +4498,7 @@ namespace Sale_Order.Models.CCDTTableAdapters {
             this._commandCollection = new global::System.Data.SqlClient.SqlCommand[1];
             this._commandCollection[0] = new global::System.Data.SqlClient.SqlCommand();
             this._commandCollection[0].Connection = this.Connection;
-            this._commandCollection[0].CommandText = @"SELECT id, sys_no, user_id, step_version, product_type, model_type, clear_way, old_bill_no, bill_date, fetch_date, agency_no, agency_name, clerk_no, clerk_name, currency_no, currency_name, customer_no, customer_name, zz_customer_name, plan_firm_name, oversea_customer_name, product_number, product_name, product_model, qty, price, charge, is_free, fetch_add_no, fetch_add_name, count_in_bus_dep, special_model, telephone, email, trade_type_no, trade_type_name, DSP_model, product_use, project_name, project_model, plan_start_date, plan_finish_date, estimated_quantity, pic_number, pic_version, quote_num, is_structure_special, structure_special_demand, is_ele_special, ele_special_demand, is_env_special, env_special_demand, is_reliability_special, reliability_special_demand, comment, quotation_clerk_id, quotation_clerk_name, project_team, zz_customer_no, oversea_customer_no, plan_firm_no, product_unit, clear_way_no, free FROM dbo.Sale_ccm_model_contract
+            this._commandCollection[0].CommandText = @"SELECT id, sys_no, user_id, step_version, product_type, model_type, clear_way, old_bill_no, bill_date, fetch_date, agency_no, agency_name, clerk_no, clerk_name, currency_no, currency_name, customer_no, customer_name, zz_customer_name, plan_firm_name, oversea_customer_name, product_number, product_name, product_model, qty, price, charge, is_free, fetch_add_no, fetch_add_name, count_in_bus_dep, special_model, telephone, email, trade_type_no, trade_type_name, DSP_model, product_use, project_name, project_model, plan_start_date, plan_finish_date, estimated_quantity, pic_number, pic_version, quote_num, is_structure_special, structure_special_demand, is_ele_special, ele_special_demand, is_env_special, env_special_demand, is_reliability_special, reliability_special_demand, comment, quotation_clerk_id, quotation_clerk_name, project_team, zz_customer_no, oversea_customer_no, plan_firm_no, product_unit, clear_way_no, free,is_panel,cost FROM dbo.Sale_ccm_model_contract
 where sys_no = @sys_no";
             this._commandCollection[0].CommandType = global::System.Data.CommandType.Text;
             this._commandCollection[0].Parameters.Add(new global::System.Data.SqlClient.SqlParameter("@sys_no", global::System.Data.SqlDbType.VarChar, 15, global::System.Data.ParameterDirection.Input, 0, 0, "sys_no", global::System.Data.DataRowVersion.Current, false, null, "", "", ""));
@@ -4563,7 +4658,9 @@ where sys_no = @sys_no";
                     string plan_firm_no, 
                     string product_unit, 
                     string clear_way_no, 
-                    global::System.Nullable<decimal> free) {
+                    global::System.Nullable<decimal> free, 
+                    string is_panel, 
+                    global::System.Nullable<decimal> cost) {
             if ((sys_no == null)) {
                 this.Adapter.InsertCommand.Parameters[0].Value = global::System.DBNull.Value;
             }
@@ -4942,6 +5039,18 @@ where sys_no = @sys_no";
             else {
                 this.Adapter.InsertCommand.Parameters[62].Value = global::System.DBNull.Value;
             }
+            if ((is_panel == null)) {
+                this.Adapter.InsertCommand.Parameters[63].Value = global::System.DBNull.Value;
+            }
+            else {
+                this.Adapter.InsertCommand.Parameters[63].Value = ((string)(is_panel));
+            }
+            if ((cost.HasValue == true)) {
+                this.Adapter.InsertCommand.Parameters[64].Value = ((decimal)(cost.Value));
+            }
+            else {
+                this.Adapter.InsertCommand.Parameters[64].Value = global::System.DBNull.Value;
+            }
             global::System.Data.ConnectionState previousConnectionState = this.Adapter.InsertCommand.Connection.State;
             if (((this.Adapter.InsertCommand.Connection.State & global::System.Data.ConnectionState.Open) 
                         != global::System.Data.ConnectionState.Open)) {
@@ -5026,6 +5135,8 @@ where sys_no = @sys_no";
                     string product_unit, 
                     string clear_way_no, 
                     global::System.Nullable<decimal> free, 
+                    string is_panel, 
+                    global::System.Nullable<decimal> cost, 
                     int Original_id) {
             if ((sys_no == null)) {
                 this.Adapter.UpdateCommand.Parameters[0].Value = global::System.DBNull.Value;
@@ -5405,7 +5516,19 @@ where sys_no = @sys_no";
             else {
                 this.Adapter.UpdateCommand.Parameters[62].Value = global::System.DBNull.Value;
             }
-            this.Adapter.UpdateCommand.Parameters[63].Value = ((int)(Original_id));
+            if ((is_panel == null)) {
+                this.Adapter.UpdateCommand.Parameters[63].Value = global::System.DBNull.Value;
+            }
+            else {
+                this.Adapter.UpdateCommand.Parameters[63].Value = ((string)(is_panel));
+            }
+            if ((cost.HasValue == true)) {
+                this.Adapter.UpdateCommand.Parameters[64].Value = ((decimal)(cost.Value));
+            }
+            else {
+                this.Adapter.UpdateCommand.Parameters[64].Value = global::System.DBNull.Value;
+            }
+            this.Adapter.UpdateCommand.Parameters[65].Value = ((int)(Original_id));
             global::System.Data.ConnectionState previousConnectionState = this.Adapter.UpdateCommand.Connection.State;
             if (((this.Adapter.UpdateCommand.Connection.State & global::System.Data.ConnectionState.Open) 
                         != global::System.Data.ConnectionState.Open)) {

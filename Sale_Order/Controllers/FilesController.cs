@@ -130,7 +130,7 @@ namespace Sale_Order.Controllers
                 }
                 stream = rptH.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             }
-            return File(stream, "application/pdf"); 
+            return File(stream, "application/pdf");
         }
 
         public ActionResult printTHReport(string sysNo) {            

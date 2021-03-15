@@ -188,11 +188,16 @@
     <Compile Include="Controllers\ItemsController.cs" />
     <Compile Include="Controllers\LocalizationHelpers.cs" />
     <Compile Include="Controllers\MyHelpers.cs" />
+    <Compile Include="Controllers\NAuditController.cs" />
+    <Compile Include="Controllers\NExtraController.cs" />
+    <Compile Include="Controllers\NFileController.cs" />
+    <Compile Include="Controllers\NSalerController.cs" />
     <Compile Include="Controllers\SalerController.cs" />
     <Compile Include="Filter\SessionFilter.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Interfaces\IFinishEmail.cs" />
     <Compile Include="Models\AccountModels.cs" />
     <Compile Include="Models\AuditModel.cs" />
     <Compile Include="Models\BLDT.Designer.cs">
@@ -204,6 +209,10 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CCDT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Models\CMDT.cs">
+      <DependentUpon>CMDT.xsd</DependentUpon>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Models\CMDT.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -311,8 +320,17 @@
       <DesignTime>True</DesignTime>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="Services\ApplySv.cs" />
     <Compile Include="Services\BaseSv.cs" />
+    <Compile Include="Services\BillSv.cs" />
+    <Compile Include="Services\CCSv.cs" />
+    <Compile Include="Services\CHSv.cs" />
+    <Compile Include="Services\CMSv.cs" />
+    <Compile Include="Services\CXSv.cs" />
     <Compile Include="Services\K3ItemSv.cs" />
+    <Compile Include="Services\SOSv.cs" />
+    <Compile Include="Utils\BillUtils.cs" />
+    <Compile Include="Utils\EmailUtil.cs" />
     <Compile Include="Utils\MyEmail.cs" />
     <Compile Include="Utils\Utils.cs" />
   </ItemGroup>
@@ -771,6 +789,17 @@
     <Content Include="Views\Saler\CheckSaleOrder_old.cshtml" />
     <Content Include="Views\Saler\ChooseCompany.cshtml" />
     <Content Include="Views\Audit\LogEditReturnBill.cshtml" />
+    <Content Include="Views\NSaler\CreateNSO.cshtml" />
+    <Content Include="Views\NSaler\CheckNBillList.cshtml" />
+    <Content Include="Views\NSaler\CheckNSO.cshtml" />
+    <Content Include="Views\NAudit\CheckNAuditList.cshtml" />
+    <Content Include="Views\NAudit\BeginNAudit.cshtml" />
+    <Content Include="Views\NSaler\CreateNCM.cshtml" />
+    <Content Include="Views\NSaler\CheckNCM.cshtml" />
+    <Content Include="Views\NSaler\CreateNCC.cshtml" />
+    <Content Include="Views\NSaler\CheckNCC.cshtml" />
+    <Content Include="Views\NExtra\ClerkAndCustomer.cshtml" />
+    <Content Include="Views\NSaler\ChooseCompany.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">

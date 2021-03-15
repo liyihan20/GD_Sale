@@ -456,7 +456,14 @@
                         <td>
                             @bill.old_sys_no
                         </td>
-                        <td></td><td></td><td></td><td></td>
+                        <td>
+                            责任方:
+                        </td>
+                        <td>
+                            @bill.who_to_blame
+                        </td>
+                        <td>退货属性:</td>
+                        <td>@bill.return_type</td>
                     </tr>
                 </table>
             </div>
@@ -475,7 +482,7 @@
                                 <td>@det.product_name</td>
                                 <td>@det.product_model</td>
                                 <td>@det.aux_qty</td>
-                                <td>@det.return_qty</td>                                
+                                <td>@det.return_qty</td>
                                 <td>@det.real_return_qty</td>
                                 <td>@(det.is_online==true?"已上线":"未上线")</td>
                                 @*<td>@det.has_replace_qty</td>

@@ -25,6 +25,11 @@ namespace Sale_Order.Services
             return db.ExecuteQuery<K3Customer>("exec dbo.getK3Customer @customerInfo={0},@account={1}", customerInfo, _account).ToList();
         }
 
+        public K3CustomerInfo GetK3CustomerInfo(string customerNumber)
+        {
+            return db.ExecuteQuery<K3CustomerInfo>("exec dbo.getK3CustomerInfo @customerNumber = {0},@account = {1}", customerNumber,_account).FirstOrDefault();
+        }
+
         public List<K3Product> GetK3ProductByModel(string itemModel)
         {
             return db.ExecuteQuery<K3Product>("exec dbo.getK3ProductByModel @itemModel={0},@account={1}", itemModel, _account).ToList();

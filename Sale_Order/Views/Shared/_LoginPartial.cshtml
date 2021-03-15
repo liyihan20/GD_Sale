@@ -12,12 +12,12 @@
                 <ul>
                     @if (Array.IndexOf(powers, Powers.new_order.ToString()) != -1)
                     {
-                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder&companys=光电总部,光电仁寿"><span>@Html.Lang("new_sale_order")</span> </li>   
-                        <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>
+                        <li id="~/NSaler/ChooseCompany?billType=SO"><span>@Html.Lang("new_sale_order")</span> </li>   
+                        <li id="~/NSaler/CheckBillList?billType=SO"><span>@Html.Lang("check_add_apply")</span> </li>
                     }
                     @if (Array.IndexOf(powers, Powers.ceo_excel.ToString()) != -1)
                     {
-                        <li id="downCeoExcel"><span>@Html.Lang("ceo_excel")</span> </li>  
+                        <li id="downCeoExcel"><span>@Html.Lang("ceo_excel")</span> </li>
                     }
                     @if (Array.IndexOf(powers, Powers.chk_dep_bills.ToString()) != -1)
                     {
@@ -103,7 +103,7 @@
                     }
                 </ul>
             </li>
-            }     
+            }
             @if (Array.IndexOf(powers, Powers.new_HC.ToString()) != -1) {
                 <li>
                     <span>华为出货报告单</span>
@@ -234,6 +234,7 @@
                  @if (Array.IndexOf(powers, Powers.modify_bill_no.ToString()) != -1) {
                     <li id="~/Authority/ModifyBillNo"><span>单号修改</span> </li>
                  }
+                <li id="~/NExtra/ClerkAndCustomer"><span>营业与客户</span></li>
             </ul>
         </li>
     }

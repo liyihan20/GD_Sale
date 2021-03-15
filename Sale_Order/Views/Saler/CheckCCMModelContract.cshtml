@@ -19,7 +19,6 @@
     @*挂起信息*@
     @Html.Partial("_BlockInfoPartial")
     <div data-options="region:'center'">
-        <form id="order_form" method="post">
         <div id="order_div" class="easyui-panel" title="@Html.Lang("check_create_model_contract")" style="width: 940px; padding: 10px; background: #fafafa;">
             <div>
                 @*表头*@
@@ -99,12 +98,12 @@
                         <td>
                             <input class="easyui-textbox"  value="@cmc.project_team"/>
                         </td>
-                        <td>
+                        @*<td>
                             @Html.Lang("quotation_clerk"):
                         </td>
                         <td>
                             <input class="easyui-textbox"  value="@cmc.quotation_clerk_id" />
-                        </td>
+                        </td>*@
                         <td>
                             @Html.Lang("quote_num"):
                         </td>
@@ -116,6 +115,12 @@
                         </td>
                         <td>
                             <input class="easyui-textbox"   value="@cmc.currency_no" />
+                        </td>
+                        <td>
+                            是否PANEL:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"   value="@cmc.is_panel" />
                         </td>
                     </tr>
                     <tr>
@@ -229,6 +234,12 @@
                     </tr>
                     <tr>
                         <td>
+                            模费成本:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"   value="@cmc.cost" />
+                        </td>
+                        <td>
                             @Html.Lang("customer_model"):
                         </td>
                         <td>
@@ -246,14 +257,14 @@
                         <td>
                             <input class="easyui-textbox"  value="@cmc.pic_number" />
                         </td>
+                    </tr>
+                    <tr>
                         <td>
                             @Html.Lang("pic_version"):
                         </td>
                         <td>
                             <input class="easyui-textbox"  value="@cmc.pic_version" />
                         </td>
-                    </tr>
-                    <tr>
                         <td colspan="4">
                             客户主板平台商或DSP型号:
                             <input class="easyui-textbox" style="width: 220px" value="@cmc.DSP_model" />
@@ -264,14 +275,14 @@
                         <td>
                             <input class="easyui-textbox"  value="@cmc.product_use"/>
                         </td>
+                    </tr>
+                    <tr>
                         <td>
                             @Html.Lang("plan_production_date"):
                         </td>
                         <td>
                             <input class="easyui-textbox" style="width: 115px;" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))" />
                         </td>
-                    </tr>
-                    <tr>
                         <td>
                             @Html.Lang("end_time"):
                         </td>
@@ -290,6 +301,8 @@
                         <td>
                             <input class="easyui-textbox"  value="@cmc.contract_po_no" />
                         </td>
+                    </tr>
+                    <tr>
                         <td>
                             @Html.Lang("biller"):
                         </td>
@@ -337,8 +350,8 @@
                     <tr>
                         <td colspan="8">
                             可靠性是否有特殊要求:
-                            <input class="easyui-textbox"  value="@cmc.is_reliability_special"/>
-                            &nbsp;&nbsp; <span id="reliability_special_span">要求为：
+                            <input class="easyui-textbox"  value="@cmc.is_reliability_special"/>&nbsp;&nbsp; 
+                            <span id="reliability_special_span">要求为：
                                 <input class="easyui-textbox" style="width: 300px" value="@cmc.reliability_special_demand" />
                             </span>
                         </td>
@@ -359,6 +372,5 @@
                 </div>
             </div>
         </div>
-        </form>
     </div>
 </div>

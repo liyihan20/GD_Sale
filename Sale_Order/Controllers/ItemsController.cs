@@ -41,63 +41,10 @@ namespace Sale_Order.Controllers
             return Json(new K3ItemSv(account).GetK3Customer(q).Select(e => new { number = e.customer_number, name = e.customer_name }));
         }
 
-        //验证客户
-        //public JsonResult verifyCostomer(string q)
-        //{
-        //    var result = db.getCostomer(q, 1).ToList();
-        //    if (result.Count() > 0)
-        //    {
-        //        return Json(new { success = true, itemId = result.First().id });
-        //    }
-        //    else
-        //    {
-        //        return Json(new { success = false });
-        //    }
-        //}
-
-        //带币别验证客户
-        //public JsonResult verifyCostomer2(string q, int currency, string customer_id)
-        //{
-        //    //首先从id入手
-        //    if (!string.IsNullOrWhiteSpace(customer_id))
-        //    {
-        //        int id;
-        //        if (Int32.TryParse(customer_id, out id))
-        //        {
-        //            var customer = db.getCostomerById(id).First();
-        //            if (customer.name.Equals(q))
-        //            {
-        //                return Json(new { success = true, itemId = id });
-        //            }
-        //        }
-        //    }
-        //    //没有id再从名称入手，比如不是通过搜索，而是通过复制
-        //    var result = db.getCostomer(q, 1).ToList();
-        //    if (result.Count() > 0)
-        //    {
-        //        if (result.Count() > 1)
-        //        {
-        //            if (currency == 1 && result.Where(r => r.number.StartsWith("01")).Count() > 0)
-        //            {
-        //                return Json(new { success = true, itemId = result.Where(r => r.number.StartsWith("01")).First().id });
-        //            }
-        //            else if (currency != 1 && result.Where(r => r.number.StartsWith("05")).Count() > 0)
-        //            {
-        //                return Json(new { success = true, itemId = result.Where(r => r.number.StartsWith("05")).First().id });
-        //            }
-        //            else
-        //            {
-        //                return Json(new { success = true, itemId = result.First().id });
-        //            }
-        //        }
-        //        else
-        //        {
-        //            return Json(new { success = true, itemId = result.First().id });
-        //        }
-        //    }
-
-        //    return Json(new { success = false });
-        //}
+        public JsonResult GetCustomerInfo(string customerNumber, string account = "光电总部")
+        {
+            return Json(new K3ItemSv(account).GetK3CustomerInfo(customerNumber));
+        }
 
         //获取产品信息
         public JsonResult getProductInfo(string q, string account = "光电总部")

@@ -88,8 +88,7 @@ namespace Sale_Order.Controllers
             utl.writeEventLog("查询审核单据", fromDateString + "~" + toDateString + ";model:"+proModel+";auditResult:" + result + ";finalResult:" + finalResult, sysNo, Request);
             return SearchAuditBaseNew(sysNo, "",proModel, fromDateString, toDateString, Int32.Parse(result), Int32.Parse(finalResult));
         }
-
-
+        
         public JsonResult SearchAuditBaseNew(string sysNo, string saler, string proModel, string from_date, string to_date, int auditResult, int isFinish)
         {
             DateTime fromDate = string.IsNullOrWhiteSpace(from_date) ? DateTime.Parse("1980-1-1") : DateTime.Parse(from_date);
@@ -571,13 +570,11 @@ namespace Sale_Order.Controllers
                     }
                 }
 
-                //2020-9-14 物流需保存运输费用和责任方
+                //2020-9-14 物流需保存运输费用
                 string expressFee = fc.Get("express_fee");
-                string whoToBlame = fc.Get("who_to_blame");
                 if (!string.IsNullOrEmpty(expressFee)) {
                     var returnBill = db.ReturnBill.Single(r => r.sys_no == ap.sys_no);
                     returnBill.express_fee = decimal.Parse(expressFee);
-                    returnBill.who_to_blame = whoToBlame;
                 }
 
             }

@@ -1,0 +1,376 @@
+﻿@using Sale_Order.Models;
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    CcmModelContract cmc = ViewData["bill"] as CcmModelContract;
+}
+<style type="text/css">
+    #order_div input {
+        width: 120px;
+    }
+</style>
+<script type="text/javascript">
+
+    $(function () {
+        $("#order_div .easyui-textbox").textbox("readonly");
+    });
+
+</script>
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+    <div data-options="region:'center'">
+        <div id="order_div" class="easyui-panel" title="@Html.Lang("check_create_model_contract")" style="width: 940px; padding: 10px; background: #fafafa;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3" width="900">
+                    @if (4 == cmc.step_version)
+                    { 
+                        <tr>
+                            <td>
+                                @Html.Lang("order_no"):
+                            </td>
+                            <td>
+                                <input class="easyui-textbox"  value="@cmc.old_bill_no"/>
+                            </td>
+                            @for (var i = 0; i < 6; i++)
+                            { 
+                                <td>
+                                </td>
+                            }
+                        </tr>
+                    }
+                    <tr>
+                        <td>
+                            @Html.Lang("order_date"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@(((DateTime)cmc.bill_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            @Html.Lang("pro_type"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.product_type" />
+                        </td>
+                        <td>
+                            @Html.Lang("model_type"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.model_type"/>
+                        </td>
+                        <td>
+                            @Html.Lang("sys_num"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.sys_no"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("agency"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.agency_no"/>
+                        </td>
+                        <td>
+                            @Html.Lang("clerk"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.clerk_name"/>
+                        </td>
+                        <td>
+                            @Html.Lang("tel_num"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.telephone" />
+                        </td>
+                        <td>
+                            EMAIL:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.email" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("project_team"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.project_team"/>
+                        </td>
+                        @*<td>
+                            @Html.Lang("quotation_clerk"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.quotation_clerk_id" />
+                        </td>*@
+                        <td>
+                            @Html.Lang("quote_num"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.quote_num" />
+                        </td>
+                        <td>
+                            @Html.Lang("currency"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"   value="@cmc.currency_no" />
+                        </td>
+                        <td>
+                            是否PANEL:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"   value="@cmc.is_panel" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("payment"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.clear_way"/>
+                        </td>
+                        <td>
+                            @Html.Lang("delivery_date"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@(cmc.fetch_date==null?"":((DateTime)cmc.fetch_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            @Html.Lang("delivery_place"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.fetch_add_name" />
+                        </td>
+                        <td>
+                            @Html.Lang("trade_type"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.trade_type_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("pro_model"):
+                        </td>
+                        <td colspan="3">
+                            <input class="easyui-textbox" style="width: 300px" value="@cmc.product_model" />
+                        </td>
+                        <td>
+                            @Html.Lang("customer_name"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.customer_name" />
+                        </td>
+                        <td>
+                            @Html.Lang("plan_firm"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.plan_firm_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("end_customer"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.zz_customer_name" />
+                        </td>
+                        <td>
+                            @Html.Lang("oversea_customer"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.oversea_customer_name" />
+                        </td>
+                        <td>
+                            @Html.Lang("is_free"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.is_free"/>
+                        </td>
+                        <td>
+                            @Html.Lang("qty"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.qty" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("price"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.price" />
+                        </td>
+                        <td>
+                            @Html.Lang("model_fee"):
+                        </td>
+                        <td colspan="3">
+                            @Html.Lang("charge")
+                            <input class="easyui-textbox" style="width: 100px" value="@cmc.charge" />
+                            &nbsp;
+                            @Html.Lang("free")
+                            <input class="easyui-textbox" style="width: 100px" value="@cmc.free" />
+                        </td>
+                        <td colspan="2">
+                            @if (string.IsNullOrWhiteSpace(cmc.count_in_bus_dep))
+                            {
+                                <input type="checkbox" name="count_in_bus_dep" value="计入事业部" disabled="disabled" style="width:20px;" /><span>计入事业部</span>
+                            }
+                            else
+                            { 
+                                <input type="checkbox" name="count_in_bus_dep" value="计入事业部" disabled="disabled" checked="checked" style="width:20px;" /><span>计入事业部</span>
+                            }
+                            &nbsp;
+                            @if (string.IsNullOrWhiteSpace(cmc.special_model))
+                            {
+                                <input type="checkbox" name="special_model" value="特殊开模单" disabled="disabled" style="width:20px;" /><span>特殊开模单</span>
+                            }
+                            else
+                            { 
+                                <input type="checkbox" name="special_model" value="特殊开模单" checked="checked" disabled="disabled" style="width:20px;" /><span>特殊开模单</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            模费成本:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"   value="@cmc.cost" />
+                        </td>
+                        <td>
+                            @Html.Lang("customer_model"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.project_name" />
+                        </td>
+                        <td>
+                            @Html.Lang("project_model"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.project_model" />
+                        </td>
+                        <td>
+                            @Html.Lang("pic_number"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.pic_number" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("pic_version"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.pic_version" />
+                        </td>
+                        <td colspan="4">
+                            客户主板平台商或DSP型号:
+                            <input class="easyui-textbox" style="width: 220px" value="@cmc.DSP_model" />
+                        </td>
+                        <td>
+                            @Html.Lang("pro_use"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.product_use"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("plan_production_date"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" style="width: 115px;" value="@(cmc.plan_start_date == null ? "" : ((DateTime)cmc.plan_start_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            @Html.Lang("end_time"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@(cmc.plan_finish_date == null ? "" : ((DateTime)cmc.plan_finish_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            @Html.Lang("estimated_quantity"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" style="width: 115px;" value="@string.Concat(cmc.estimated_quantity," K")" />
+                        </td>
+                        <td>
+                            @Html.Lang("contract_num"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@cmc.contract_po_no" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("biller"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@cmc.User.real_name"  />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            除确认图内容外，结构是否有其它特殊要求（如弯折部位、关键尺寸等）:
+                            <input class="easyui-textbox" style="width: 90px" value="@cmc.is_structure_special"/>
+                        </td>
+                    </tr>
+                    <tr id="structure_tr">
+                        <td>
+                            结构要求:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-textbox" style="width: 580px" value="@cmc.structure_special_demand" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            电气特性（如功耗、待机电流等）是否有特殊要求:
+                            <input class="easyui-textbox" style="width: 90px" value="@cmc.is_ele_special"/>
+                        </td>
+                    </tr>
+                    <tr id="ele_tr">
+                        <td>
+                            电气要求:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-textbox" style="width: 580px" value="@cmc.ele_special_demand" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            环保是否有特殊要求:
+                            <input class="easyui-textbox"  value="@cmc.is_env_special"/>
+                            &nbsp;&nbsp; <span id="env_special_span">要求为：
+                                <input class="easyui-textbox" style="width: 300px" value="@cmc.env_special_demand" />
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            可靠性是否有特殊要求:
+                            <input class="easyui-textbox"  value="@cmc.is_reliability_special"/>&nbsp;&nbsp; 
+                            <span id="reliability_special_span">要求为：
+                                <input class="easyui-textbox" style="width: 300px" value="@cmc.reliability_special_demand" />
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.Lang("comment"):
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-textbox" multiline="true" style="width:700px;height:40px" value="@cmc.comment" />
+                        </td>
+                    </tr>
+                </table>
+                <div id="downloadPanel">
+                    <div class="easyui-panel" style="background: #fafafa; padding: 10px; width: 800px;"
+                    title="@Html.Lang("download_file")" href="@Url.Content("~/Items/downLoadFile?sys_no=" + cmc.sys_no)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

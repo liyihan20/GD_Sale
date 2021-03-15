@@ -50,7 +50,7 @@
                 handler: function () {
                     var row=$("#orderList").datagrid("getSelected");
                     if(row){
-                        window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+row.applyId;
+                        window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+row.applyId+"&canCheckBLFile=true";
                     }
                 }
             }, '-', {
@@ -104,7 +104,7 @@
                 }
             }],
             onDblClickRow:function(rowIndex, rowData){
-                window.location.href="@Url.Content("~/Saler/CheckOrderDetailByApplyId")"+"?applyId="+rowData.applyId;
+                window.location.href = "@Url.Content("~/Saler/CheckOrderDetailByApplyId")" + "?applyId=" + rowData.applyId + "&canCheckBLFile=true";;
             }
         });
 

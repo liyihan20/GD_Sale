@@ -395,7 +395,7 @@ namespace Sale_Order.Controllers
 
             order.user_name = currentUser.realName;
             order.user_id = currentUser.userId;
-            order.sys_no = utl.getSystemNo("SO");            
+            order.sys_no = utl.getSystemNo("SO");
             order.order_date = DateTime.Now;
             order.percent1 = 100;
             order.step_version = 0;
@@ -929,12 +929,11 @@ namespace Sale_Order.Controllers
             {
                 cmc.agency_no = dep.fid;
             }
-            cmc.user_id = currentUser.userId;
+            cmc.User = db.User.Single(u => u.id == currentUser.userId);
             cmc.step_version = 0;
             cmc.bill_date = DateTime.Now;
             //cmc.product_type = "CCM";
             ViewData["cmc"] = cmc;
-            ViewData["username"] = currentUser.realName;
             utl.writeEventLog(CREATEMODEL, "新建一张CCM开改模单", sys_no, Request);
             return View();
         }
@@ -1000,7 +999,7 @@ namespace Sale_Order.Controllers
                 if (string.IsNullOrWhiteSpace(mc.old_bill_no)) {
                     return Json(new SimpleResultModel(false, "下单组审核必须填写订单号，保存失败！"));
                 }
-                else if (db.CcmModelContract.Where(m => m.sys_no != mc.sys_no && m.old_bill_no == mc.old_bill_no).Count() > 0) {
+                else if (db.ModelContract.Where(m => m.sys_no != mc.sys_no && m.old_bill_no == mc.old_bill_no).Count() > 0) {
                     return Json(new SimpleResultModel(false, "订单号在下单系统已存在，保存失败。"));
                 }
                 else {
@@ -1078,7 +1077,7 @@ namespace Sale_Order.Controllers
                          && v.bill_date >= fromDate
                          && v.bill_date <= toDate
                          select new
-                         {                             
+                         {
                              id = v.id,
                              sys_no = v.sys_no,
                              customer_name = v.customer_name,
@@ -2117,7 +2116,7 @@ namespace Sale_Order.Controllers
                     return View("CheckBLBill");
                 case "6":
                 case "TH":
-                    return RedirectToAction("CheckReturnBill", "BadProduct", new { id = id });
+                    return RedirectToAction("CheckReturnBill", "BadProduct", new { returnId = id });
                 case "HH":
                     return RedirectToAction("CheckResendBill", "BadProduct", new { id = id });
                 case "CH":
@@ -2147,7 +2146,7 @@ namespace Sale_Order.Controllers
         }
 
         [SessionTimeOutFilter()]
-        public ActionResult CheckOrderDetailByApplyId(int applyId)
+        public ActionResult CheckOrderDetailByApplyId(int applyId, bool canCheckBLFile = false)
         {
             var ap = db.Apply.Single(a => a.id == applyId);
             int id = 0;
@@ -2183,7 +2182,7 @@ namespace Sale_Order.Controllers
                 ViewBag.tip = "找不到此单据";
                 return View("Error");
             }
-            return CheckOrderDetail(id, ap.order_type);
+            return CheckOrderDetail(id, ap.order_type, canCheckBLFile);
         }
 
         //public string ValidateQuote(string quoteNo, string model)

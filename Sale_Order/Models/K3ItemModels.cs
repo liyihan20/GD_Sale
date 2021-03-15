@@ -19,6 +19,16 @@ namespace Sale_Order.Models
         public string customer_name { get; set; }
         public string customer_number { get; set; }
     }
+    public class K3CustomerInfo
+    {
+        public string account { get; set; }
+        public string customer_name { get; set; }
+        public string customer_number { get; set; }
+        public string customer_attn { get; set; }
+        public string customer_addr { get; set; }
+        public string customer_tel { get; set; }
+        public string customer_fax { get; set; }
+    }
 
     public class K3Product
     {

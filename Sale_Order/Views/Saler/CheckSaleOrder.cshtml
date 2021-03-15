@@ -91,7 +91,12 @@
     					    } },
                         { field: 'project_name', title: '@Html.Lang("project_name")', width: 140 },
                         { field: 'comment', title: '@Html.Lang("pro_size")', width: 200 }
-            ]]
+            ]],
+            rowStyler: function(index,row){
+                if(row.item_no.startsWith("1")){
+                    return "color:red";
+                }
+            }
         });
 
         $("#order_div .easyui-textbox").textbox("readonly");

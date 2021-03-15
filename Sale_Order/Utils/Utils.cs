@@ -55,7 +55,7 @@ namespace Sale_Order.Utils
         //获得退货流水号
         public string getReturnSystemNo(string area)
         {
-            string billType = area + "TH";
+            string billType = "TH" + area; //为配合模块化，将TH改为放前面，2021-02-24
             string result = billType;
             DateTime dt = DateTime.Now;
             string date_str = dt.ToString("yyMMdd");
@@ -507,13 +507,11 @@ namespace Sale_Order.Utils
                 if (app.order_type.Equals("BL")) {
                     var order = db.Sale_BL.Where(s => s.sys_no == app.sys_no).First();
                     orderNo = order.bill_no;
-                    prAuditors = app.ApplyDetails.Where(ad => ad.step_name.Contains("计划审批") || ad.step_name.Contains("订料") || ad.step_name.Contains("运作中心")).Select(ad => ad.User).Distinct().ToList();
-                    prAuditors.AddRange((from v in db.vw_auditor_relations
+                    prAuditors = (from v in db.vw_auditor_relations
                                          join u in db.User on v.auditor_id equals u.id
                                          where v.step_name == "BL_事业部接单员"
                                          && v.department_name == order.bus_dep
-                                         select u).ToList());
-                    prAuditors.Add(db.User.Single(u => u.real_name == "林莲杏"));
+                                         select u).ToList();
                 }
                 if (app.order_type.Equals("TH")) {
                     prAuditors = app.ApplyDetails.Where(ad => ad.step_name.Contains("客服")).Select(ad => ad.User).Distinct().ToList();
