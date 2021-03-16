@@ -41,11 +41,6 @@ namespace Sale_Order.Controllers
             return Json(new K3ItemSv(account).GetK3Customer(q).Select(e => new { number = e.customer_number, name = e.customer_name }));
         }
 
-        public JsonResult GetCustomerInfo(string customerNumber, string account = "光电总部")
-        {
-            return Json(new K3ItemSv(account).GetK3CustomerInfo(customerNumber));
-        }
-
         //获取产品信息
         public JsonResult getProductInfo(string q, string account = "光电总部")
         {
