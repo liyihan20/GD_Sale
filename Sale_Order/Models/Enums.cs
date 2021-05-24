@@ -36,9 +36,6 @@ namespace Sale_Order.Models
         chk_dep_bills,  //事业部人员查看本事业部的已审核的订单
         order_number_manage, //订单编号管理
         new_TH, //新增退换货申请
-        new_HH, //新增换货申请
-        chk_red, //搜索红字单
-        new_CH, //新增出货申请
         TH_manage, //后台查询红字申请记录
         print_THQS, //打印签收红字退货单
         uploadQualityReport, //上传品质报告
@@ -52,5 +49,9 @@ namespace Sale_Order.Models
         ceo_batch_audit, //总裁办批量审批单据
         new_BL, //新建备料单
         new_HC, //华为出货处理单
+        new_CH, //新增出货申请单
+        delivery_bill, //维护送货单
+        sign_delivery_bill, //送货单回签
+        clerk_customer, //营业与客户
     }
 }

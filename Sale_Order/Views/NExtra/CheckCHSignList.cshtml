@@ -1,0 +1,144 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+}
+
+<script>
+    $(function () {
+        $("#scanArea").textbox('textbox').focus();
+        $("#tb").datagrid({
+            rownumbers: true,
+            checkOnSelect: true,
+            selectOnCheck: true,
+            fit: true,
+            columns: [[
+                {
+                    field: 'is_back_sig', title: '回签标识', width: 70, align: 'center',
+                    styler: function (value, row, index) {
+                        if (value == "Y") {
+                            return 'color:green;';
+                        } else {
+                            return 'color:red;';
+                        }
+                    }
+                },
+                {
+                    field: 'k3_import_date', title: '日期', width: 100,
+                    formatter: function (value, row, index) {
+                        return toDateStr(value);
+                    }
+                },
+                { field: 'account', title: '公司', width: 100 },
+                { field: 'k3_stock_no', title: '出库单号', width: 140 },
+                { field: 'order_no', title: '订单单号', width: 140 },
+                { field: 'customer_name', title: '客户名称', width: 120 },
+                { field: 'item_name', title: '产品名称', width: 120 },
+                { field: 'item_model', title: '产品型号', width: 180 },
+                { field: 'order_qty', title: '订单数量', width: 80, align: 'right' },
+                { field: 'real_qty', title: '实出数量', width: 80, align: 'right' },
+                { field: 'price', title: '销售单价', width: 80, align: 'right' },
+                { field: 'total_price', title: '销售金额', width: 80, align: 'right' },
+                {
+                    field: 'back_sig_date', title: '回签日期', width: 100,
+                    formatter: function (value, row, index) {
+                        return toDateStr(value);
+                    }
+                }, {
+                    field: 'back_sig_acc_date', title: '回签确认日期', width: 120,
+                    formatter: function (value, row, index) {
+                        return toDateStr(value,true);
+                    }
+                }
+            ]],
+            toolbar: [{
+                text: "导出excel",
+                iconCls: 'icon-xls',
+                handler: function () {
+                    tip("正在导出数据中，请稍等...");
+                    var fromDate = $("#fromDate").datebox("getValue");
+                    var toDate = $("#toDate").datebox("getValue");
+                    var stockNo = $("#stockNo").textbox("getValue");
+                    var customerName = $("#customerName").textbox("getValue");
+                    var signStatus = $("#signStatus").combobox("getValue");
+                    window.open("ExportCHSignInfo?fromDate=" + fromDate + "&toDate=" + toDate + "&stockNo=" + stockNo + "&customerName=" + customerName + "&signStatus=" + signStatus);
+                }
+            }]
+        });
+
+        $("#scanArea").textbox('textbox').keydown(function (e) {
+            if (e.keyCode == 13) {
+                $("#confirmBt").trigger("click");
+            }
+        });
+
+        $("#confirmBt").on("click", function () {
+            var code = $.trim($("#scanArea").textbox("getValue"));
+            var day = $("#signDate").datebox("getValue");
+
+            if (day && code && code.length > 8) {
+                $("#confirmBt").linkbutton('disable');
+                $.post("UpdateCHSignDate", { stockNo: code, day: day }, function (data) {
+                    if (data.suc) {
+                        tip(data.msg);
+                        $("#scanArea").textbox("setValue", "");
+                        $("#scanArea").textbox('textbox').focus();
+                    } else {
+                        alert(data.msg);
+                    }
+                    $("#confirmBt").linkbutton('enable');
+                })
+            } else {
+                tip("请输入正确的送货单号");
+            }
+
+        })
+
+        $("#searchBt").on("click", function () {
+            $("#tb").datagrid("loading");
+
+            $.post("GetCHSignInfoList", {
+                fromDate: $("#fromDate").datebox("getValue"),
+                toDate: $("#toDate").datebox("getValue"),
+                stockNo: $("#stockNo").textbox("getValue"),
+                customerName: $("#customerName").textbox("getValue"),
+                signStatus: $("#signStatus").combobox("getValue")
+            }, function (res) {
+                $("#tb").datagrid("loadData", res);
+                $("#tb").datagrid("loaded");
+            });
+        })
+
+    })
+
+</script>
+
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north'" title="送货单回签信息" style="height:106px; padding: 0 10px;">
+        <div style="margin:4px;">
+            送货单条码扫码区：
+            <input class="easyui-textbox" id="scanArea" style="width:334px" />
+            回签日期:
+            <input class="easyui-datebox" id="signDate" editable="false" style="width: 110px" value="@DateTime.Parse(DateTime.Now.ToString("yyyy-MM-01")).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd")" />
+            &nbsp;<a href="#" class="easyui-linkbutton" iconcls="icon-ok" id="confirmBt">确认回签</a>
+        </div>
+        <div style="margin:4px;">
+            日期从:
+            <input class="easyui-datebox" id="fromDate" editable="false" style="width: 110px" value="@DateTime.Now.AddMonths(-1).ToString("yyyy-MM-01")" />
+            到:
+            <input class="easyui-datebox" id="toDate" editable="false" style="width: 110px" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            出库单号:
+            <input class="easyui-textbox" id="stockNo" style="width:100px" />
+            客户名称:
+            <input class="easyui-textbox" id="customerName" style="width:100px" />
+            回签状态:
+            <input class="easyui-combobox" id="signStatus" value="所有" style="width:80px"
+                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                        data:[
+                                        {value:'所有'},{value:'未回签'},{value:'已回签'}
+                                        ]" />
+            &nbsp;<a href="#" class="easyui-linkbutton" iconcls="icon-search" id="searchBt">开始查询</a>
+        </div>
+    </div>
+    <div data-options="region:'center'">
+        <table id="tb"></table>
+    </div>
+</div>

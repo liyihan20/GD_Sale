@@ -600,7 +600,12 @@ namespace Sale_Order.Controllers
 
             #region 表体验证
             int taxRate = 13;
-            List<int> projectNos = db.VwProjectNumber.Where(v => v.client_number == h.buy_unit_no || v.client_number == h.oversea_client_no || v.id == 467).Select(v => v.id).ToList();
+
+            List<int> projectNos = new List<int> { 467 };
+            try {
+                projectNos = db.VwProjectNumber.Where(v => v.client_number == h.buy_unit_no || v.client_number == h.oversea_client_no || v.id == 467).Select(v => v.id).ToList();
+            }
+            catch {}
             int currentIndex = 0;
             foreach (var d in ds) {
                 currentIndex++;                
@@ -996,6 +1001,17 @@ namespace Sale_Order.Controllers
 
             //下单组必须填写编号
             if (mc.step_version == 4) {
+                if (string.IsNullOrEmpty(mc.product_model)) {
+                    var pro = new K3ItemSv(mc.account).GetK3ProductByModel(mc.product_model);
+                    if (pro.Count() != 1) {
+                        return Json(new SimpleResultModel(false, "物料型号在K3不存在或者不唯一，请重新选择"));
+                    }
+                    else {
+                        mc.product_number = pro.First().item_no;
+                        mc.product_name = pro.First().item_name;
+                        mc.product_unit = pro.First().unit_number;
+                    }
+                }
                 if (string.IsNullOrWhiteSpace(mc.old_bill_no)) {
                     return Json(new SimpleResultModel(false, "下单组审核必须填写订单号，保存失败！"));
                 }

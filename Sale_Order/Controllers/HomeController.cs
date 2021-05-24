@@ -98,8 +98,7 @@ namespace Sale_Order.Controllers
         }
 
         public string getStr() {
-            string result = @"";
-            return result;
+            return utl.getMD5("vvv855##");
         }
 
         public string SetFileFlag(string fr,string to) {

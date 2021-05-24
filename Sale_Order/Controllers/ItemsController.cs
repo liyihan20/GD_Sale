@@ -59,19 +59,24 @@ namespace Sale_Order.Controllers
         //buy_unit:供货客户（用于国内单）；oversea_client：海外客户（用于国外单）
         public JsonResult getProjectNumbers(string buy_unit = null, string oversea_client = null)
         {
-            //id为467的表示无指定编号，number为无客户机型
-            var result = from v in db.VwProjectNumber
-                         where v.id == 467
-                         || v.client_number == buy_unit
-                         || v.client_number == oversea_client
-                         orderby v.id
-                         select new
-                         {
-                             id = v.id,
-                             name = v.number,
-                             client_name = v.client_name
-                         };
-            return Json(result);
+            try {
+                //id为467的表示无指定编号，number为无客户机型
+                var result = (from v in db.VwProjectNumber
+                             where v.id == 467
+                             || v.client_number == buy_unit
+                             || v.client_number == oversea_client
+                             orderby v.id
+                             select new
+                             {
+                                 id = v.id,
+                                 name = v.number,
+                                 client_name = v.client_name
+                             }).ToList();
+                return Json(result);
+            }
+            catch {
+                return Json(new List<object> { new { id = 467, name = "无客户机型", client_name = "" } });
+            }
         }
         
         //获取系统用户
@@ -497,11 +502,16 @@ namespace Sale_Order.Controllers
         //获取PIS系统的产品用途
         public JsonResult GetPisProductUsage(string model)
         {
-            var result = db.vw_modelUsage.Where(m => m.model == model).ToList();
-            if (result.Count() > 0) {
-                return Json(new { suc = true, usage = result.First().usage });
+            try {
+                var result = db.vw_modelUsage.Where(m => m.model == model).ToList();
+                if (result.Count() > 0) {
+                    return Json(new { suc = true, usage = result.First().usage });
+                }
+                else {
+                    return Json(new { suc = false });
+                }
             }
-            else {
+            catch {
                 return Json(new { suc = false });
             }
         }

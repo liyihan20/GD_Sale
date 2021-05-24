@@ -1,0 +1,302 @@
+﻿@using Sale_Order.Models;
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    int pageCount = (int)ViewData["pageCount"];
+    int numPerPage = (int)ViewData["numPerPage"];
+    CHModel m = ViewData["bill"] as CHModel;
+    CH_delivery_info c = ViewData["customerInfo"] as CH_delivery_info;
+    var h = m.head;
+    
+    var list = (from e in m.entrys
+                join p in m.packages on new { e.order_no, e.order_entry_no } equals new { p.order_no, p.order_entry_no } into pa
+                from pb in pa.DefaultIfEmpty()
+                where e.real_qty > 0
+                select new
+                {
+                    e.order_no,
+                    e.item_model,
+                    e.item_name,
+                    e.order_qty,
+                    real_qty = pb == null ? e.real_qty : pb.pack_num * pb.every_qty,
+                    e.unit_name,
+                    pack_size = pb == null ? "" : pb.pack_size,
+                    pack_num = pb == null ? 0 : pb.pack_num,
+                    every_gross_weight = pb == null ? 0 : pb.every_gross_weight,
+                    every_net_weight = pb == null ? 0 : pb.every_net_weight,
+                    e.customer_pn,
+                    e.customer_po
+                }).ToList();
+
+    int pageNum = (int)Math.Ceiling((decimal)list.Count() / numPerPage);
+}
+
+
+<style type="text/css" media="print">
+    .noPrint {
+        display: none;
+    }
+
+    .pageNext {
+        page-break-after: always;
+    }
+</style>
+<style type="text/css">
+    .tb_items {
+        border-top: 1px solid #666;
+        border-right: 1px solid #666;
+    }
+
+        .tb_items td, .tb_items th {
+            border-left: 1px solid #666;
+            border-bottom: 1px solid #666;
+            word-break: break-all;
+            overflow: hidden;
+        }
+</style>
+
+<script src="@Url.Content("~/Scripts/JsBarcode.code128.min.js")"></script>
+<script>
+    $(function () {
+        $(".bar").each(function (index, ele) {
+            JsBarcode(ele, "@h.k3_stock_no", {
+                width: 1,//设置条之间的宽度
+                margin: 4,
+                height: 28,//高度
+                displayValue: false,
+                fontSize: 12,
+                font: '黑体'
+            });
+        });
+
+        $("#btReflesh").on("click", function () {
+            var count = $("#tbPageNum").numberbox("getValue");
+            var num = $("#numPerPage").numberbox("getValue");
+            if (count && num) {
+                window.location.href = "PrintCHReport?sysNo=@h.sys_no" + "&pageCount=" + count + "&numPerPage=" + num;
+            }
+        });
+
+    })
+
+</script>
+<div class="noPrint" style="text-align:center;margin-bottom:6px;">
+    <div style="width:40%;float:right;text-align:right;font-size:12px;">
+        每页行数：
+        <input type="text" class="easyui-numberbox" id="numPerPage" style="width:60px;" data-options="min:1,max:20" value="@numPerPage" />
+        打印份数：
+        <input type="text" class="easyui-numberbox" id="tbPageNum" style="width:60px;" data-options="min:1,max:10" value="@pageCount" />
+        <a href="#" class="easyui-linkbutton" iconcls="icon-reload" id="btReflesh">刷新页面</a>
+    </div>
+    <div style="width:20%;float:right;text-align:center">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-print" onclick="javascript: window.print();">开始打印</a>
+    </div>
+
+</div>
+
+@for (var z = 1; z <= pageCount; z++) {
+
+    for (var p = 1; p <= pageNum; p++) {
+        <div style="padding:4px;font-size:9pt;">
+            <div><img src="@Url.Content("~/Images/Truly.gif")" /></div>
+
+            <table style="width:100%;margin-bottom:8px;">
+                <tr>
+                    <td style="width:30%;padding-left:16px;"></td>
+                    <td style="width:40%;text-align:center;">
+                        <div style="font-size:16px;font-weight:bold;">
+                            @h.account
+                        </div>
+                        <div style="font-size:14px;">
+                            地址：广东省汕尾市城区信利工业城 <br />
+                            电话:0660-3367888/3380110/3380107
+                        </div>
+                        <div style="font-size:16px;font-weight:bold;">
+                            送货单 <br /><span style="border-top:1px solid;">Delivery Note</span>
+                        </div>
+                    </td>
+                    <td style="width:30%;padding-right:16px;text-align:right;">
+                        <div style="margin-bottom:4px;">第 @p 页/共 @pageNum 页</div>
+                        <img class="bar" />
+                        <div style="padding-right:12px;">编号：@h.k3_stock_no</div>
+                    </td>
+                </tr>
+            </table>
+
+            <table style="width:100%;margin-top:6px;border:1px solid;" cellspacing="0" cellpadding="2">
+                <tr>
+                    <td width="50%;" style="border-right:1px solid;">
+                        <div>送货日期：@DateTime.Now.ToString("yyyy-MM-dd")</div>
+                        <div>客户名称：@c.customer_name</div>
+                        <div>客户地址：@c.delivery_addr</div>
+                        <div>联系人：@c.delivery_attn</div>
+                        <div>电话：@c.delivery_tel</div>
+                    </td>
+                    <td width="50%;">
+                        <div>快递信息：@h.ex_name @h.ex_no</div>
+                        <div>收货客户：@h.delivery_unit</div>
+                        <div>收货地址：@h.delivery_addr</div>
+                        <div>联系人：@h.delivery_attn</div>
+                        <div>电话：@h.delivery_tel</div>
+                    </td>
+                </tr>
+            </table>
+
+            <table style="width:100%;margin-top:6px;" cellspacing="0" cellpadding="4" class="tb_items">
+                <thead>
+                    <tr>
+                        <th style="width:14%;">
+                            生产单号
+                        </th>
+                        <th style="width:18%;">
+                            物料信息
+                        </th>
+                        <th style="width:8%;">
+                            订单数量
+                        </th>
+                        <th style="width:10%;">
+                            数量 单位
+                        </th>
+                        <th style="width:6%;">
+                            件数
+                        </th>
+                        <th style="width:10%;">
+                            尺寸
+                        </th>
+                        <th style="width:8%;">
+                            总毛重(KG)
+                        </th>
+                        <th style="width:8%;">
+                            总净重(KG)
+                        </th>
+                        <th style="width:18%;">
+                            客户PO/PN
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+        int totalQtyInPage = 0;
+        int totalPacksInPage = 0;
+        decimal totalNetWeightInPage = 0;
+        decimal totalGrossWeightInPage = 0;
+                    }
+                    @for (int i = (p - 1) * numPerPage; i < p * numPerPage; i++) {
+                        if (i < list.Count()) {
+
+                            totalQtyInPage += (int)list[i].real_qty;
+                            totalPacksInPage += list[i].pack_num;
+                            totalNetWeightInPage += list[i].pack_num * list[i].every_net_weight;
+                            totalGrossWeightInPage += list[i].pack_num * list[i].every_gross_weight;
+                            <tr>
+                                <td>
+                                    @list[i].order_no
+                                </td>
+                                <td>
+                                    @list[i].item_name <br />
+                                    @list[i].item_model
+                                </td>
+                                <td style="text-align:center;">
+                                    @(((decimal)list[i].order_qty).ToString("N0"))
+                                </td>
+                                <td style="text-align:center;">
+                                    @string.Format("{0:###,###} {1}", list[i].real_qty, list[i].unit_name)
+                                </td>
+                                <td style="text-align:center;">
+                                    @list[i].pack_num
+                                </td>
+                                <td style="text-align:center;">
+                                    @list[i].pack_size
+                                </td>
+                                <td style="text-align:center;">
+                                    @((list[i].pack_num * list[i].every_gross_weight).ToString("0.0##"))
+                                </td>
+                                <td style="text-align:center;">
+                                    @((list[i].pack_num * list[i].every_net_weight).ToString("0.0##"))
+                                </td>
+                                <td style="text-align:center">
+                                    @list[i].customer_po <br />
+                                    @list[i].customer_pn
+                                </td>
+                            </tr>
+                        }
+                    }
+                    <tr>
+                        <td style="text-align:center;">
+                            TOTAL:
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td style="text-align:center;">
+                            @totalQtyInPage.ToString("N0")
+                        </td>
+                        <td style="text-align:center;">
+                            @(totalPacksInPage == 0 ? "" : totalPacksInPage.ToString("N0"))
+                        </td>
+                        <td></td>
+                        <td style="text-align:center;">
+                            @totalGrossWeightInPage.ToString("0.0##")
+                        </td>
+                        <td style="text-align:center;">
+                            @totalNetWeightInPage.ToString("0.0##")
+                        </td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>注:本送货单所列产品验收无误，请即盖章及签收后交货运公司/快递公司带回，或邮寄回本司出货员收。谢谢合作！</p>
+            <p>(第一联：请签章后寄回 第二联：交客户 第三联：信利出货员)</p>
+
+            <table style="width:100%;margin-top:16px;" cellpadding="1" cellspacing="1">
+                <tr>
+                    <td style="width:35%;">
+                        收货人
+                    </td>
+                    <td style="width:30%;"></td>
+                    <td style="width:35%;text-align:center;">
+                        @h.account
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        盖章及签收
+                    </td>
+                    <td></td>
+                    <td style="text-align:center;">
+                        Truly Semiconductors Ltd.
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td style="text-align:center;font-size:10pt;font-weight:bold;">@ViewData["printer"]</td>
+                </tr>
+                <tr>
+                    <td>
+                        <hr />
+                    </td>
+                    <td></td>
+                    <td>
+                        <hr />
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size:10pt;font-weight:bold;">
+                        Signed With Company Chop (盖公章)
+                    </td>
+                    <td></td>
+                    <td style="font-size:10pt;font-weight:bold;">
+                        Authorized Signature
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+        if (p < pageNum) {
+            <div class="pageNext"></div>
+        }
+    }
+    <div class="pageNext"></div>
+}

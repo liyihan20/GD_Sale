@@ -23,18 +23,21 @@ namespace Sale_Order.Controllers
             {
                 _currentUser = (UserInfo)Session["currentUser"];
                 if (_currentUser == null) {
-                    int userId = Int32.Parse(Request.Cookies["order_cookie"]["userid"]);
-                    var user = db.User.Where(u => u.id == userId).FirstOrDefault();
-                    if (user != null) {
-                        _currentUser = new UserInfo()
-                        {
-                            userId = userId,
-                            userName = user.username,
-                            realName = user.real_name,
-                            departmentName = user.Department1.name,
-                            email = user.email
-                        };
-                        Session["currentUser"] = _currentUser;
+                    var cookie = Request.Cookies["order_cookie"];
+                    if (cookie != null) {
+                        int userId = Int32.Parse(cookie["userid"]);
+                        var user = db.User.Where(u => u.id == userId).FirstOrDefault();
+                        if (user != null) {
+                            _currentUser = new UserInfo()
+                            {
+                                userId = userId,
+                                userName = user.username,
+                                realName = user.real_name,
+                                departmentName = user.Department1.name,
+                                email = user.email
+                            };
+                            Session["currentUser"] = _currentUser;
+                        }
                     }
                 }
                 return _currentUser;
@@ -60,5 +63,11 @@ namespace Sale_Order.Controllers
             });
             db.SubmitChanges();
         }
+
+        public string GetCompanyByAccount(string account)
+        {
+            return db.Sale_companies.Where(s => s.short_name == account).Select(s => s.account_name).FirstOrDefault();
+        }
+
     }
 }

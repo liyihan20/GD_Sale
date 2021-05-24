@@ -135,6 +135,11 @@ namespace Sale_Order.Services
         public abstract void DoWhenBeforeApply();
 
         /// <summary>
+        /// 提交之后需要做的操作
+        /// </summary>
+        public abstract void DoWhenAfterApply();
+
+        /// <summary>
         /// 开始审核之前需要做的事情
         /// </summary>
         /// <param name="step">步骤</param>

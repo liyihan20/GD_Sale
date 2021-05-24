@@ -328,6 +328,8 @@
     <Compile Include="Services\CMSv.cs" />
     <Compile Include="Services\CXSv.cs" />
     <Compile Include="Services\K3ItemSv.cs" />
+    <Compile Include="Services\MXSv.cs" />
+    <Compile Include="Services\SBSv.cs" />
     <Compile Include="Services\SOSv.cs" />
     <Compile Include="Utils\BillUtils.cs" />
     <Compile Include="Utils\EmailUtil.cs" />
@@ -486,6 +488,7 @@
     <Content Include="Content\themes\icons\delete.png" />
     <Content Include="Content\themes\icons\pdf.png" />
     <Content Include="Content\themes\icons\upload.png" />
+    <Content Include="Images\Truly.gif" />
     <Content Include="Images\tt.jpg" />
     <Content Include="Content\themes\default\images\validatebox_arrows.png" />
     <Content Include="Content\themes\default\images\validatebox_warning.png" />
@@ -569,6 +572,7 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\JsBarcode.code128.min.js" />
     <Content Include="Scripts\json2.js" />
     <Content Include="Scripts\knockout-2.0.0.debug.js" />
     <Content Include="Scripts\knockout-2.0.0.js" />
@@ -577,6 +581,7 @@
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\MyUploader.js" />
     <Content Include="Scripts\plugins\jquery.parser.js" />
+    <Content Include="Scripts\qrcode.js" />
     <Content Include="Scripts\uploadify\jquery.uploadify.min.js" />
     <Content Include="Scripts\img\uploadify-cancel.png" />
     <Content Include="Scripts\uploadify\uploadify.css" />
@@ -800,6 +805,18 @@
     <Content Include="Views\NSaler\CheckNCC.cshtml" />
     <Content Include="Views\NExtra\ClerkAndCustomer.cshtml" />
     <Content Include="Views\NSaler\ChooseCompany.cshtml" />
+    <Content Include="Views\NSaler\CreateNCH.cshtml" />
+    <Content Include="Views\NSaler\CheckNCH.cshtml" />
+    <Content Include="Views\NSaler\CreateNMX.cshtml" />
+    <Content Include="Views\NExtra\PrintCHPackageLabel.cshtml" />
+    <Content Include="Views\NSaler\CreateNSB.cshtml" />
+    <Content Include="Views\NSaler\CheckNSB.cshtml" />
+    <Content Include="Views\NFile\PrintCHReport.cshtml" />
+    <Content Include="Views\NExtra\CheckCHList4Log.cshtml" />
+    <Content Include="Views\NExtra\CheckCHSignList.cshtml" />
+    <Content Include="Views\NExtra\CheckCHSOList.cshtml" />
+    <Content Include="Views\NFile\PrintOutBill.cshtml" />
+    <Content Include="Views\NExtra\ItemModelAndCustomer.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">

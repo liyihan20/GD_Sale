@@ -108,7 +108,7 @@
             //编辑之前检测是否已开始申请
             $.post("@Url.Content("~/NSaler/ApplyHasBegan")", { sysNo: row.sys_no },
             function (data) {
-                if (!data.success) {
+                if (!data.suc) {
                     window.location.href = "@Url.Content("~/NSaler/ModifyBill?sysNo=")" + row.sys_no + "&stepVersion=0";
                 } else {
                     tip("@Html.Lang("order_cannot_edit")");

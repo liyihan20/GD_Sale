@@ -112,6 +112,7 @@ namespace Sale_Order.Controllers
                          where ad.user_id == currentUser.userId
                          && a.start_date >= fromDate
                          && a.start_date <= toDate
+                         && !a.sys_no.StartsWith("CH")
                          select new
                          {
                              apply = a,

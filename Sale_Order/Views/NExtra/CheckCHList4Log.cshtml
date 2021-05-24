@@ -1,0 +1,385 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+}
+
+<script>
+    var rowData;
+    $(function () {
+        $("#tb").datagrid({
+            width: 3000,
+            rownumbers: true,
+            checkOnSelect: true,
+            selectOnCheck: true,
+            fit: true,
+            columns: [[
+                { field: 'ck', checkbox: true },
+                {
+                    field: 'is_print', title: '打印标识', width: 60, align: 'center',
+                    styler: function (value, row, index) {
+                        if (value == "Y") {
+                            return 'color:green;';
+                        } else {
+                            return 'color:red;';
+                        }
+                    }
+                },
+                {
+                    field: 'k3_import_date', title: '日期', width: 80,
+                    formatter: function (value, row, index) {
+                        return toDateStr(value);
+                    }
+                },
+                { field: 'account', title: '公司', width: 80 },
+                { field: 'bill_type', title: '单据类型', width: 80 },
+                { field: 'stock_addr', title: '发货地点', width: 60 },
+                { field: 'stock_no', title: '出库单号', width: 140 },
+                { field: 'entry_no', title: '出库行号', width: 60 },
+                { field: 'order_no', title: '订单编号', width: 120 },
+                { field: 'item_name', title: '产品名称', width: 120 },
+                { field: 'item_model', title: '产品型号', width: 180 },
+                { field: 'ex_name', title: '快递公司', width: 100 },
+                { field: 'ex_no', title: '快递单号', width: 100 },
+                { field: 'ex_type', title: '快递方式', width: 100 },
+                { field: 'ex_fee', title: '运费', width: 80, align: 'right' },
+                { field: 'order_qty', title: '订单数量', width: 80, align: 'right' },
+                { field: 'real_qty', title: '实出数量', width: 80, align: 'right' },
+                { field: 'pack_num', title: '件数', width: 80, align: 'right' },
+                { field: 'every_qty', title: '每件数量', width: 80, align: 'right' },
+                { field: 'pack_size', title: '尺寸', width: 100 },
+                { field: 'every_gross_weight', title: '每件毛重', width: 80, align: 'right' },
+                { field: 'every_net_weight', title: '每件净重', width: 80, align: 'right' },
+                { field: 'unit_name', title: '单位', width: 60 },
+                {
+                    field: 'log_out_date', title: '物流出货日期', width: 80,
+                    formatter: function (value, row, index) {
+                        return toDateStr(value);
+                    }
+                },
+                { field: 'log_out_span', title: '出货期间', width: 60 },
+                { field: 'customer_name', title: '客户名称', width: 120 },
+                { field: 'delivery_unit', title: '收货单位', width: 120 },
+                { field: 'delivery_addr', title: '收货地址', width: 180 },
+                { field: 'ex_comment', title: '快递备注', width: 200 }
+            ]],
+            toolbar: [{
+                text: "录入快递信息",
+                iconCls: 'icon-edit',
+                handler: function () {
+                    var rows = $("#tb").datagrid("getChecked");
+                    if (rows.length > 0) {
+                        var stockAddr = rows[0].stock_addr;
+                        var ids = "";
+                        var stockNos = "";
+                        for (var i = 0; i < rows.length; i++) {
+                            if (rows[i].ex_name) {
+                                tip("已录入快递信息的不能重复录入，可先清空快递信息后再操作");
+                                return;
+                            }
+                            if (stockAddr != rows[i].stock_addr) {
+                                tip("发货地址必须是一样的才可以一起送");
+                                return;
+                            }
+                            if (ids.indexOf(rows[i].ch_id + "#") < 0) {
+                                ids += rows[i].ch_id + "#";
+                            }
+                            if (stockNos.indexOf(rows[i].stock_no + "#") < 0) {
+                                stockNos += rows[i].stock_no + "#";
+                            }
+                        }
+                        $.post("GetShortAddr", { ids: ids }, function (res) {
+                            if (!res.suc) {
+                                alert(res.msg);
+                                return;
+                            }
+                            $("#exForm").form("reset");
+                            $("#dlg_edit").dialog("open");
+                            $("#stock_addr").textbox("setValue", stockAddr);
+                            $("#addr").textbox("setValue", res.extra);
+                            $("#chIds").val(ids);
+                            $("#stockNos").textbox("setValue", stockNos);
+                            $("#exList").datagrid("loadData", []);
+                        });
+                    }
+                }
+            }, '-', {
+                text: "清空快递信息",
+                iconCls: 'icon-remove',
+                handler: function () {
+                    var rows = $("#tb").datagrid("getChecked");
+                    if (rows.length > 0) {
+                        $.messager.confirm('操作确认', '确定要清空快递信息吗?', function (r) {
+                            if (r) {
+                                var stockNos = "";
+                                for (var i = 0; i < rows.length; i++) {
+                                    if (stockNos.indexOf(rows[i].sysNo + "#") < 0) {
+                                        stockNos += rows[i].stock_no + "#";
+                                    }
+                                }
+                               
+                                $.post("UpdateCHEx", {
+                                    stockNos: stockNos,
+                                    exName: "",
+                                    exNo: "",
+                                    exType: "",
+                                    exComment: "",
+                                    exFee: 0
+                                }, function (data) {
+                                    if (data.suc) {
+                                        $("#searchBt").trigger("click");
+                                    }
+                                    tip(data.msg);
+                                });
+                            }
+                        });
+                    }
+                }
+            }, '-', {
+                text: "打印送货单",
+                iconCls: 'icon-print',
+                handler: function () {
+                    var row = $('#tb').datagrid('getSelected');
+                    if (row) {
+                        window.open("../NFile/PrintCHReport?sysNo=" + row.sysNo);
+                        setTimeout(function () { $("#searchBt").trigger("click"); }, 2000);
+                    }
+                }
+            }, '-', {
+                text: "打印放行条",
+                iconCls: 'icon-print',
+                handler: function () {
+                    var rows = $("#tb").datagrid("getChecked");
+                    if (rows.length > 0) {
+                        var customerName = "";
+                        var sysNos = "";
+                        for (var i = 0; i < rows.length; i++) {
+                            if (customerName != "" && customerName != rows[i].customer_name) {
+                                tip("客户名称不一致的不能合并放行条");
+                                return;
+                            }
+                            customerName = rows[i].customer_name;
+                            if (sysNos.indexOf(rows[i].sysNo + ",") < 0) {
+                                sysNos += rows[i].sysNo + ",";
+                            }
+                        }
+                        $.post("../NFile/BeforePrintOutbill", {sysNos: sysNos}, function (data) {
+                            if (data.suc) {
+                                window.open("../NFile/PrintOutBill?outNo=" + data.extra);
+                            } else {
+                                tip(data.msg);
+                            }
+                            
+                        });
+                    }
+                }
+            }]
+        });
+
+        $("#exList").datagrid({
+            rownumbers: true,
+            singleSelect: true,
+            fit: true,
+            columns: [[
+                { field: 'FName', title: '快递公司', width: 100 },
+                { field: 'FDelivery', title: '快递方式', width: 100 },
+                { field: 'FProvince', title: '省', width: 100 },
+                { field: 'FCity', title: '市', width: 100 },
+                { field: 'FReed', title: '运费', width: 100, align: 'right' },
+                { field: 'FDocQty', title: '件数', width: 80, align: 'right' }
+            ]],
+            onClickRow: function (index, row) {
+                if (row.FReed > 0) {
+                    $("#ex_name").textbox("setValue", row.FName);
+                    $("#ex_type").textbox("setValue", row.FDelivery);
+                    $("#ex_fee").textbox("setValue", row.FReed);
+                }
+            }
+        });
+
+        $("#searchBt").on("click", function () {
+            $("#tb").datagrid("loading");
+            var param = getFormJson($("#searchFm"));
+            $.post("GetCHList4Log", {
+                param: JSON.stringify(param)
+            }, function (res) {
+                if (res.suc) {
+                    rowData = res.data;
+                    $("#tb").datagrid("loadData", res.data);
+                } else {
+                    tip(res.msg);
+                    $("#tb").datagrid("loadData",[]);
+                }
+                $("#tb").datagrid("loaded");
+            });
+        })
+
+    })
+
+    function searchExInfo() {
+        var ids = $("#chIds").val(); 
+        var stock_addr = $("#stock_addr").textbox("getValue") || "汕尾";
+        var addr = $("#addr").textbox("getValue");
+        var size_l = $("#size_l").textbox("getValue") || "0";
+        var size_w = $("#size_w").textbox("getValue") || "0";
+        var size_h = $("#size_h").textbox("getValue") || "0";
+        var card_num = $("#card_num").textbox("getValue") || "0";
+
+        if (!addr) {
+            tip("地址不能为空");
+            return;
+        }
+        $("#exList").datagrid("loading");
+        $.post("GetCHExInfo", {
+            ids: ids,
+            stock_addr:stock_addr,
+            addr: addr,
+            size_l: size_l,
+            size_w: size_w,
+            size_h: size_h,
+            cards_num: card_num
+        }, function (data) {
+            $("#exList").datagrid("loadData",data);
+            $("#exList").datagrid("loaded");
+        });
+    }
+
+    function saveEx() {
+        var ex_name = $("#ex_name").textbox("getValue");
+        var ex_type = $("#ex_type").textbox("getValue");
+        var ex_fee = $("#ex_fee").numberbox("getValue");
+        var ex_no = $("#ex_no").textbox("getValue");
+        var ex_comment = $("#stockNos").textbox("getValue");
+
+        if (!ex_name) {
+            alert("快递公司不能为空");
+            return;
+        }
+        if (!ex_type) {
+            alert("配送方式不能为空");
+            return;
+        }
+        if (ex_fee=="") {
+            alert("运费不能为空");
+            return;
+        }
+        if (!ex_no) {
+            alert("快递单号不能为空");
+            return;
+        }
+
+        $.post("UpdateCHEx", {
+            stockNos: $("#stockNos").textbox("getValue"),
+            exName: ex_name,
+            exNo: ex_no,
+            exType: ex_type,
+            exComment: ex_comment,
+            exFee: ex_fee
+        }, function (data) {
+            if (data.suc) {
+                $("#dlg_edit").dialog("close");
+                $("#searchBt").trigger("click");
+            }
+            tip(data.msg);
+        });
+    }
+
+</script>
+
+<div class="easyui-layout" fit="true">
+    <div data-options="region:'north'" title="维护送货单" style="height:104px; padding: 0 10px;">
+        <form id="searchFm">
+            <table>
+                <tr>
+                    <td>
+                        日期从:<input class="easyui-datebox" name="beginDate" editable="false" style="width: 110px" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td>
+                        到:<input class="easyui-datebox" name="toDate" editable="false" style="width: 110px" value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td>
+                        出库单号:<input class="easyui-textbox" name="stockNo" style="width:100px" />
+                    </td>
+                    <td>
+                        订单单号:<input class="easyui-textbox" name="orderNo" style="width:100px" />
+                    </td>
+                    <td>
+                        规格型号:<input class="easyui-textbox" name="itemModel" style="width:100px" />
+                    </td>
+                    <td>
+                        客户名称:<input class="easyui-textbox" name="customerName" style="width:100px" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        快递公司:<input class="easyui-textbox" name="exName" style="width:100px" />
+                    </td>
+                    <td>
+                        快递单号:<input class="easyui-textbox" name="exNo" style="width:100px" />
+                    </td>
+                    <td>
+                        收货地址:<input class="easyui-textbox" name="deliveryAddr" style="width:100px" />
+                    </td>
+                    <td>
+                        送货单状态:
+                        <input class="easyui-combobox" name="isPrinted" value="所有" style="width:80px"
+                               data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                        data:[
+                                        {value:'所有'},{value:'未打印'},{value:'已打印'}
+                                        ]" />
+                    </td>
+                    <td>
+                        快递状态:
+                        <input class="easyui-combobox" name="exSeted" value="所有" style="width:80px"
+                               data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                        data:[
+                                        {value:'所有'},{value:'未录入'},{value:'已录入'}
+                                        ]" />
+                    </td>
+                    <td>
+                        &nbsp;<a href="#" class="easyui-linkbutton" iconcls="icon-search" id="searchBt">开始查询</a>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="tb"></table>
+    </div>
+</div>
+
+<div id="dlg_edit" class="easyui-dialog" style="width:660px;height:520px;" closed="true" buttons="#dlg_edit_buttons" modal="true" title="录入快递信息">
+    <div class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'north',collapsed:false,split:true" style="height: 135px; background: #fafafa; padding: 1px;">
+            <form id="exForm">
+                <div style="margin:6px;">
+                    <input type="hidden" id="chIds" />
+                    出库单号：<input class="easyui-textbox" id="stockNos" style="width:140px;" readonly /> &nbsp;                    
+                    发货地点：<input class="easyui-textbox" style="width:60px;" id="stock_addr" readonly /> &nbsp;
+                    地址：<input class="easyui-textbox" style="width:100px;" id="addr" /> &nbsp;
+                    <a href="#" class="easyui-linkbutton" iconcls="icon-search" onclick="searchExInfo()"> 计算运费 </a>
+                </div>
+                <div style="margin:6px;">
+                    长(cm)：<input class="easyui-numberbox" style="width:80px;" id="size_l" /> &nbsp;
+                    宽(cm)：<input class="easyui-numberbox" style="width:80px;" id="size_w" /> &nbsp;
+                    高(cm)：<input class="easyui-numberbox" style="width:80px;" id="size_h" /> &nbsp;
+                    卡板数：<input class="easyui-numberbox" style="width:80px;" id="card_num" /> &nbsp;
+                </div>
+
+                <hr />
+
+                <div style="margin:6px;">
+                    快递公司：<input class="easyui-textbox" style="width:70px;" id="ex_name" />
+                    配送方式：<input class="easyui-textbox" style="width:100px;" id="ex_type" />
+                    运费：<input class="easyui-numberbox" style="width:70px;" id="ex_fee" />
+                    快递单号：<input class="easyui-textbox" style="width:120px;" id="ex_no" />
+                </div>
+            </form>
+        </div>
+        <div data-options="region:'center'">
+            <table id="exList"></table>
+        </div>
+    </div>
+</div>
+<div id="dlg_edit_buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveEx()">保存快递信息</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript: $('#dlg_edit').dialog('close')">@Html.Lang("cancel")</a>
+</div>

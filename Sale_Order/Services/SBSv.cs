@@ -1,45 +1,46 @@
-﻿using CrystalDecisions.CrystalReports.Engine;
-using Newtonsoft.Json;
-using Sale_Order.Models;
-using Sale_Order.Models.CCDTTableAdapters;
-using Sale_Order.Models.CMDTTableAdapters;
-using Sale_Order.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Web;
+using Sale_Order.Models;
+using Sale_Order.Utils;
+using Newtonsoft.Json;
+using org.in2bits.MyXls;
+using System.IO;
+using CrystalDecisions.CrystalReports.Engine;
+using Sale_Order.Models.SBDTTableAdapters;
 using Sale_Order.Interfaces;
 
 namespace Sale_Order.Services
 {
-    public class CCSv : BillSv,IFinishEmail
+    public class SBSv : BillSv, IFinishEmail
     {
-        private CcmModelContract bill;
+        private SampleBill bill;
 
-        public CCSv() { }
-        public CCSv(string sysNo)
+        public SBSv() { }
+        public SBSv(string sysNo)
         {
-            bill = db.CcmModelContract.Where(m => m.sys_no == sysNo).FirstOrDefault();
+            bill = db.SampleBill.SingleOrDefault(s => s.sys_no == sysNo);
         }
 
         public override string BillType
         {
-            get { return "CC"; }
+            get { return "SB"; }
         }
 
         public override string BillTypeName
         {
-            get { return "CCM开模改模单"; }
+            get { return "样品单"; }
         }
 
         public override string CreateViewName
         {
-            get { return "CreateNCC"; }
+            get { return "CreateNSB"; }
         }
 
         public override string CheckViewName
         {
-            get { return "CheckNCC"; }
+            get { return "CheckNSB"; }
         }
 
         public override string CheckListViewName
@@ -49,12 +50,12 @@ namespace Sale_Order.Services
 
         public override object GetNewBill(UserInfo currentUser)
         {
-            bill = new CcmModelContract();
-            bill.step_version = 0;
-            bill.User = db.User.Where(u => u.id == currentUser.userId).First();
+            bill = new SampleBill();
             bill.sys_no = GetNextSysNo(BillType);
             bill.bill_date = DateTime.Now;
-
+            bill.step_version = 0;
+            bill.account = account;
+            bill.User = db.User.Where(u => u.id == currentUser.userId).First();
             var dep = new K3ItemSv(account).GetK3Items("agency").Where(k => k.fname == currentUser.departmentName).FirstOrDefault();
             if (dep != null) {
                 bill.agency_name = dep.fname;
@@ -72,61 +73,90 @@ namespace Sale_Order.Services
 
         public override string SaveBill(System.Web.Mvc.FormCollection fc, UserInfo user)
         {
-            CcmModelContract mc = null;
-            mc = JsonConvert.DeserializeObject<CcmModelContract>(fc.Get("head"));
-
+            SampleBill sb = JsonConvert.DeserializeObject<SampleBill>(fc.Get("head"));
 
             //如已提交，则不能再保存
-            if (mc.step_version == 0) {
-                if (new ApplySv().ApplyHasBegan(mc.sys_no)) {
+            if (sb.step_version == 0) {
+                sb.original_user_id = user.userId;
+                sb.create_date = DateTime.Now;
+                if (new ApplySv().ApplyHasBegan(sb.sys_no)) {
                     throw new Exception("已提交的单据不能再次保存！");
                 }
             }
 
+            account = sb.account;
+
             //验证客户编码与客户名称是否匹配
-            if (!new K3ItemSv("光电总部").IsCustomerNameAndNoMath(mc.customer_name, mc.customer_no)) {
+            if (!new K3ItemSv(account).IsCustomerNameAndNoMath(sb.customer_name, sb.customer_no)) {
                 throw new Exception("购货单位请输入后按回车键搜索后在列表中选择");
             }
-            if (!new K3ItemSv("光电总部").IsCustomerNameAndNoMath(mc.plan_firm_name, mc.plan_firm_no)) {
+            if (!new K3ItemSv(account).IsCustomerNameAndNoMath(sb.plan_firm_name, sb.plan_firm_no)) {
                 throw new Exception("方案公司请输入后按回车键搜索后在列表中选择");
             }
-            if (!new K3ItemSv("光电总部").IsCustomerNameAndNoMath(mc.oversea_customer_name, mc.oversea_customer_no)) {
+            if (!new K3ItemSv(account).IsCustomerNameAndNoMath(sb.sea_customer_name, sb.sea_customer_no)) {
                 throw new Exception("海外客户请输入后按回车键搜索后在列表中选择");
             }
-            if (!new K3ItemSv("光电总部").IsCustomerNameAndNoMath(mc.zz_customer_name, mc.zz_customer_no)) {
+            if (!new K3ItemSv(account).IsCustomerNameAndNoMath(sb.zz_customer_name, sb.zz_customer_no)) {
                 throw new Exception("最终客户请输入后按回车键搜索后在列表中选择");
             }
 
-            if (string.IsNullOrEmpty(mc.clerk_no)) {
+            if (string.IsNullOrEmpty(sb.clerk_no)) {
+                throw new Exception("业务员请输入后按回车键搜索后在列表中选择");
+            }
+            if (string.IsNullOrEmpty(sb.charger_no)) {
+                throw new Exception("主管请输入后按回车键搜索后在列表中选择");
+            }
+
+            var c1 = new K3ItemSv(account).GetK3Emp(sb.clerk_no);
+            if (c1.Count() != 1) {
+                throw new Exception("业务员不可用，请重新选择");
+            }
+            else if (!c1.First().emp_name.Equals(sb.clerk_name)) {
                 throw new Exception("业务员请输入后按回车键搜索后在列表中选择");
             }
 
-            if (mc.step_version == 0) {
-                mc.user_id = user.userId;
+            var c4 = new K3ItemSv(account).GetK3Emp(sb.charger_no);
+            if (c4.Count() != 1) {
+                throw new Exception("主管不可用，请重新选择");
+            }
+            else if (!c4.First().emp_name.Equals(sb.charger_name)) {
+                throw new Exception("主管请输入后按回车键搜索后在列表中选择");
             }
 
-            CcmModelContract existedBill = db.CcmModelContract.Where(s => s.sys_no == mc.sys_no).FirstOrDefault();
+            sb.update_user_id = user.userId;
+            sb.clear_way = sb.clear_way_name;//历史遗留问题
+
+            if (sb.is_free.Equals("免费")) {
+                sb.total_sum = sb.sample_qty * sb.cost;
+                sb.deal_price = 0;
+                sb.contract_price = 0;
+            }
+            else {
+                sb.total_sum = sb.sample_qty * sb.contract_price;
+            }
+
+            var existedBill = db.SampleBill.Where(s => s.sys_no == sb.sys_no).FirstOrDefault();
             if (existedBill != null) {
-                mc.user_id = existedBill.user_id;
+                sb.original_user_id = existedBill.original_user_id;
 
                 //备份
                 BackupData bd = new BackupData();
-                bd.sys_no = mc.sys_no;
+                bd.sys_no = sb.sys_no;
                 bd.main_data = new SomeUtils().ModelToString(existedBill);
                 bd.op_date = DateTime.Now;
-                bd.user_id = existedBill.user_id;
+                bd.user_id = user.userId;
                 db.BackupData.InsertOnSubmit(bd);
 
                 //删除旧数据
-                db.CcmModelContract.DeleteOnSubmit(existedBill);
+                db.SampleBill.DeleteOnSubmit(existedBill);
             }
 
-            var apply = db.Apply.Where(a => a.sys_no == mc.sys_no).FirstOrDefault();
+            var apply = db.Apply.Where(a => a.sys_no == sb.sys_no).FirstOrDefault();
             if (apply != null) {
-                apply.p_model = mc.product_model;
+                apply.p_model = sb.product_model;
             }
 
-            db.CcmModelContract.InsertOnSubmit(mc);
+            db.SampleBill.InsertOnSubmit(sb);
             try {
                 db.SubmitChanges();
             }
@@ -142,10 +172,10 @@ namespace Sale_Order.Services
             pm.toDate = pm.toDate.AddDays(1);
             pm.sysNo = pm.sysNo ?? "";
 
-            var result = (from o in db.CcmModelContract
+            var result = (from o in db.SampleBill
                           join a in db.Apply on o.sys_no equals a.sys_no into X
                           from Y in X.DefaultIfEmpty()
-                          where o.user_id == userId
+                          where o.original_user_id == userId
                           && (o.sys_no.Contains(pm.sysNo) || o.product_model.Contains(pm.sysNo))
                           && o.bill_date >= pm.fromDate
                           && o.bill_date <= pm.toDate
@@ -155,13 +185,13 @@ namespace Sale_Order.Services
                               bill_id = o.id,
                               apply_status = (Y == null ? "未开始申请" : Y.success == true ? "申请成功" : Y.success == false ? "申请失败" : "审批当中"),
                               buy_unit = o.customer_name,
-                              deal_price = o.price ?? o.cost,
+                              deal_price = o.deal_price,
                               product_model = o.product_model,
                               product_name = o.product_name,
-                              qty = o.qty,
+                              qty = o.sample_qty,
                               sys_no = o.sys_no,
                               apply_date = (Y == null ? "" : Y.start_date.ToString()),
-                              account = "光电总部"
+                              account = o.account ?? "光电总部"
                           }).ToList();
 
             foreach (var re in result.Where(r => !string.IsNullOrEmpty(r.apply_date))) {
@@ -175,31 +205,44 @@ namespace Sale_Order.Services
         {
             bill.step_version = 0;
             bill.sys_no = GetNextSysNo(BillType);
-            bill.product_model = null;
             bill.bill_date = DateTime.Now;
+            bill.account = bill.account ?? "光电总部";
 
             return bill;
         }
 
         public override string GetProcessNo()
         {
-            return "CM_CCM";
+            string processType = BillType;
+            if (bill.project_team.StartsWith("OLED")) {
+                processType += "_OLED";
+            }
+            else if (bill.is_free.Equals("免费")) {
+                processType += "_Free";
+            }
+            else {
+                processType += "_Charge";
+            }
+            return processType;
         }
 
         public override Dictionary<string, int?> GetProcessDic()
         {
-            Dictionary<string, int?> auditorsDic = new Dictionary<string, int?>();
-            auditorsDic.Add("部门NO", db.User.Single(u => u.id == bill.user_id).Department1.dep_no);
-            auditorsDic.Add("研发项目组NO", db.Department.Single(d => d.name == bill.project_team && d.dep_type == "研发项目组").dep_no);
-            if (bill.quotation_clerk_id != null) {
-                auditorsDic.Add("表单报价员值NO", bill.quotation_clerk_id);
-            }
-            return auditorsDic;
+            Dictionary<string, int?> dic = new Dictionary<string, int?>();
+            dic.Add("部门NO", db.User.Single(u => u.id == bill.original_user_id).Department1.dep_no);
+            dic.Add("研发项目组NO", db.Department.Single(d => d.name == bill.project_team && d.dep_type == "研发项目组").dep_no);
+
+            return dic;
         }
 
         public override string GetProductModel()
         {
             return bill.product_model;
+        }
+
+        public override string GetOrderNumber()
+        {
+            return bill.bill_no;
         }
 
         public override string GetCustomerName()
@@ -209,82 +252,95 @@ namespace Sale_Order.Services
 
         public override bool HasOrderSaved(string sysNo)
         {
-            return db.CcmModelContract.Where(m => m.sys_no == sysNo).Count() > 0;
+            return db.SampleBill.Where(s => s.sys_no == sysNo).Count() > 0;
         }
 
         public override string GetSpecificBillTypeName()
         {
-            return BillTypeName + "_" + bill.model_type;
+            return bill.is_free + BillTypeName;
         }
 
         public override void DoWhenBeforeApply()
         {
-            if (bill.model_type.Equals("开模")) {
-                //开模要判断规格型号是否重复
-                if (db.Apply.Where(a => a.order_type == BillType && a.p_model == bill.product_model && (a.success == null || a.success == true)).Count() > 0) {
-                    throw new Exception("存在已提交的重复的开模规格型号，提交失败");
-                }
-            }
+
         }
 
         public override void DoWhenAfterApply()
         {
-            
+
         }
 
         public override void DoWhenBeforeAudit(int step, string stepName, bool isPass, int userId)
         {
-            //下单组必须填写编号
-            if (stepName.Contains("下单组") && isPass) {
-                if (string.IsNullOrWhiteSpace(bill.old_bill_no)) {
-                    throw new Exception("下单组审核必须填写订单号");
-                }
-                else if (db.CcmModelContract.Where(m => m.sys_no != bill.sys_no && m.old_bill_no == bill.old_bill_no).Count() > 0) {
-                    throw new Exception("订单号在下单系统已存在");
-                }
-            }
+
         }
 
         public override void DoWhenFinishAudit(bool isPass)
         {
             if (isPass) {
-                MoveToFormalDir(bill.sys_no); //成功结束的申请，将附件移动到正式目录
+                string dateStr = "";
+                if (!"RMB".Equals(bill.currency_no)) {
+                    dateStr = "H";
+                }
+
+                if ("光电总部".Equals(bill.account)) {
+                    dateStr += "G";
+                }
+                else if ("光电仁寿".Equals(bill.account)) {
+                    dateStr += "R";
+                }
+                else if ("光电科技".Equals(bill.account)) {
+                    dateStr += "K";
+                }
+
+                if ("免费".Equals(bill.is_free)) {
+                    dateStr += "YPMF";
+                }
+                else {
+                    dateStr += "SWYP";
+                }
+                if ("RMB".Equals(bill.currency_no)) {
+                    dateStr += "-";
+                }
+                dateStr += DateTime.Now.ToString("yy");
+
+                string billNo = GetNextNo("YP", dateStr, 4);
+                bill.bill_no = billNo.Substring(2); //将前缀YP去掉。
+
+                db.SubmitChanges();
             }
         }
 
-        /// <summary>
-        /// 导出excel数据的模型
-        /// </summary>
-        public class CCExcelData
+        private class SBExcelData
         {
-            public CcmModelContract h { get; set; }
+            public SampleBill h { get; set; }
             public string auditStatus { get; set; }
         }
 
-        public List<CCExcelData> GetCCSalerExcelData(SalerSearchParamModel pm, int userId)
+        public override void ExportSalerExcle(SalerSearchParamModel pm, int userId)
         {
             pm.toDate = pm.toDate.AddDays(1);
             pm.sysNo = pm.sysNo ?? "";
 
-            var myData = (from o in db.CcmModelContract
+            var myData = (from o in db.SampleBill
                           join a in db.Apply on o.sys_no equals a.sys_no into X
                           from Y in X.DefaultIfEmpty()
-                          where o.user_id == userId
+                          where o.original_user_id == userId
                           && (o.sys_no.Contains(pm.sysNo) || o.product_model.Contains(pm.sysNo))
                           && o.bill_date >= pm.fromDate
                           && o.bill_date <= pm.toDate
                           && (pm.auditResult == 10 || (pm.auditResult == 0 && (Y == null || (Y != null && Y.success == null))) || (pm.auditResult == 1 && Y != null && Y.success == true) || pm.auditResult == -1 && Y != null && Y.success == false)
                           orderby o.bill_date
-                          select new CCExcelData()
+                          select new SBExcelData()
                           {
                               h = o,
                               auditStatus = (Y == null ? "未开始申请" : Y.success == true ? "申请成功" : Y.success == false ? "申请失败" : "审批当中"),
                           }).ToList();
 
-            return myData;
+            ExportExcel(myData);
         }
 
-        public List<CCExcelData> GetCCAuditorExcelData(AuditSearchParamModel pm, int userId)
+        public override void ExportAuditorExcle(AuditSearchParamModel pm, int userId)
         {
             DateTime fromDate, toDate;
             if (!DateTime.TryParse(pm.from_date, out fromDate)) {
@@ -302,7 +358,7 @@ namespace Sale_Order.Services
 
             var myData = (from a in db.Apply
                           from ad in a.ApplyDetails
-                          join o in db.CcmModelContract on a.sys_no equals o.sys_no
+                          join o in db.SampleBill on a.sys_no equals o.sys_no
                           where ad.user_id == userId
                           && a.order_type == BillType
                           && a.sys_no.Contains(pm.sysNo)
@@ -324,51 +380,95 @@ namespace Sale_Order.Services
                           )
                           && (ad.step == 1 || a.ApplyDetails.Where(ads => ads.step == ad.step - 1 && ads.pass == true).Count() > 0)
                           orderby a.start_date descending
-                          select new CCExcelData()
+                          select new SBExcelData()
                           {
                               h = o,
                               auditStatus = (a.success == true ? "申请成功" : a.success == false ? "申请失败" : "审批当中"),
                           }).Distinct().ToList();
 
-            return myData;
+            ExportExcel(myData);
         }
 
-        public override void ExportSalerExcle(SalerSearchParamModel pm, int userId)
+        private void ExportExcel(List<SBExcelData> myData)
         {
-            throw new NotImplementedException();
-        }
+            //列宽：
+            ushort[] colWidth = new ushort[] { 12, 12, 12, 16, 24, 30, 12, 12, 12, 12, 16, 16 };
 
-        public override void ExportAuditorExcle(AuditSearchParamModel pm, int userId)
-        {
-            throw new NotImplementedException();
+            //列名：
+            string[] colName = new string[] { "公司", "样品单种类", "下单日期", "订单编号", "客户名称", "型号", "数量", "成交价", "合同价", "成本", "办事处", "营业员" };
+
+            //設置excel文件名和sheet名
+            XlsDocument xls = new XlsDocument();
+            xls.FileName = string.Format("样品单_{0}.xls", DateTime.Now.ToShortDateString());
+            Worksheet sheet = xls.Workbook.Worksheets.Add("单据信息列表");
+
+            //设置各种样式
+
+            //标题样式
+            XF boldXF = xls.NewXF();
+            boldXF.HorizontalAlignment = HorizontalAlignments.Centered;
+            boldXF.Font.Height = 12 * 20;
+            boldXF.Font.FontName = "宋体";
+            boldXF.Font.Bold = true;
+
+            //设置列宽
+            ColumnInfo col;
+            for (ushort i = 0; i < colWidth.Length; i++) {
+                col = new ColumnInfo(xls, sheet);
+                col.ColumnIndexStart = i;
+                col.ColumnIndexEnd = i;
+                col.Width = (ushort)(colWidth[i] * 256);
+                sheet.AddColumnInfo(col);
+            }
+
+            Cells cells = sheet.Cells;
+            int rowIndex = 1;
+            int colIndex = 1;
+
+            //设置标题
+            foreach (var name in colName) {
+                cells.Add(rowIndex, colIndex++, name, boldXF);
+            }
+
+            foreach (var data in myData) {
+                var d = data.h;
+                colIndex = 1;
+
+                cells.Add(++rowIndex, colIndex, d.account);
+                cells.Add(rowIndex, ++colIndex, d.is_free);
+                cells.Add(rowIndex, ++colIndex, ((DateTime)d.bill_date).ToString("yyyy-MM-dd"));
+                cells.Add(rowIndex, ++colIndex, d.bill_no);
+                cells.Add(rowIndex, ++colIndex, d.customer_name);
+                cells.Add(rowIndex, ++colIndex, d.product_model);
+                cells.Add(rowIndex, ++colIndex, d.sample_qty);
+                cells.Add(rowIndex, ++colIndex, d.deal_price);
+                cells.Add(rowIndex, ++colIndex, d.contract_price);
+                cells.Add(rowIndex, ++colIndex, d.cost);
+                cells.Add(rowIndex, ++colIndex, d.agency_name);
+                cells.Add(rowIndex, ++colIndex, d.clerk_name);
+            }
+
+            xls.Send();
         }
 
         public override void BeforeRollBack(int step)
         {
-            throw new NotImplementedException();
+            if (!string.IsNullOrEmpty(bill.bill_no)) {
+                throw new Exception("单号已生成，不能收回");
+            }
         }
 
         public override System.IO.Stream PrintReport(string fileFolder)
         {
-            if ((from a in db.Apply
-                 from ad in a.ApplyDetails
-                 where a.sys_no == bill.sys_no
-                 && ad.user_id == bill.user_id
-                 select ad).Count() < 1) {
-                if (!new SomeUtils().hasGotPower((int)bill.user_id, "chk_pdf_report")) {
-                    throw new Exception("流水号不存在或没有权限查看");
-                }
-            }
-
             Stream stream = null;
             using (ReportClass rptH = new ReportClass()) {
-                using (CCDT ccDt = new CCDT()) {
-                    using (Sale_ccm_model_contractTableAdapter cmTa = new Sale_ccm_model_contractTableAdapter()) {
-                        cmTa.Fill(ccDt.Sale_ccm_model_contract, bill.sys_no);
+                using (SBDT sbDt = new SBDT()) {
+                    using (Sale_sample_billTableAdapter cmTa = new Sale_sample_billTableAdapter()) {
+                        cmTa.Fill(sbDt.Sale_sample_bill, bill.sys_no);
                     }
                     //设置办事处1、总裁办3，市场部2审核人名字
-                    string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "", yfTopLevel = "",
-                        quotationAuditor = "", marketManager = "";
+                    string agencyAuditor = "", ceoAuditor = "", marketAuditor = "", yfAdmin = "", yfManager = "",
+                        quotationAuditor = "", yfTopLevel = "", marketManager = "";
 
                     var auditDetails = (from a in db.Apply
                                         join d in db.ApplyDetails on a.id equals d.apply_id
@@ -382,7 +482,7 @@ namespace Sale_Order.Services
                                         }).ToList();
 
                     agencyAuditor = auditDetails.Where(ad => ad.step == 1 && ad.step_name.Contains("办事处")).Select(ad => ad.real_name).FirstOrDefault() ?? "";
-                    marketAuditor = auditDetails.Where(ad => ad.step == 1 && ad.step_name.Contains("总经理")).Select(ad => ad.real_name).FirstOrDefault() ?? "";
+                    marketManager = auditDetails.Where(ad => ad.step == 1 && ad.step_name.Contains("总经理")).Select(ad => ad.real_name).FirstOrDefault() ?? "";
                     yfManager = auditDetails.Where(ad => ad.step == 1 && ad.step_name.Contains("项目经理")).Select(ad => ad.real_name).FirstOrDefault() ?? "";
                     yfAdmin = auditDetails.Where(ad => ad.step == 1 && ad.step_name.Contains("项目管理员")).Select(ad => ad.real_name).FirstOrDefault() ?? "";
                     yfTopLevel = auditDetails.Where(ad => ad.step == 1 && ad.step_name.Contains("项目组上级")).Select(ad => ad.real_name).FirstOrDefault() ?? "";
@@ -390,20 +490,15 @@ namespace Sale_Order.Services
                     marketAuditor = auditDetails.Where(ad => ad.step == 2).Select(ad => ad.real_name).FirstOrDefault() ?? "";
                     ceoAuditor = auditDetails.Where(ad => ad.step == 3).Select(ad => ad.real_name).FirstOrDefault() ?? "";
 
-                    ccDt.CCM_modelContract_auditor.AddCCM_modelContract_auditorRow(agencyAuditor, yfManager, quotationAuditor, yfAdmin, marketAuditor, ceoAuditor, yfTopLevel, marketManager);
+                    sbDt.Sample_Bill_Auditor.AddSample_Bill_AuditorRow(agencyAuditor, yfManager, yfTopLevel, yfAdmin, quotationAuditor, marketAuditor, ceoAuditor, marketManager);
 
-                    rptH.FileName = fileFolder + "CCYF_A4_Report.rpt";
+                    rptH.FileName = fileFolder + "SBYF_A4_Report.rpt";
                     rptH.Load();
-                    rptH.SetDataSource(ccDt);
+                    rptH.SetDataSource(sbDt);
                 }
                 stream = rptH.ExportToStream(CrystalDecisions.Shared.ExportFormatType.PortableDocFormat);
             }
             return stream;
-        }
-
-        public override string GetOrderNumber()
-        {
-            return bill.old_bill_no;
         }
 
         public string ccToOthers(string sysNo, bool isPass)

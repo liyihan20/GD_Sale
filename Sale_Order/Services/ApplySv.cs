@@ -85,8 +85,9 @@ namespace Sale_Order.Services
                 throw new Exception("单据已提交，不能重复操作");
             }
 
+            BillSv bill;
             try {
-                BillSv bill = (BillSv)new BillUtils().GetBillSvInstanceBySysNo(sysNo);
+                bill = (BillSv)new BillUtils().GetBillSvInstanceBySysNo(sysNo);
                 bill.DoWhenBeforeApply();
             }
             catch (Exception ex) {
@@ -168,6 +169,13 @@ namespace Sale_Order.Services
             }
             catch (Exception ex) {
                 throw ex;
+            }
+
+            try {
+                bill.DoWhenAfterApply();
+            }
+            catch (Exception ex) {
+                throw new Exception("提交成功，但执行回调失败：" + ex.Message);
             }
 
             SendNotificationEmail();
@@ -581,9 +589,10 @@ namespace Sale_Order.Services
         /// <param name="step">审核步骤</param>
         /// <param name="applyId">申请ID</param>
         /// <param name="userId">审核热ID</param>
-        /// <returns>操作类型|流水号</returns>
-        public string GetAuditInfo(int step, int applyId, int userId)
+        /// <returns>AuditInfoModel</returns>
+        public AuditInfoModel GetAuditInfo(int step, int applyId, int userId)
         {
+            AuditInfoModel am = new AuditInfoModel();
             var aps = db.Apply.Where(a => a.id == applyId);
             if (aps.Count() == 0) {
                 throw new Exception("申请不存在,请确认公司名是否正确");
@@ -604,6 +613,9 @@ namespace Sale_Order.Services
                 throw new Exception("还未轮到你审核");
             }
 
+            am.sysNo = ap.sys_no;
+            am.editType = "r"; //r表示只读
+            am.stepName = ad.step_name;
             if (ad.can_modify == true) {
                 bool hasEdited = false;
                 if (ap.success != null || ad.pass != null) {
@@ -614,11 +626,10 @@ namespace Sale_Order.Services
                     hasEdited = ap.ApplyDetails.Where(a => a.step == ad.step && a.pass != null).Count() > 0;
                 }
                 if (!hasEdited) {
-                    return "m|" + ap.sys_no; //m表示可编辑
+                    am.editType = "m"; //m表示可编辑
                 }
             }
-
-            return "r|" + ap.sys_no; //r表示只读
+            return am; 
         }
 
         /// <summary>
@@ -789,40 +800,99 @@ namespace Sale_Order.Services
             return "";
         }
 
-        /// <summary>
-        /// (有参构造)反审核/收回
-        /// </summary>
-        /// <param name="sysNo"></param>
-        /// <param name="step"></param>
-        /// <param name="userId"></param>
-        public void AuditStepRollBack(int step, int userId)
+        //收回步骤
+        public void StepRollBack(int step, int userId)
+        {
+            //判断当前step步骤是本人审批的
+            var ad = ap.ApplyDetails.Where(d => d.step == step && d.user_id == userId && d.pass != null).FirstOrDefault();
+            if (ad == null) {
+                throw new Exception("当前审核步骤不是你本人已处理的");
+            }
+
+            //判断后续step还未审批
+            if (ap.ApplyDetails.Where(d => d.step > step && d.pass != null).Count() > 0) {
+                throw new Exception("后续步骤已处理，不能收回");
+            }
+
+            RestoreAuditedStep(ad);
+        }
+
+        //退回上一步
+        public void StepBackward(int step, int userId)
+        {
+            //判断当前step是本人的且还未处理的
+            if (ap.ApplyDetails.Where(d => d.step == step && d.user_id == userId).Count() == 0) {
+                throw new Exception("当前审核步骤不是你本人在处理的");
+            }
+
+            //判断本节点和后续节点是否已处理
+            if (ap.ApplyDetails.Where(d => d.step >= step && d.pass != null).Count() > 0) {
+                throw new Exception("本步骤或后续步骤已处理，不能退回上一步");
+            }
+
+            //判断是否存在上一step
+            var ads = ap.ApplyDetails.Where(d => d.step == step - 1).ToList();
+            if (ads.Count() == 0) {
+                throw new Exception("不存在上一处理步骤，退回失败");
+            }
+            else {
+                if (ads.Count() > 0 && ads.First().countersign == true) {
+                    throw new Exception("上一处理步骤属于多人会签节点，不能退回");
+                }
+                else {
+                    var ad = ads.Where(d => d.pass != null).FirstOrDefault();
+                    if (ad != null) {
+                        RestoreAuditedStep(ad);
+                    }
+                }
+            }
+        }
+
+        //清空并恢复某一步的已审状态为未审状态
+        private void RestoreAuditedStep(ApplyDetails ad)
         {
             BillSv bill = (BillSv)new BillUtils().GetBillSvInstanceBySysNo(ap.sys_no);
-            bill.BeforeRollBack(step);
+            bill.BeforeRollBack((int)ad.step); //先到各类流程验证是否和恢复
 
-            var ad = ap.ApplyDetails.Where(a => a.user_id == userId && a.pass != null).OrderByDescending(a => a.id).FirstOrDefault();
-            if (ad == null) {
-                throw new Exception("还未审核或不是审核人，不能反审核");
+            //如果当前节点有子步骤，就先将子步骤删除（客退系统的客服环节会生成子步骤，出货组和营业确认）,并将后续步骤-子步骤的数量
+            if (ap.ApplyDetails.Where(d => d.parent_step == ad.step).Count() > 0) {
+                var childrenCount = ap.ApplyDetails.Where(d => d.parent_step == ad.step).Select(d => d.step).Distinct().Count();
+
+                foreach (var d in ap.ApplyDetails.Where(d => d.step > ad.step)) {
+                    if (d.parent_step == ad.step) {
+                        db.ApplyDetails.DeleteOnSubmit(d);
+                    }
+                    else {
+                        d.step -= childrenCount;
+                    }
+                }
+
             }
 
-            if (ap.ApplyDetails.Where(a => a.step > ad.step && a.pass != null).Count() > 0) {
-                throw new Exception("后续步骤已被审核，不能反审核");
-            }
-
+            //更新当前节点
             ad.pass = null;
             ad.finish_date = null;
             ad.comment = null;
             ad.ip = null;
 
+            //如果已结束的，更新表头
             if (ap.success != null) {
                 ap.success = null;
                 ap.finish_date = null;
             }
 
             db.SubmitChanges();
-
         }
 
+        //修改某步骤的审核人
+        public void UpdateStepAuditor(string stepName, int auditorId)
+        {
+            var detail = ap.ApplyDetails.Where(a => a.step_name == stepName).FirstOrDefault();
+            if (detail != null) {
+                detail.user_id = auditorId;
+            }
+            db.SubmitChanges();
+        }
 
         public string CeoBatchAudit(int[] applyDetailIds, int userId, bool isPass, string comment, string ipAdd)
         {

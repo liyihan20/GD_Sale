@@ -1,0 +1,242 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+}
+<script type="text/javascript">
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#itemList").datagrid({
+            fit: true,
+            //fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'item_name', title: '产品名称', width: 120 },
+                        { field: 'item_model', title: '规格型号', width: 180 },
+                        { field: 'item_no', title: '产品编码', width: 120 },
+    					{ field: 'customer_name', title: '客户名称', width: 160 },
+                        { field: 'customer_no', title: '客户编码', width: 100 },
+    					{ field: 'agency_name', title: '部门名称', width: 120 },
+                        { field: 'agency_no', title: '部门编码', width: 100 },
+    					{ field: 'create_user', title: '创建人', width: 100 },
+    					{
+    					    field: 'create_date', title: '创建日期', width: 120,
+    					    formatter: function (value, row, index) {
+    					        return toDateStr(value,true);
+    					    }
+    					}
+            ]],
+            toolbar: [{
+                text: "新增",
+                iconCls: 'icon-add',
+                handler: function () {
+                    $("#dlg").dialog("open");
+                }
+            }, '-', {
+                text: "删除",
+                iconCls: 'icon-remove',
+                handler: function(){
+                    var row = $("#itemList").datagrid("getSelected");
+                    if (row) {
+                        $.messager.confirm("操作确认", "确定要删除吗?", function (r) {
+                            if (r) {
+                                $.post("DeleteItemModelAndCustomer", { id: row.id }, function (data) {
+                                    tip(data.msg);
+                                    if (data.suc) {
+                                        $("#checkBt").trigger("click");
+                                    }
+                                });
+                            }
+                        });
+                        
+                    }
+                }
+            }],
+        });
+
+        $("#checkBt").click(function () {
+            $("#itemList").datagrid("loading");
+
+            var obj = getFormJson($("#fm"));
+            $.post("SearchItemModelAndCustomer", {
+                itemInfo: obj.itemInfo,
+                customerInfo: obj.customerInfo,
+                agencyInfo: obj.agencyInfo,
+                createUser: obj.createUser
+            }, function (data) {
+                $("#itemList").datagrid("loadData", data);
+                $("#itemList").datagrid("loaded");
+            })
+        });
+
+        $("#item_model").combogrid({
+            idField: "model",
+            textField: "model",
+            panelWidth: 550,
+            required: 'true',
+            columns: [[
+                    { field: 'number', title: '@Html.Lang("pro_num")', width: 150 },
+                    { field: 'name', title: '@Html.Lang("pro_name")', width: 150 },
+                    { field: 'model', title: '@Html.Lang("pro_model")', width: 220 }
+            ]],
+            keyHandler: {
+                query: function () { },
+                enter: function () {
+                    var q = $("#item_model").combogrid('getText');
+                    if (q != "") {
+                        $.post("@Url.Content("~/Items/getProductInfo")", { q: q,account:"光电总部" },
+                                function (data) {
+                                    $("#item_model").combogrid('grid').datagrid('loadData', data);
+                                    $("#item_model").combogrid('setText', q);
+                                },
+                                "json"
+                                );
+                    }
+                }
+            }
+
+        });
+
+        //产品代码从下拉列表中选中一项的处理事件
+        $("#item_model").combogrid('grid').datagrid({
+            onClickRow: function (rowIndex, rowData) {
+                $("#item_model").combogrid('setValue', rowData.model);
+                $("#item_name").val(rowData.name);
+                $("#item_no").val(rowData.number);
+                $("#item_model").combogrid('hidePanel');
+            }
+        });
+
+        
+        $("#customer_no").combogrid({
+            idField: "number",
+            textField: "name",
+            panelWidth: 400,
+            columns: [[
+                    { field: 'number', title: '@Html.Lang("customer_num")', width: 100 },
+                    { field: 'name', title: '@Html.Lang("customer_name")', width: 260 }
+            ]],
+            keyHandler: {
+                query: function () { },
+                enter: function () {
+                    var box_id = $(this).attr("id");
+                    var _this = "#" + box_id;
+                    var q = $(_this).combogrid('getText');
+                    if (q != "") {
+                        $.post("@Url.Content("~/Items/getCostomers")", { q: q, account: "光电总部" },
+                            function (data) {
+                                $(_this).combogrid('grid').datagrid('loadData', data);
+                                $(_this).combogrid('setText', q);
+                            },
+                            "json"
+                            );
+                    }
+                }
+            }
+
+        });
+
+        $(".k3_item").each(function () {
+            var what = $(this).attr("data-what");
+            var panelWidth = $(this).attr("data-panelWidth") || null;
+            var penelHeight = $(this).attr("data-panelHeight") || 300;
+            var editable = $(this).attr("data-editable") || false;
+            var required = true;
+            if ($(this).attr("data-required") == "false") {
+                required = false;
+            }
+
+            $(this).combobox({
+                valueField: "no",
+                textField: "name",
+                url: "../Items/getItems?what=" + what + "&account=光电总部",
+                width: 200,
+                panelHeight: penelHeight,
+                panelWidth: panelWidth,
+                editable: editable,
+                required: required,
+                loadFilter: function (data) {
+                    return data.filter(function (d) { return d.name.indexOf("中国市场部") == 0;})
+                }
+            });
+        });
+
+    });
+
+    function saveItem() {
+        var obj = getFormJson($("#fm2"));
+        obj.customer_name = $("#customer_no").combogrid("getText");
+        obj.agency_name = $("#agency_no").combobox("getText");
+
+        if (obj.item_no == "" || obj.customer_no == "" || obj.agency_no == "") {
+            alert("输入的值不合法");
+            return;
+        }
+
+        $.post("SaveItemModelAndCustomer", { obj: JSON.stringify(obj) }, function (data) {            
+            if (data.suc) {
+                $("#dlg").dialog("close");
+                $("#checkBt").trigger("click");
+            } else {
+                tip(data.msg);
+            }
+        })
+
+    }
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 50px; background: #fafafa;">
+        <form id="fm" method="post" style="padding:6px 8px;">
+            规格型号：<input class="easyui-textbox" name="itemInfo" style="width: 120px" />
+            客户名称：<input class="easyui-textbox" name="customerInfo" style="width: 120px" />
+            部门：<input class="easyui-textbox" name="agencyInfo" style="width: 120px" />
+            创建人：<input class="easyui-textbox" name="createUser" style="width: 120px" />
+            <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>            
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="itemList"></table>
+    </div>
+</div>
+<div id="dlg" class="easyui-dialog" title="新增关系" closed="true" buttons="#dlg_buttons" modal="true" style="width:400px;padding:10px">
+    <form id="fm2" style="padding:8px">
+        <table>
+            <tr>
+                <td>
+                    规格型号：
+                </td>
+                <td>
+                    <input name="item_model" id="item_model" style="width:200px;" />
+                    <input type="hidden" name="item_name" id="item_name" />
+                    <input type="hidden" name="item_no" id="item_no" />
+                </td>
+            </tr>
+            <tr>                
+                <td>
+                    客户名称：
+                </td>
+                <td>
+                    <input name="customer_no" id="customer_no" style="width:200px;" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    部门：
+                </td>
+                <td>
+                    <input class="k3_item" id="agency_no" name="agency_no" data-what="agency" data-panelwidth="160" />
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<div id="dlg_buttons">
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveItem()">保存</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript: $('#dlg').dialog('close')">@Html.Lang("cancel")</a>
+</div>

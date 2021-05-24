@@ -1,0 +1,204 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+}
+
+<script>
+    $(function () {
+
+        $("#orderList").datagrid({
+            rownumbers: true,
+            fit: true,
+            singleSelect: true,
+            columns: [[
+                {
+                    field: 'orderDate', title: '订单日期', width: 90,
+                    formatter: function (value, row, index) {
+                        return toDateStr(value);
+                    }
+                },
+                { field: 'orderNumber', title: '订单编号', width: 140 },
+                { field: 'orderEntry', title: '订单行号', width: 70, align: 'center' },
+                { field: 'itemName', title: '产品名称', width: 120 },
+                { field: 'itemModel', title: '产品型号', width: 180 },
+                { field: 'qty', title: '订单数量', width: 80, align: 'right' },
+                { field: 'relateQty', title: '出货数量', width: 80, align: 'right' },
+                { field: 'unitName', title: '单位', width: 60 },
+                { field: 'empName', title: '营业员', width: 100 },
+                { field: 'saleStyle', title: '销售方式', width: 100, align: 'center' },
+                {
+                    field: 'isclosed', title: '关闭标识', width: 70, align: 'center',
+                    formatter: function (value, row, index) {
+                        if (value) {
+                            return "Y";
+                        } else {
+                            return "N";
+                        }
+                    },
+                    styler: function (value, row, index) {
+                        if (value) {
+                            return 'color:red;';
+                        } else {
+                            return 'color:green;';
+                        }
+                    }
+                }
+            ]], toolbar: [{
+                text: "查看出货记录",
+                iconCls: 'icon-search',
+                handler: function () {
+                    var row = $("#orderList").datagrid("getSelected");
+                    if (row) {
+                        getStockList(row);
+                    }
+                }
+            }],
+            onDblClickRow: function (index, row) {
+                getStockList(row);
+            }
+        });
+
+        $("#stockList").datagrid({
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        { field: 'stockDate', title: '出库单日期', width: 120, align: 'center' },
+    					{ field: 'stockNo', title: '出库单编号', width: 160, align: 'center' },
+    					{ field: 'stockEntryNo', title: '出库单行号', width: 70, align: 'center' },
+                        { field: 'qty', title: '出库数量', width: 80, align: 'center' },
+                        { field: 'unitName', title: '单位', width: 60, align: 'center' }
+            ]]
+        });
+
+        $("#customerNo").combogrid({
+            idField: "value",
+            textField: "text",
+            panelWidth: 360,
+            required: 'true',
+            editable: false,
+            url: '@Url.Content("~/NExtra/GetMyCHCustomers")',
+            columns: [[
+                        { field: 'value', title: '客户编码', width: 100 },
+                        { field: 'text', title: '客户名称', width: 240 }
+            ]]
+        });
+
+        $("#checkBt").on("click", function () {
+            if ($("#customerNo").combogrid("getValue") == "") {
+                tip("客户不能为空");
+                return;
+            }
+            $("#orderList").datagrid("loading");
+            $.post("GetCHSOList", {
+                account: $("#account").combobox("getValue"),
+                billType: $("#billType").combobox("getValue"),
+                customerNo: $("#customerNo").combogrid("getValue"),
+                fromDate: $("#fromDate").datebox("getValue"),
+                toDate: $("#toDate").datebox("getValue"),
+                orderNo: $("#orderNo").textbox("getValue"),
+                itemModel: $("#itemModel").textbox("getValue")
+            }, function (data) {
+                $("#orderList").datagrid("loaded");
+                if (data.length < 1) {
+                    tip("查询不到订单信息");
+                }
+                $("#orderList").datagrid("loadData", data);
+            });
+        });
+
+    });
+
+    function getStockList(row) {
+        $.messager.progress();
+        $.post("GetCHStockDetail", {
+            account: row.account,
+            billType: row.billType,
+            orderId: row.orderId,
+            entryId: row.orderEntry
+        }, function (data) {
+            $.messager.progress("close");
+            if (data.length < 1) {
+                tip("查不到出库记录");
+                return;
+            } else {
+                $("#dlg_ck").dialog("open");
+                $("#stockList").datagrid("loadData", data);
+            }
+        })
+    }
+
+</script>
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 70px; background: #fafafa; padding: 1px;">
+        <table cellpadding="0" cellspacing="2">
+            <tr>
+                <td>
+                    公司:
+                </td>
+                <td>
+                    单据类型:
+                </td>
+                <td>
+                    客户:
+                </td>
+                <td>
+                    订单日期:
+                </td>
+                <td>
+                    到:
+                </td>
+                <td>
+                    订单号:
+                </td>
+                <td>
+                    规格型号:
+                </td>
+                <td>
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input class="easyui-combobox" id="account" value="光电总部" style="width: 100px"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                        data:[
+                                        {value:'光电总部'},{value:'光电仁寿'}
+                                        ]" />
+                </td>
+                <td>
+                    <input class="easyui-combobox" id="billType" value="正单" style="width: 80px"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                        data:[
+                                        {value:'正单'},{value:'样品'}
+                                        ]" />
+                </td>
+                <td>
+                    <input class="easyui-combogrid" id="customerNo" style="width: 140px" />
+                </td>
+                <td>
+                    <input class="easyui-datebox" id="fromDate" editable="false" style="width: 110px" value="@(DateTime.Now.AddMonths(-2).ToString("yyyy-MM-01"))" />
+                </td>
+                <td>
+                    <input class="easyui-datebox" id="toDate" editable="false" style="width: 110px" value="@(DateTime.Now.ToString("yyyy-MM-dd"))" />
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="orderNo" style="width: 120px" />
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="itemModel" style="width: 120px" />
+                </td>
+                <td>
+                    <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div data-options="region:'center'">
+        <table id="orderList"></table>
+    </div>
+</div>
+<div id="dlg_ck" class="easyui-dialog" style="width: 600px; height:360px;" closed="true" modal="true" title="查看出货记录">
+    <table id="stockList"></table>
+</div>

@@ -3,11 +3,12 @@
     string editType = (string)ViewData["canEdit"];
     string sysNo = (string)ViewData["sysNo"];
     int step = (int)ViewData["step"];
+    string stepName=(string)ViewData["stepName"];
     int applyId = (int)ViewData["applyId"];
     string url = Url.Content("~/NSaler/");
     
     if ("m".Equals(editType)) {
-        url += "ModifyBill?sysNo=" + sysNo + "&stepVersion=" + step;
+        url += string.Format("ModifyBill?sysNo={0}&stepVersion={1}&stepName={2}", sysNo, step, stepName);
     }
     if ("r".Equals(editType)) {
         url += "CheckBill?sysNo=" + sysNo;
@@ -80,11 +81,14 @@
                     tip(result.msg + ",正在跳转...");
                     setTimeout("window.location.href='@Url.Content("~/NAudit/CheckNAuditList")';", 1000);
                 } else {
-                    tip(result.msg);
+                    alert(result.msg);
+                    if (result.msg.indexOf("成功") >= 0 && result.msg.indexOf("收回") >= 0) {
+                        window.location.href = '@Url.Content("~/NSaler/CheckBill?sysNo=")' + '@sysNo';
+                    }
                 }
             }
         });
-    }    
+    }
 
     //获取审批信息
     function getAuditResult() {
@@ -96,23 +100,39 @@
                 $("#auditor_comment").attr("readonly", "readonly");
                 $("#blockBt").hide();
                 $("#NOBt").hide();
+                $("#backwardBt").hide();
                 $("#OKBt").linkbutton({ text: data.auditResult, });
                 $('#OKBt').linkbutton('disable');
             }
         });
     }
+
+    function backward() {
+        $.messager.confirm('@Html.Lang("confirm")', '你确定要退回上一步吗?', function (r) {
+            if (r) {
+                $.post("@Url.Content("~/NAudit/StepBackward")", { applyId: "@applyId", step: "@step" }, function (data) {
+                    if (data.suc) {
+                        setTimeout("window.location.href='@Url.Content("~/NAudit/CheckNAuditList")';", 1000);
+                    }
+                    tip(data.msg);
+                });
+            }
+        });
+    }
+
 </script>
 <div class="easyui-layout" data-options="fit:true" id="agency_div">    
     <div data-options="region:'south',collapsed:false" style="height: 50px; background: #fafafa;padding: 8px 10px;">
         <form id="audit_fm" method="post" action="">
-        @Html.Lang("audit_opinion"):
-        <input type="hidden" name="step" value="@step" />
-        <input type="hidden" name="applyId" value="@applyId" />
-        <input type="hidden" name="okFlag" id="okFlag" value="" />
-        <input class="easyui-textbox" id="auditor_comment" name="auditor_comment" style="width: 500px" />&nbsp; 
-        <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a> 
-        <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
-        <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
+            @Html.Lang("audit_opinion"):
+            <input type="hidden" name="step" value="@step" />
+            <input type="hidden" name="applyId" value="@applyId" />
+            <input type="hidden" name="okFlag" id="okFlag" value="" />
+            <input class="easyui-textbox" id="auditor_comment" name="auditor_comment" style="width: 500px" />&nbsp; 
+            <a id="OKBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="okClick()">@Html.Lang("pass")</a> 
+            <a id="NOBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-no'" onclick="noClick()">@Html.Lang("reject")</a>
+            <a id="backwardBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-undo'" onclick="backward()">退回上一步</a>
+            <a id="blockBt" href="#agency_div" class="easyui-linkbutton" data-options="iconCls:'icon-help'" onclick="block()">挂起</a>
         </form>
     </div>
     <div data-options="region:'center'" style="overflow:hidden">

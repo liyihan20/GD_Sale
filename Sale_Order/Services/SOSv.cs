@@ -234,7 +234,13 @@ namespace Sale_Order.Services
 
             #region 表体验证
             int taxRate = 13;
-            List<int> projectNos = db.VwProjectNumber.Where(v => v.client_number == h.buy_unit_no || v.client_number == h.oversea_client_no || v.id == 467).Select(v => v.id).ToList();
+            List<int> projectNos = new List<int> { 467 };
+            try {
+                projectNos = db.VwProjectNumber.Where(v => v.client_number == h.buy_unit_no || v.client_number == h.oversea_client_no || v.id == 467).Select(v => v.id).ToList();
+            }
+            catch {
+
+            }
             int currentIndex = 0;
             foreach (var d in ds) {
                 currentIndex++;
@@ -405,6 +411,11 @@ namespace Sale_Order.Services
         public override void DoWhenBeforeApply()
         {
             
+        }
+
+        public override void DoWhenAfterApply()
+        {
+
         }
 
         public override void DoWhenBeforeAudit(int step, string stepName, bool isPass, int userId)

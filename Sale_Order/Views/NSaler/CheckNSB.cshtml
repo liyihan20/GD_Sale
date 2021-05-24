@@ -1,0 +1,415 @@
+﻿@using Sale_Order.Models;
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    SampleBill sb = ViewData["bill"] as SampleBill;
+}
+<style type="text/css">
+    #order_div input {
+        width: 140px;
+    }
+</style>
+<script type="text/javascript">
+
+    $(function () {
+        $("#order_div .easyui-textbox").textbox("readonly");
+    });
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    @*订单内容*@
+    <div data-options="region:'center'">
+        <div id="order_div" class="easyui-panel" title="查看样品单" style="width: 940px; padding: 10px; background: #fafafa;">
+            <div>
+                @*表头*@
+                <table border="0" cellpadding="0" cellspacing="3" width="900">
+                    <tr>
+                        <td style="width:74px;">
+                            公司：
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.account" />
+                        </td>
+                        @if (!string.IsNullOrWhiteSpace(sb.bill_no)) { 
+                            <td>
+                                单据编号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" value="@sb.bill_no"/>
+                            </td>
+                        }
+                    </tr>
+                    <tr>
+                        <td>
+                            下单日期:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@(((DateTime)sb.bill_date).ToString("yyyy-MM-dd"))"/>
+                        </td>
+                        <td>
+                            是否收费:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.is_free"/>
+                        </td>
+                        <td>
+                            对应项目组:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.project_team" />
+                        </td>
+                        <td>
+                            系统流水号:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.sys_no"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            结算方式:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@(sb.clear_way_name==null?sb.clear_way:sb.clear_way_name)" />
+                        </td>
+                        <td>
+                            贸易类型:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.trade_type_name" />
+                        </td>
+                        <td>
+                            交货地点:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.fetch_add_name" />
+                        </td>
+                        <td>
+                            销售方式:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.sale_type_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            办事处:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.agency_name" />
+                        </td>
+                        <td>
+                            业务员:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.clerk_name" />
+                        </td>
+                        <td>
+                            币别:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.currency_name" />
+                        </td>
+                        <td>
+                            汇率:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.exchange_rate" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            产品类别:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.product_type" />
+                        </td>
+                        <td>
+                            产品型号:
+                        </td>
+                        <td colspan="3">
+                            <input class="easyui-textbox" style="width: 360px" value="@sb.product_model" />
+                        </td>
+                        <td>
+                            要求完成日期:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@(((DateTime)sb.demand_finish_date).ToString("yyyy-MM-dd"))" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            购货单位:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.customer_name" />
+                        </td>
+                        <td>
+                            方案公司:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.plan_firm_name" />
+                        </td>
+                        <td>
+                            海外客户:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.sea_customer_name" />
+                        </td>
+                        <td>
+                            终端客户:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.zz_customer_name" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            是否共用现有产品:
+                            <input class="easyui-textbox" style="width: 80px" value="@sb.use_existed_product" />
+                        </td>
+                        <td>
+                            原开模客户:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox"  value="@sb.original_model_customer" />
+                        </td>
+                        <td>
+                            图纸编号:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.pic_number" />
+                        </td>
+                        <td>
+                            图纸版本:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.pic_version" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            报价员:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.quotation_clerk_name" />
+                        </td>
+                        <td>
+                            报价编号:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.quote_num" />
+                        </td>
+                        <td>
+                            样品数量:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.sample_qty" />
+                        </td>
+                        <td>
+                            样品用途:
+                        </td>
+                        <td colspan="3">
+                            <input class="easyui-textbox" value="@sb.sample_use" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            成本:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.cost" />
+                        </td>
+                        <td>
+                            成交价:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.deal_price" />
+                        </td>
+                        <td>
+                            合同价:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.contract_price" />
+                        </td>
+                        <td>
+                            @Html.Lang("contract_num"):
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.contract_po_no" />
+                        </td>
+                    </tr>
+                    <tr>                        
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.User.real_name" />
+                        </td>      
+                        <td>
+                            主管:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@sb.charger_name" />
+                        </td>                      
+                        @for (var i = 0; i < 4; i++) {
+                            <td></td>
+                        }         
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            是否为特殊样品单:
+                            <input class="easyui-textbox" style="width: 80px" value="@sb.is_special_sample" />
+                            免费样品特别需求编号:
+                            <input class="easyui-textbox" style="width: 150px" value="@sb.oa_special_request_no" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            是否超出规定数量:
+                            <input class="easyui-textbox" style="width: 80px" value="@sb.is_overtop_qty" />
+                            超出规定数量原因:
+                            <input class="easyui-textbox" style="width: 440px" value="@sb.overtop_qty_reason" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            TFT尺寸:<input class="easyui-textbox" style="width: 100px" value="@sb.TFT_size" />
+                            TFT供应商:<input class="easyui-textbox" style="width: 160px" value="@sb.TFT_supplier" />
+                            IC型号:<input class="easyui-textbox" style="width: 180px" value="@sb.TFT_IC_model" />
+                            (只针对TFT项目)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            显示屏:<input class="easyui-textbox" style="width: 140px" value="@sb.display_panel" />
+                            <span style="color:Red">(单卖是指客户对应此触摸屏的产品的显示屏不是信利产品)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            第
+                            <input class="easyui-textbox" style="width: 50px" value="@sb.how_many_time"/>
+                            次下此客户/此型号的样品单 重复下样品单的原因:
+                            <input class="easyui-textbox" style="width: 431px" value="@sb.repeat_sample_reason" />
+                            <br />
+                            <span style="font-size: small; color: Red">(填“2”要写原因；同时，相同客户/没有改动的相同样品下单不可超过2次)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            是否用于新客户机型:
+                            <input class="easyui-textbox" value="@sb.for_new_project"/>
+                            <span style="color:Red">(此项选择“是”、“共用现有产品”项选择“是”或是标准品时，请继续填写以下)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            <table>
+                                <tr>
+                                    <td>
+                                        1. 新客户机型名称:
+                                    </td>
+                                    <td>
+                                        <input class="easyui-textbox" style="width: 100px" value="@sb.new_project_name"/>
+                                    </td>
+                                    <td>
+                                        2. 新客户机型预计订单量:
+                                    </td>
+                                    <td>
+                                        <input class="easyui-textbox" style="width: 80px" value="@sb.new_project_order_qty"/>
+                                    </td>
+                                    <td>
+                                        3. 新客户机型的订单计划:
+                                    </td>
+                                    <td>
+                                        <input class="easyui-textbox" style="width: 150px" value="@sb.new_project_order_plan"/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            产品行业分类:
+                            <input class="easyui-textbox" style="width: 160px" value="@sb.product_classification"/>
+                            具体产品用途:
+                            <input class="easyui-textbox" style="width: 340px" value="@sb.product_use"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="8">
+                            是否项目组推荐方案:
+                            <input class="easyui-textbox" style="width:60px" value="@sb.is_recommend_scheme" />
+                            不适用于推荐方案的原因:
+                            <input class="easyui-textbox" style="width: 400px" value="@sb.not_recommend_scheme_reason" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            注意事项:
+                        </td>
+                        <td colspan="7">                    
+                            <input class="easyui-textbox" multiline="true" style="width:700px;height:40px" value="@sb.attention_issue" />
+                            <span style="color:Red">(请注明此处追加的样品是跟之前送给客户的哪一次样品来做的)</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            带摄像功能:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-textbox" style="width: 240px" value="@sb.has_video_function"/>
+                            @if ("带摄像功能，摄像头由TRULY提供".Equals(sb.has_video_function))
+                            {
+                                <span id="has_video_function_model_span">
+                                    @Html.Lang("model"):<input class="easyui-textbox" style="width: 300px" value="@sb.video_model"/>
+                                </span>
+                            }
+                            @if ("带摄像功能，摄像头不是TRULY提供".Equals(sb.has_video_function))
+                            {
+                                <span id="has_video_function_reason_span">
+                                    @Html.Lang("reason"):<input class="easyui-textbox" style="width: 300px" value="@sb.video_reason"/>
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            带触摸屏:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-textbox" style="width: 240px" value="@sb.has_touch_panel"/>
+                            @if ("带触摸屏，触摸屏由TRULY提供".Equals(sb.has_touch_panel))
+                            {
+                                <span id="has_touch_panel_model_span">
+                                    @Html.Lang("model"):<input class="easyui-textbox" style="width: 300px" value="@sb.touch_panel_model"/>
+                                </span>
+                            }
+                            @if ("带触摸屏，触摸屏不是TRULY提供".Equals(sb.has_touch_panel))
+                            {
+                                <span id="has_touch_panel_reason_span">
+                                    @Html.Lang("reason"):<input class="easyui-textbox" style="width: 300px" value="@sb.touch_panel_reason"/>
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            备注:
+                        </td>
+                        <td colspan="7">
+                            <input class="easyui-textbox" multiline="true" style="width:700px;height:40px" value="@sb.user_comment" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div id="tip_div" class="easyui-panel" title="注意事项" style="width: 800px; padding: 10px 20px;
+                background: #fafafa;">
+                1. 推荐给新客户机型使用时，需填写“摄像功能”与“触摸屏”的栏。<br />
+                2. 请注明此处追加的样品是跟之前送给客户的哪一次样品来做。
+            </div>
+        </div>
+    </div>
+    @*挂起信息*@
+    @Html.Partial("_BlockInfoPartial")
+</div>

@@ -89,7 +89,7 @@ namespace Sale_Order.Controllers
         [SessionTimeOutFilter]
         public ActionResult BeginNAudit(int step, int applyId)
         {
-            string info;
+            AuditInfoModel info;
             try {
                 info = new ApplySv().GetAuditInfo(step, applyId, currentUser.userId);
             }
@@ -97,10 +97,15 @@ namespace Sale_Order.Controllers
                 ViewBag.tip = ex.Message;
                 return View("Error");
             }
-            string[] infoArr = info.Split('|');
 
-            ViewData["canEdit"] = infoArr[0];
-            ViewData["sysNo"] = infoArr[1];
+            //兼容还未改造的流程：样品、退货、备料
+            if (new BillUtils().GetBillSvInstanceBySysNo(info.sysNo) == null) {
+                return RedirectToAction("BeginAudit", "Audit", new { step = step, applyId = applyId });
+            }
+
+            ViewData["canEdit"] = info.editType;
+            ViewData["sysNo"] = info.sysNo;
+            ViewData["stepName"] = info.stepName;
             ViewData["step"] = step;
             ViewData["applyId"] = applyId;
 
@@ -151,7 +156,7 @@ namespace Sale_Order.Controllers
         }
 
         /// <summary>
-        /// 反审核
+        /// 收回
         /// </summary>
         /// <param name="applyId"></param>
         /// <param name="step"></param>
@@ -160,16 +165,35 @@ namespace Sale_Order.Controllers
         {
             var sv = new ApplySv(applyId);
             try {
-                sv.AuditStepRollBack(step, currentUser.userId);
+                sv.StepRollBack(step, currentUser.userId);
             }
             catch (Exception ex) {
-                Wlog(string.Format("反审核失败:applyID：{0},step:{1}，ex:{2}", applyId, step, ex.Message));
+                Wlog(string.Format("收回失败:applyID：{0},step:{1}，ex:{2}", applyId, step, ex.Message));
                 return Json(new SResultModel() { suc = false, msg = ex.Message });
             }
-            Wlog(string.Format("反审核成功:applyID：{0},step:{1}", applyId, step));
-            return Json(new SResultModel() { suc = true, msg = "反审批成功" });
+            Wlog(string.Format("收回成功:applyID：{0},step:{1}", applyId, step));
+            return Json(new SResultModel() { suc = true, msg = "收回成功" });
         }
 
+        /// <summary>
+        /// 退回上一步
+        /// </summary>
+        /// <param name="applyId"></param>
+        /// <param name="step"></param>
+        /// <returns></returns>
+        public JsonResult StepBackward(int applyId, int step)
+        {
+            var sv = new ApplySv(applyId);
+            try {
+                sv.StepBackward(step, currentUser.userId);
+            }
+            catch (Exception ex) {
+                Wlog(string.Format("退回上一步失败:applyID：{0},step:{1}，ex:{2}", applyId, step, ex.Message));
+                return Json(new SResultModel() { suc = false, msg = ex.Message });
+            }
+            Wlog(string.Format("退回上一步成功:applyID：{0},step:{1}", applyId, step));
+            return Json(new SResultModel() { suc = true, msg = "退回上一步成功" });
+        }
 
         [SessionTimeOutFilter]
         public ActionResult CeoBatchAudit()

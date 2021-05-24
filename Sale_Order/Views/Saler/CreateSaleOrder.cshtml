@@ -524,6 +524,39 @@
 
 </script>
 
+<script>
+    //2021-05-19 检查型号与客户、部门是否有绑定关系
+    function validateItemAndCusotmer(head,details,callback){
+        var itemNos="";
+        var customerNo="";
+        for(var i=0;i<details.length;i++){
+            itemNos+=details[i].item_no+";";
+        }
+
+        if(head.currency_no=="RMB"){
+            customerNo=head.buy_unit_no;
+        }else{
+            customerNo=head.oversea_client_no;
+        }
+
+        $.post("../NExtra/TestItemModelAndCustomer",{
+            itemNos:itemNos,
+            customerNo:customerNo,
+            agencyNo:head.department_no
+        },function(data){
+            if(!data.suc){
+                $.messager.confirm('@Html.Lang("confirm")', data.msg, function (r) {
+                    if (r) {
+                        callback(head,details);
+                    }
+                });
+            }else{
+                callback(head,details);
+            }
+        });
+
+    }
+</script>
 @if (order.step_version == 0) {
     <script>
         $(function(){
@@ -544,25 +577,27 @@
                     //将combobox和combogrid的text设置到_name属性中并和head合并
                     Object.assign(head, getFormComboboxText($('#order_form')));
 
-                    $.messager.progress();
-                    $('#saveAllBut').linkbutton('disable');
-                    $('#submitApply').linkbutton('disable');
-                    $.post("@Url.Content("~/Saler/SaveSaleOrder")",
-                        {
-                            head: JSON.stringify(head),
-                            details: JSON.stringify(details)
-                        },
-                        function (data) {
-                            if (data.suc) {
-                                tip("保存成功");
-                            } else {
-                                tip(data.msg);
+                    validateItemAndCusotmer(head,details,function(head,details){
+                        $.messager.progress();
+                        $('#saveAllBut').linkbutton('disable');
+                        $('#submitApply').linkbutton('disable');
+                        $.post("@Url.Content("~/Saler/SaveSaleOrder")",
+                            {
+                                head: JSON.stringify(head),
+                                details: JSON.stringify(details)
+                            },
+                            function (data) {
+                                if (data.suc) {
+                                    tip("保存成功");
+                                } else {
+                                    tip(data.msg);
+                                }
+                                $.messager.progress("close");
+                                $('#saveAllBut').linkbutton('enable');
+                                $('#submitApply').linkbutton('enable');
                             }
-                            $.messager.progress("close");
-                            $('#saveAllBut').linkbutton('enable');
-                            $('#submitApply').linkbutton('enable');
-                        }
-                    );
+                        );
+                    });                    
                 }
 
             });
@@ -636,23 +671,25 @@ else {
                 //将combobox和combogrid的text设置到_name属性中并和head合并
                 Object.assign(head, getFormComboboxText($('#order_form')));
 
-                $.messager.progress();                
-                $.post("@Url.Content("~/Saler/SaveSaleOrder")",
-                    {
-                        head: JSON.stringify(head),
-                        details: JSON.stringify(details)
-                    },
-                    function (data) {
-                        if (data.suc) {
-                            $("#okFlag").val("true");
-                            submitForm();
-                        } else {
-                            tip(data.msg);
-                            $.messager.progress("close");
-                        }
+                validateItemAndCusotmer(head,details,function(head,details){
+                    $.messager.progress();                
+                    $.post("@Url.Content("~/Saler/SaveSaleOrder")",
+                        {
+                            head: JSON.stringify(head),
+                            details: JSON.stringify(details)
+                        },
+                        function (data) {
+                            if (data.suc) {
+                                $("#okFlag").val("true");
+                                submitForm();
+                            } else {
+                                tip(data.msg);
+                                $.messager.progress("close");
+                            }
                         
-                    }
-                );
+                        }
+                    );
+                });
             }
         }
 
@@ -1222,7 +1259,6 @@ else {
     </form>
 </div>
 <div id="dlg_details_buttons">
-    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveOrderDetails()">
-        @Html.Lang("save")</a> <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_details').dialog('close')">
-            @Html.Lang("cancel")</a>
+    <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveOrderDetails()">@Html.Lang("save")</a> 
+    <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg_details').dialog('close')">@Html.Lang("cancel")</a>
 </div>

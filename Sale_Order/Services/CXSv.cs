@@ -369,5 +369,10 @@ namespace Sale_Order.Services
         {
             throw new NotImplementedException();
         }
+
+        public override void DoWhenAfterApply()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

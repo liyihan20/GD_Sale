@@ -83,6 +83,26 @@ namespace Sale_Order.Services
                 }
             }
 
+            if (mc.step_version == 4) {
+                if (string.IsNullOrEmpty(mc.product_model)) {
+                    var pro = new K3ItemSv(mc.account).GetK3ProductByModel(mc.product_model);
+                    if (pro.Count() != 1) {
+                        throw new Exception("物料型号在K3不存在或者不唯一，请重新选择");
+                    }
+                    else {
+                        mc.product_number = pro.First().item_no;
+                        mc.product_name = pro.First().item_name;
+                        mc.product_unit = pro.First().unit_number;
+                    }
+                }
+                if (string.IsNullOrWhiteSpace(mc.old_bill_no)) {
+                    throw new Exception("下单组审核必须填写订单号，保存失败！");
+                }
+                else if (db.ModelContract.Where(m => m.sys_no != mc.sys_no && m.old_bill_no == mc.old_bill_no).Count() > 0) {
+                    throw new Exception("订单号在下单系统已存在，保存失败。");
+                }
+            }
+
             //验证客户编码与客户名称是否匹配
             if (!new K3ItemSv(mc.account).IsCustomerNameAndNoMath(mc.customer_name, mc.customer_no)) {
                 throw new Exception("购货单位请输入后按回车键搜索后在列表中选择");
@@ -232,6 +252,11 @@ namespace Sale_Order.Services
                     throw new Exception("存在已提交的重复的开模规格型号，提交失败");
                 }
             }
+        }
+
+        public override void DoWhenAfterApply()
+        {
+
         }
 
         public override void DoWhenBeforeAudit(int step, string stepName, bool isPass, int userId)

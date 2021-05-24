@@ -1,0 +1,158 @@
+﻿@using Sale_Order.Models;
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    List<CHPakcageModel> boxes = ViewData["list"] as List<CHPakcageModel>;
+}
+    <style type="text/css">
+        table {
+            font-size: 12px;
+            border-top: 1px solid #666;
+            border-right: 1px solid #666;
+            /*font-family:myNarrow;*/
+        }
+
+        td {
+            padding: 0;
+            border-left: 1px solid #666;
+            border-bottom: 1px solid #666;
+            word-break: break-all;
+            overflow: hidden;
+            font-family: '黑体','宋体';
+        }
+
+        img {
+            margin: 0 auto;
+        }
+
+        .pageNext {
+            page-break-after: always;
+            clear: both;
+        }
+
+        .arial {
+            font-family: myNarrow, Arial, sans-serif;
+        }
+    </style>
+    <style type="text/css" media="print">
+        .noPrint {
+            display: none;
+        }
+    </style>
+<script type="text/javascript" src="@Url.Content("~/Scripts/qrcode.js")"></script>
+<script type="text/javascript">
+    $(function () {
+        $(".qrcode").each(function (index, ele) {
+            var qrcode = new QRCode(ele, {
+                text: $(ele).attr("title"),
+                width: 88,
+                height: 88,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        });
+
+        $("#btPrint").on("click", function () {
+            window.print();
+        });
+
+        $(".sub_string").each(function (index, ele) {
+            var bit = $(ele).attr("data-bit");
+            var v = $(ele).html();
+            $(ele).html(mySubStr(v, bit));
+        });
+
+    });
+
+    function countCharNum(str) {
+        return str.replace(/[^\u0000-\u00ff]/g, "aa").length;
+    }
+
+    //以字节数截取字符串，一个中文等于2个字节
+    function mySubStr(str, len) {
+        if (countCharNum(str) <= len) {
+            return str;
+        }
+
+        var tempLen = 0;
+        var result = "";
+
+        for (var i = 0; i < str.length && tempLen < len; i++) {
+            result += str[i];
+            tempLen += countCharNum(str[i]);
+        }
+        return result;
+    }
+
+</script>
+
+<div class="noPrint" style="padding-top:4px;">
+    <div style="padding-left:6px;font-size:12px;">
+        标签纸尺寸：长(10cm)；宽(7cm)
+    </div>
+    <div style="text-align:center">
+        <a id="btPrint" class="easyui-linkbutton" iconcls='icon-print' style="margin:10px 20px;">开始打印</a>
+    </div>
+</div>
+<div style="clear:both;"></div>
+@for (int i = 0; i < boxes.Count(); i++) {
+    var b = boxes[i];
+    for (int j = 0; j < b.pack_num; j++) {
+        <div style="padding:6px;float:left;" class="wrapDiv">
+            <table style="width:350px;height:228px;border-spacing:0;">
+                <tr>
+                    <td height="26" colspan="4">
+                        <div>
+                            <div style="float:left;width:280px; text-align:center;font-size:16px;">@b.comanyName - @b.depName</div>
+                            <div style="float:right;margin-right:6px; font-size:14px;border:1px solid #666;padding:0 4px;">@string.Format("{0}/{1}", j+1,b.pack_num)</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="114" rowspan="4">
+                        <div class="qrcode" title="@string.Format("{0};{1};{2};{3}",b.sysNo,b.packId,j+1,"semi")">
+
+                        </div>
+                    </td>
+                    <td width="67">订单号:</td>
+                    <td colspan="2">@b.order_no</td>
+                </tr>
+                <tr>
+                    <td>贸易类型:</td>
+                    <td colspan="2">国内贸易</td>
+                </tr>
+                <tr>
+                    <td>包装日期:</td>
+                    <td colspan="2">@DateTime.Now.ToString("yyyy-MM-dd")</td>
+                </tr>
+                <tr>
+                    <td>名称:</td>
+                    <td colspan="2">@b.item_name</td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        型号: @b.item_model
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        数量PCS: @b.every_qty
+                    </td>
+                    <td>尺寸CM:</td>
+                    <td colspan="2">@b.pack_size</td>
+                </tr>
+                <tr>
+                    <td>
+                        净重KG: @b.every_net_weight
+                    </td>
+                    <td>毛重KG:</td>
+                    <td colspan="2">@b.every_gross_weight</td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align:center;font-size:14px;">
+                        @b.customerName
+                    </td>
+                </tr>
+            </table>
+        </div>
+    <div class="pageNext"></div>
+    }
+}

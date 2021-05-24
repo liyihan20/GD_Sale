@@ -574,14 +574,13 @@ namespace Sale_Order.Controllers
         {
             
             var result = (from p in db.Process
-                          join t in db.Sale_BillTypeName on p.bill_type.Substring(0,2) equals t.p_type
                           orderby p.is_finish, p.bill_type
                           select new
                           {
                               id = p.id,
                               order_type = p.bill_type,
                               info = p.info,
-                              order_type_name = t.p_name,
+                              order_type_name = new BillUtils().GetBillType(p.bill_type),
                               modify_time = DateTime.Parse(p.modify_time.ToString()).ToString("yyyy-MM-dd HH:mm"),
                               is_finish = p.is_finish == true ? "已启用" : "未启用",
                               begin_time = DateTime.Parse(p.begin_time.ToString()).ToString("yyyy-MM-dd"),

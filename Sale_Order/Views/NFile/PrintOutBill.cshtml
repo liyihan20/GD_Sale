@@ -1,0 +1,162 @@
+﻿@using Sale_Order.Models;
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    CHOutBillModel m = ViewData["m"] as CHOutBillModel;
+    int numPerPage = m.numPerPage;
+    var list = m.entrys;
+
+    int pageNum = (int)Math.Ceiling((decimal)list.Count() / numPerPage);
+}
+
+
+<style type="text/css" media="print">
+    .noPrint {
+        display: none;
+    }
+
+    .pageNext {
+        page-break-after: always;
+    }
+</style>
+<style type="text/css">
+    .tb_items {
+        border-top: 1px solid #666;
+        border-right: 1px solid #666;
+    }
+
+    .tb_items th{
+        letter-spacing:20px;
+        font-size:18px;
+    }
+
+        .tb_items td, .tb_items th {
+            border-left: 1px solid #666;
+            border-bottom: 1px solid #666;
+            word-break: break-all;
+            overflow: hidden;
+        }
+</style>
+
+<script src="@Url.Content("~/Scripts/JsBarcode.code128.min.js")"></script>
+<script>
+    $(function () {
+        $(".bar").each(function (index, ele) {
+            JsBarcode(ele, "@m.outNo", {
+                width: 1,//设置条之间的宽度
+                margin: 4,
+                height: 28,//高度
+                displayValue: false,
+                fontSize: 12,
+                font: '黑体'
+            });
+        });
+
+        $("#btReflesh").on("click", function () {
+            var num = $("#numPerPage").numberbox("getValue");
+            if (num) {
+                window.location.href = "PrintOutBill?outNo=@m.outNo" + "&numPerPage=" + num;
+            }
+        });
+
+    })
+
+</script>
+<div class="noPrint" style="text-align:center;margin-bottom:6px;">
+    <div style="width:40%;float:right;text-align:right;font-size:12px;">
+        每页行数：
+        <input type="text" class="easyui-numberbox" id="numPerPage" style="width:60px;" data-options="min:1,max:20" value="@numPerPage" />
+        <a href="#" class="easyui-linkbutton" iconcls="icon-reload" id="btReflesh">刷新页面</a>
+    </div>
+    <div style="width:20%;float:right;text-align:center">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-print" onclick="javascript: window.print();">开始打印</a>
+    </div>
+
+</div>
+
+
+    @for (var p = 1; p <= pageNum; p++) {
+        <div style="padding:4px;font-size:9pt;">
+            <table style="width:100%;margin-bottom:8px;">
+                <tr>
+                    <td style="width:30%;padding-left:16px;">
+                        <div style="margin-bottom:4px;">第 @p 页/共 @pageNum 页</div>
+                    </td>
+                    <td style="width:40%;text-align:center;">                        
+                        <div style="font-size:24px;font-weight:bold;">
+                            产品出货放行条 
+                        </div>
+                    </td>
+                    <td style="width:30%;padding-right:16px;text-align:right;">                        
+                        <img class="bar" />
+                        <div style="padding-right:12px;">编号：@m.outNo</div>
+                    </td>
+                </tr>
+            </table>            
+
+            <div>出库单号：@m.stockNos</div>
+            <table style="width:100%;margin-top:6px;" cellspacing="0" cellpadding="4" class="tb_items">
+                <thead>
+                    <tr>
+                        <th style="width:60%;">
+                            产品型号
+                        </th>
+                        <th style="width:15%;">
+                            件数
+                        </th>
+                        <th style="width:25%;">
+                            数量
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int totalQtyInPage = 0;
+                    }
+                    @for (int i = (p - 1) * numPerPage; i < p * numPerPage; i++) {
+                        if (i < list.Count()) {
+
+                            totalQtyInPage += (int)list[i].qty;
+                            <tr>
+                                <td>
+                                    @list[i].itemModel
+                                </td>
+                                <td></td>
+                                <td>
+                                    @(((decimal)list[i].qty).ToString("N0"))
+                                </td>
+                            </tr>
+                        }
+                    }
+                    <tr>
+                        <td>
+                            合计:
+                        </td>
+                        <td></td>
+                        <td>
+                            @totalQtyInPage.ToString("N0")
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="font-size:20px;margin-top:12px;">上述货物请门卫查验无误，给予放行。</div>            
+
+            <table style="width:100%;margin-top:12px;font-size:16px;" cellpadding="1" cellspacing="1">
+                <tr>
+                    <td style="width:33%;">
+                        出货人：<span style="padding:0 32px;border-bottom:1px solid #000000">@m.printer</span>
+                    </td>
+                    <td style="width:34%;">市场部负责人：<span style="padding:0 32px;border-bottom:1px solid #000000">陈思凯</span></td>
+                    <td style="width:33%;text-align:center;">
+                        行政部：<span style="padding:0 32px;border-bottom:1px solid #000000">&nbsp;&nbsp;&nbsp;</span>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="margin-top:8px;">备注：如有问题，请联系物流中心，电话：676052/3713</div>
+
+        </div>
+        if (p < pageNum) {
+            <div class="pageNext"></div>
+        }
+    }
+    <div class="pageNext"></div>

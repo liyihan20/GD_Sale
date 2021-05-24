@@ -1,0 +1,329 @@
+﻿@using Sale_Order.Models;
+@using Newtonsoft.Json;
+
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    CHModel m = ViewData["bill"] as CHModel;
+    var h = m.head;
+    string dJson = "[]";
+    if (m.entrys != null) {
+        //增加合计行
+        m.entrys.Add(new CHEntrys()
+        {
+            order_no = "合计：",
+            apply_qty = m.entrys.Sum(e => e.apply_qty),
+            real_qty = m.entrys.Sum(e => e.real_qty ?? 0),
+            inv_qty = m.entrys.Sum(e => e.inv_qty),
+            total_price = m.entrys.Sum(e => e.total_price)
+        });
+        dJson = JsonConvert.SerializeObject(m.entrys);
+    }
+
+    string pJson = "[]";
+    if (m.packages.Count() > 0) {
+        var p = (from pk in m.packages
+                 join d in m.entrys on new { pk.order_no, pk.order_entry_no } equals new { d.order_no, d.order_entry_no }
+                 select new
+                 {
+                     pk.sys_no,
+                     d.order_no,
+                     d.order_entry_no,
+                     d.item_name,
+                     d.item_model,
+                     pk.pack_num,
+                     pk.every_qty,
+                     pk.every_gross_weight,
+                     pk.every_net_weight,
+                     pk.pack_size
+                 }).ToList();
+        pJson = JsonConvert.SerializeObject(p);
+    }
+}
+
+<script>
+    $(function () {
+
+        $("#order_detail").datagrid({
+            rownumbers: true,
+            singleSelect: true,
+            fit: true,
+            data:@Html.Raw(dJson),
+            columns: [[
+                { field: 'order_no', title: '订单编号', width: 140 },
+                { field: 'item_name', title: '产品名称', width: 160 },
+                { field: 'item_model', title: '产品型号', width: 200 },
+                { field: 'order_qty', title: '订单数量', width: 100, align: 'right' },
+                { field: 'apply_qty', title: '申请数量', width: 100, align: 'right' },
+                { field: 'real_qty', title: '实出数量', width: 100, align: 'right',
+                    styler: function (value, row, index) {
+                        if (value == row.apply_qty) {
+                            return 'color:green;';
+                        } else if (value == 0) {
+                            return 'color:red;';
+                        } else {
+                            return 'color:orange;';
+                        }
+                    } },
+                { field: 'can_apply_qty', title: '可申请数量', width: 120, align: 'right' },
+                { field: 'inv_qty', title: '库存数量', width: 100, align: 'right' },
+                { field: 'relate_qty', title: '关联数量', width: 100, align: 'right' },
+                { field: 'unit_name', title: '单位', width: 80 },
+                { field: 'unit_price', title: '单价', width: 80 },
+                { field: 'total_price', title: '金额', width: 120 },
+                { field: 'customer_po', title: '客户PO', width: 140 },
+                { field: 'customer_pn', title: '客户PN', width: 140 },
+                { field: 'entry_comment', title: '行备注', width: 140 },
+                    {
+                        field: 'order_date', title: '订单日期', width: 100,
+                        formatter: function (value, row, index) {
+                            return toDateStr(value);
+                        }
+                    },
+                { field: 'order_entry_no', title: '订单行号', width: 100, align: 'center' },
+                { field: 'unit_no', hidden: true },
+                { field: 'order_id', hidden: true },
+                { field: 'item_no', hidden: true },
+                { field: 'item_id', hidden: true },
+                { field: 'contract_no', hidden: true }
+            ]]
+        });
+
+        $("#package_detail").datagrid({
+            rownumbers: true,
+            singleSelect: true,
+            fit: true,
+            data:@Html.Raw(pJson),
+            columns: [[
+                { field: 'order_no', title: '订单编号', width: 120 },
+                { field: 'item_name', title: '产品名称', width: 140 },
+                { field: 'item_model', title: '产品型号', width: 160 },
+                { field: 'pack_num', title: '件数', width: 100, align: 'right' },
+                { field: 'every_qty', title: '每件数量', width: 100, align: 'right' },
+                { field: 'pack_size', title: '尺寸（CM）', width: 100 },
+                { field: 'every_net_weight', title: '每件净重', width: 120, align: 'right' },
+                { field: 'every_gross_weight', title: '每件毛重', width: 100, align: 'right' },
+                { field: 'total_net_weight', title: '总净重', width: 120, align: 'right',
+                    formatter: function(value,row,index){
+                        return (row.pack_num * row.every_net_weight).toFixed(3);
+                    } },
+                { field: 'total_gross_weight', title: '总毛重', width: 100, align: 'right',
+                    formatter: function(value,row,index){
+                        return (row.pack_num * row.every_gross_weight).toFixed(3);;
+                    } },
+                { field: 'order_entry_no', title: '订单行号', width: 100 }
+            ]]
+        });
+
+        $("#printPackageLabel").on("click",function(){
+            window.open("../NExtra/PrintCHPackageLabel?sysNo=@h.sys_no");
+        });
+
+        $("#order_div .easyui-textbox").textbox("readonly");
+        $("#order_div .easyui-datebox").datebox("readonly");
+
+    });
+</script>
+
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    @if (h.step_version > 0) {
+        @*挂起信息*@
+        @Html.Partial("_BlockInfoPartial")
+    }
+    <div data-options="region:'center'">
+        <div id="order_div" class="easyui-panel" title="查看出货单" style="width: 940px; padding: 10px; background: #fafafa;">
+            <table border="0" cellpadding="0" cellspacing="3" style="width:900px">
+                <tr>
+                    <td>
+                        公司:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.account" />
+                    </td>
+                    @if (h.bill_type == "正单") { 
+                        <td>打印相关：</td>
+                        <td colspan="3">
+                            @if (m.packages.Count() > 0) {
+                                <a id="printPackageLabel" class="easyui-linkbutton" iconcls='icon-print' style="margin-right:20px;">打印包装标签</a>
+                            }
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <td>状态：</td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.status" />
+                    </td>
+                    
+                        <td>
+                            出库单号：
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@h.k3_stock_no" />
+                        </td>
+                        <td>
+                            出库日期：
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" value="@(h.k3_out_time==null?"":((DateTime)h.k3_out_time).ToString("yyyy-MM-dd HH:mm:ss"))" />
+                        </td>
+                    
+                </tr>
+                <tr>
+                    <td>
+                        系统流水号:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.sys_no" />
+                    </td>
+                    <td>
+                        出货类型:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.bill_type" />
+                    </td>
+                    <td>
+                        客户名称:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.customer_name" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        出货事业部:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.bus_dep" />
+                    </td>
+                    <td>
+                        计划员:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.planner_name" />
+                    </td>
+                    <td>
+                        制单人:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.user_name" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        物流发货日期:
+                    </td>
+                    <td>
+                        <input class="easyui-datebox" value="@h.log_out_date.ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td>
+                        出货期间:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.log_out_span" />
+                    </td>
+                    <td>
+                        已开具:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.cer_type" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        发货地点:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.stock_addr" />
+                    </td>
+                    <td>
+                        营业员电话:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.user_tel" />
+                    </td>
+                    <td>
+                        出货组:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" value="@h.out_group_name" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>备注:</td>
+                    <td colspan="5">
+                        <input class="easyui-textbox" multiline="true" style="width:760px;height:60px" value="@h.comment" />
+                    </td>
+                </tr>
+                    @if (!string.IsNullOrEmpty(h.ex_name)) {
+                        <tr>
+                            <td>
+                                快递公司:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" value="@h.ex_name" />
+                            </td>
+                            <td>
+                                运输方式:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" value="@h.ex_type" />
+                            </td>
+                            <td>
+                                快递单号:
+                            </td>
+                            <td>
+                                <input class="easyui-textbox" value="@h.ex_no" />
+                            </td>
+                        </tr>
+                    }
+            </table>
+
+            @*出货明细*@
+            <br />
+            <div id="detail_div" class="easyui-panel" title="出货明细" style="width:900px;height:240px">
+                <table id="order_detail"></table>
+            </div>
+
+            @if (m.packages != null && m.packages.Count() > 0) {
+                <div id="detail_div" class="easyui-panel" title="包装参数" style="width:900px;height:280px">
+                    <table id="package_detail"></table>
+                </div>
+            }
+
+            <br />
+
+            <table border="0" cellpadding="0" cellspacing="3" style="width:900px">
+                <tr>
+                    <td>
+                        收货单位:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" style="width:240px;" value="@h.delivery_unit" />
+                    </td>
+                    <td>
+                        ATTN:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" style="width:120px;" value="@h.delivery_attn" />
+                    </td>
+                    <td>
+                        收货电话:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" style="width:140px;" value="@h.delivery_tel" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        收货地址:
+                    </td>
+                    <td colspan="5">
+                        <input class="easyui-textbox" style="width:760px" value="@h.delivery_addr" />
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+    </div>
+</div>

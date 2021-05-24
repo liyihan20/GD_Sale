@@ -1,0 +1,1182 @@
+﻿@using Sale_Order.Models;
+@using Newtonsoft.Json;
+@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+    CHModel m = ViewData["bill"] as CHModel;
+    var h = m.head;
+    string stepName = (ViewData["stepName"] as string) ?? "";
+
+    string dJson = JsonConvert.SerializeObject(m.entrys);
+
+    string pJson = "[]";
+    if (m.packages.Count() > 0) {
+        var p = (from pk in m.packages
+                 join d in m.entrys on new { pk.order_no, pk.order_entry_no } equals new { d.order_no, d.order_entry_no }
+                 select new
+                 {
+                     pk.sys_no,
+                     d.order_no,
+                     d.order_entry_no,
+                     d.item_name,
+                     d.item_model,
+                     pk.pack_num,
+                     pk.every_qty,
+                     pk.every_gross_weight,
+                     pk.every_net_weight,
+                     pk.pack_size
+                 }).ToList();
+        pJson = JsonConvert.SerializeObject(p);
+    }
+    
+    var now = DateTime.Now;
+    string logOutDay = "{value:'" + now.ToString("yyyy-MM-dd") + "'}";
+    if (now.DayOfWeek == DayOfWeek.Saturday) {
+        logOutDay += ",{value:'" + now.AddDays(1).ToString("yyyy-MM-dd") + "'}";
+    }
+    
+    
+}
+<script>
+    var toolBarArray = null; //出货表体工具栏
+    var PackageToolBar = null; //包装参数工具栏
+</script>
+
+@if (h.step_version == 0) {
+    <script>
+        var currentEditIndex; //-1表示新增；其它的表示需要编辑的索引
+        var currentRow; //当前行
+        var orderPrefixAlone=["GYPMF","GSWYP","WLG","R"]; //此4类只能独占申请，不能与其它类混合申请
+        toolBarArray=[{
+            text: "新增行",
+            iconCls: 'icon-add',
+            handler: function(){
+                if ($("#customer_no").combogrid("getValue") == "") {
+                    tip("请先选择客户后再新增出货明细");
+                    return;
+                }
+                if ($("#bill_type").combobox("getValue") == "") {
+                    tip("请先选择出货类型后再新增出货明细");
+                    return;
+                }
+                $("#dlg_add").dialog("open");
+                $("#orderList").datagrid("resize", { height: 345 });
+            }
+        }, '-', {
+            text: "编辑行",
+            iconCls: 'icon-edit',
+            handler: editItem
+        }, '-', {
+            text: "删除行",
+            iconCls: 'icon-remove',
+            handler: function () {
+                var row = $('#order_detail').datagrid('getSelected');
+                if (row) {
+                    $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
+                        if (r) {
+                            var index = $('#order_detail').datagrid('getRowIndex', row);
+                            $('#order_detail').datagrid('deleteRow', index);
+
+                            if ($("#order_detail").datagrid("getRows").length == 0) {
+                                //设置可以再选择
+                                $("#customer_no").combogrid("enable");
+                                $("#bill_type").combobox("enable");
+                            }
+                        }
+                    });
+                }
+            }
+        }];
+
+        $(function(){
+
+            $("#orderList").datagrid({
+                width: 1400,
+                rownumbers: true,
+                checkOnSelect: true,
+                selectOnCheck: true,
+                fitColumns: true,
+                singleSelect:true,
+                columns: [[
+                    { field: 'ck', checkbox: true },
+                    { field: 'order_no', title: '订单编号', width: 140 },
+                    { field: 'item_name', title: '产品名称', width: 120 },
+                    { field: 'item_model', title: '产品型号', width: 180 },
+                    { field: 'order_qty', title: '订单数量', width: 80, align: 'right' },
+                    { field: 'relate_qty', title: '关联数量', width: 80, align: 'right' },
+                    { field: 'can_apply_qty', title: '可申请数量', width: 80, align: 'right' },
+                    { field: 'inv_qty', title: '库存数量', width: 80, align: 'right' },
+                    { field: 'unit_name', title: '单位', width: 60 },
+                    {
+                        field: 'order_date', title: '订单日期', width: 80,
+                        formatter: function (value, row, index) {
+                            return toDateStr(value);
+                        }
+                    },
+                    { field: 'order_entry_no', title: '订单行号', width: 60 },
+                    { field: 'clerk_name', title: '营业员', width: 100 },
+                    { field: 'sale_style_name', title: '销售方式', width: 100, align: 'center' },
+                    { field: 'customer_po', title: '客户PO', width: 100 },
+                    { field: 'customer_pn', title: '客户PN', width: 100 }
+                ]],
+                onDblClickRow:function(index,row){
+                    selectItem();
+                }
+            });
+
+            $("#customer_no").combogrid({
+                idField: "value",
+                textField: "text",
+                panelWidth: 360,
+                required: 'true',
+                editable: false,
+                url: '@Url.Content("~/NExtra/GetMyCHCustomers")',
+                columns: [[
+                            { field: 'value', title: '客户编码', width: 100 },
+                            { field: 'text', title: '客户名称', width: 240 }
+                ]]
+            });
+
+            $("#customer_no").combogrid('grid').datagrid({
+                onClickRow: function (rowIndex, rowData) {
+                    $("#customer_no").combogrid("setText", rowData.text);
+                    $("#customer_no").combogrid("setValue", rowData.value);
+                    $("#customer_no").combogrid('hidePanel');
+
+                    //获取地址等信息
+                    $.post("@Url.Content("~/NExtra/GetCHDeliveryInfos")", { account:"@h.account", customerNo: rowData.value }, function (data) {
+                        $("#delivery_unit").combogrid('grid').datagrid("loadData", data);
+                        $("#delivery_unit").combogrid("setValue", data[0].id);
+                        $("#delivery_unit").combogrid("setText", data[0].delivery_unit);
+                        $("#delivery_attn").textbox("setValue", data[0].delivery_attn);
+                        $("#delivery_addr").textbox("setValue", data[0].delivery_addr);
+                        $("#delivery_tel").textbox("setValue", data[0].delivery_tel);
+                    });
+
+                    //将查询订单的datagrid清空，否则会出现客户和订单信息对应不上的情况
+                    $("#orderList").datagrid("loadData", []);
+                }
+            });
+
+            //根据事业部获取各自的计划员
+            $("#bus_dep").combobox({
+                onChange:function(newValue,oldValue){
+                    $("#planner_id").combobox({url:"../Items/GetAuditorsWithStep?stepName=CH_计划&depName="+newValue});
+                }
+            });
+
+            $("#checkBt").on("click",function(){
+                var billType=$("#bill_type").combobox("getValue");
+                var customerNo=$("#customer_no").combogrid("getValue");
+                var fromDate=$("#fromDate").datebox("getValue");
+                var toDate=$("#toDate").datebox("getValue");
+                var orderNo=$("#orderNo").textbox("getValue");
+                var itemModel=$("#itemModel").textbox("getValue");
+
+                $("#orderList").datagrid("loading");
+
+                $.post("../NExtra/GetOrderInfo4CH",{
+                    account:"@h.account",
+                    billType:billType,
+                    customerNo:customerNo,
+                    fromDate:fromDate,
+                    toDate:toDate,
+                    orderNo:orderNo,
+                    itemModel:itemModel
+                },function(data){
+                    if(data.length==0){
+                        tip("查询不到符合条件的订单");
+                    }else{
+                        $("#orderList").datagrid("loadData",data);
+                    }
+                    $("#orderList").datagrid("loaded");
+                });
+
+            });
+
+            //提交
+            $("#submitApply").on("click",function(){
+                $("#submitApply").linkbutton('disable');
+                $('#saveAllBut').linkbutton('disable');
+                tip("正在提交，请等待跳转。。。");
+                $.post("BeginApply",{sysNo:"@h.sys_no"},function(data){
+                    tip(data.msg);
+                    if(data.suc){
+                        setTimeout('window.location.href="@Url.Content("~/NSaler/CheckBillList?billType=CH")"', 1000);
+                    }else{
+                        $("#submitApply").linkbutton('enable');
+                        $('#saveAllBut').linkbutton('enable');
+                    }
+                });
+            });
+
+        });
+
+        function editItem(){
+            var row = $('#order_detail').datagrid('getSelected');
+            if (row) {
+                currentEditIndex=$('#order_detail').datagrid('getRowIndex', row);
+                currentRow = row;
+                setAddDialog(row);
+            }
+        }
+
+        function selectItem(){
+            currentRow=$("#orderList").datagrid("getChecked");
+            if(currentRow.length<1){
+                tip("请先选择一行订单信息");
+                return;
+            }
+            currentRow=currentRow[0];
+            currentEditIndex=-1;
+
+            if(currentRow.order_no.indexOf("GYPMF")==0 && currentRow.sale_style_name != "现销"){
+                tip("已GYPMF开头的订单销售方式必须是【现销】");
+                return;
+            }
+            if(currentRow.order_no.indexOf("GSWYP")==0 && currentRow.sale_style_name != "分期收款销售"){
+                tip("已GSWYP开头的订单销售方式必须是【分期收款销售】");
+                return;
+            }
+
+            var nowRows = $("#order_detail").datagrid("getRows");
+            for(var i=0;i<nowRows.length;i++){
+                if(nowRows[i].order_no == currentRow.order_no && nowRows[i].order_entry_no == currentRow.order_entry_no){
+                    tip("不能添加重复的订单行：订单号："+currentRow.order_no+";行号："+currentRow.order_entry_no);
+                    return;
+                }
+            }
+            if(nowRows.length>0){
+                for(var i=0;i<orderPrefixAlone.length;i++){
+                    if((currentRow.order_no.indexOf(orderPrefixAlone[i])) == 0 != (nowRows[0].order_no.indexOf(orderPrefixAlone[i]) == 0)){
+                        tip(orderPrefixAlone[i] + "开头的订单号不能与其它订单号一起申请出货");
+                        return;
+                    }
+                }
+            }
+            //打开确认窗口，输入申请数量等信息
+            $("#dlg_add").dialog("close");
+
+            setAddDialog(currentRow);
+        }
+
+        function setAddDialog(r){
+            $("#edit_order_no").textbox("setValue",r.order_no);
+            $("#edit_item_model").textbox("setValue",r.item_model);
+            $("#edit_can_apply_qty").textbox("setValue",r.can_apply_qty);
+            $("#edit_apply_qty").numberbox("setValue",r.apply_qty);
+            $("#edit_inv_qty").textbox("setValue",r.inv_qty);
+            $("#edit_customer_po").textbox("setValue",r.customer_po);
+            $("#edit_customer_pn").textbox("setValue",r.customer_pn);
+            $("#edit_entry_comment").textbox("setValue",r.entry_comment);
+
+            $("#dlg_edit").dialog("open");
+        }
+
+        function saveItem(){
+            var applyQty=$("#edit_apply_qty").numberbox("getValue");
+            var customerPO= $("#edit_customer_po").textbox("getValue");
+            var customerPN= $("#edit_customer_pn").textbox("getValue");
+
+            if(applyQty==""){
+                tip("请先录入申请数量");
+                return;
+            }
+            if(applyQty>currentRow.can_apply_qty){
+                tip("申请数量不能大于可申请数量");
+                return;
+            }
+            if($("#bill_type").combobox("getValue") == "正单" && (customerPO=="" || customerPN=="")){
+                if(["香港","总裁办"].filter(function(o){return currentRow.department_name.indexOf(o)>=0}).length==0){
+                    if(currentRow.order_no.indexOf("YP")<0){
+                        tip("必须录入客户PO和客户PN");
+                        return;
+                    }
+                }
+            }
+
+            currentRow.apply_qty=applyQty;
+            currentRow.customer_pn=customerPN;
+            currentRow.customer_po=customerPO;
+            currentRow.entry_comment=$("#edit_entry_comment").textbox("getValue");
+
+            if(currentEditIndex==-1){
+                //新增的
+                var nowRows = $("#order_detail").datagrid("getRows");
+                if(nowRows.length<1){
+                    $("#bill_type").combobox("disable");
+                    $("#customer_no").combobox("disable");
+                }
+
+                $("#order_detail").datagrid("appendRow",currentRow);
+            }else if(currentEditIndex>=0){
+                $("#order_detail").datagrid("updateRow",{
+                    index:currentEditIndex,
+                    row:currentRow
+                });
+                $("#order_detail").datagrid("refreshRow",currentEditIndex);
+            }
+
+            $("#dlg_edit").dialog("close");
+        }
+
+    </script>
+
+    if (!string.IsNullOrEmpty(h.planner_name)) {
+        <script>
+            $(function(){
+                $("#planner_id").combobox({url:"../Items/GetAuditorsWithStep?stepName=CH_计划&depName=@h.bus_dep"});
+            })
+        </script>
+    }
+
+}
+else {
+    <script>
+        $(function(){
+            $("#top_tb .easyui-textbox").textbox("readonly");
+            $("#top_tb .easyui-combobox").combobox("readonly");
+            $("#top_tb .easyui-combogrid").combogrid("readonly");
+            $("#top_tb .easyui-datebox").datebox("readonly");
+            $("#planner_id").combobox("setText","@h.planner_name");
+            $("#customer_no").combogrid("setText","@h.customer_name");
+        })
+    </script>
+}
+@if (stepName.Contains("营业员确认") && h.log_out_date<DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"))) {
+    <script>
+        alert("市场部与物流规则：当前时间已超过申请时设置的物流发货时间，请NG后再申请。");
+    </script>
+}
+@if (stepName.Contains("营业员确认") && h.process_no == "CH_other") {
+    <script>
+        toolBarArray=[{
+            text: "录入实发数量",
+            iconCls: 'icon-edit',
+            handler: editRealQty
+        }];
+
+        function editRealQty(){
+            var row = $('#order_detail').datagrid('getSelected');
+            if (row) {
+                $("#dlg_real_qty").dialog("open");
+                $("#qty_idx").val($('#order_detail').datagrid('getRowIndex', row));
+                $("#qty_order_no").textbox("setValue",row.order_no);
+                $("#qty_item_model").textbox("setValue",row.item_model);
+                $("#qty_inv_qty").textbox("setValue",row.inv_qty);
+                $("#qty_apply_qty").textbox("setValue",row.apply_qty);
+                $("#qty_real_qty").numberbox("setValue",row.real_qty || (row.apply_qty>row.inv_qty?row.inv_qty:row.apply_qty));
+                $("#qty_real_qty").numberbox({max:(row.apply_qty>row.inv_qty?row.inv_qty:row.apply_qty)});
+            }else{
+                tip("请先选择一行再录入");
+            }
+        }
+
+        function saveRealQty(){
+            var real_qty = $("#qty_real_qty").numberbox("getValue");
+            if(real_qty==0){
+                $.messager.confirm('@Html.Lang("confirm")', '确认要录入实发数量为0吗？保存后此行将不会出库', function (r) {
+                    if(r){
+                        beginSaveRealQty(real_qty);
+                    }
+                });
+            }else{
+                beginSaveRealQty(real_qty);
+            }
+        }
+        function beginSaveRealQty(real_qty){
+            $("#dlg_real_qty").dialog("close");
+            $('#order_detail').datagrid("updateRow",{index:$("#qty_idx").val(),row:{real_qty:real_qty}});
+        }
+    </script>
+}
+@if (stepName.Contains("出货组") || m.packages.Count() > 0) {
+    if (stepName.Contains("出货组")) {
+        <script>
+            PackageToolBar=[{
+                text: "新增包装参数",
+                iconCls: 'icon-add',
+                handler: function(){
+                    $("#dlg_pk_add").dialog("open");
+                }
+            }, '-', {
+                text: "删除包装参数",
+                iconCls: 'icon-remove',
+                handler: function () {
+                    var row = $('#package_detail').datagrid('getSelected');
+                    if (row) {
+                        $.messager.confirm('@Html.Lang("confirm")', '@Html.Lang("are_you_sure")?', function (r) {
+                            if (r) {
+                                var index = $('#package_detail').datagrid('getRowIndex', row);
+                                $('#package_detail').datagrid('deleteRow', index);
+                            }
+                        });
+                    }
+                }
+            }];
+
+            $(function(){
+                //选择出货明细
+                $("#pk_select_ch").combogrid({
+                    idField: "entry_no",
+                    textField: "order_no",
+                    panelWidth: 420,
+                    editable: false,
+                    data:@Html.Raw(dJson),
+                    columns: [[
+                                { field: 'order_no', title: '订单号', width: 100 },
+                                { field: 'order_entry_no', title: '行号', width: 60 },
+                                { field: 'item_model', title: '规格型号', width: 160 },
+                                { field: 'apply_qty', title: '申请数量', width: 80 }
+                    ]]
+                });
+
+                $("#pk_select_ch").combogrid('grid').datagrid({
+                    onClickRow: function (rowIndex, rowData) {
+                        $("#pk_form").form("load",rowData);
+                        $("#pk_select_ch").combogrid('hidePanel');
+                    }
+                });
+                $("#printPackageLabel").on("click",function(){
+                    window.open("../NExtra/PrintCHPackageLabel?sysNo=@h.sys_no");
+                });
+
+            })
+
+            function savePkItem(){
+                if (!$('#pk_form').form('validate')) {
+                    tip("保存失败，请完整填写表单信息");
+                    return;
+                }
+                var pk = getFormJson($("#pk_form"));
+                if(pk.apply_qty - pk.pack_num * pk.every_qty < 0){
+                    tip("件数*每件数量不能大于申请数量");
+                    return;
+                }                
+                var reg = new RegExp(/^[0-9]+(\.{1}[0-9]+){0,1}(\*[0-9]+(\.{1}[0-9]+){0,1}){2}$/);
+                if(!reg.test(pk.pack_size)){
+                    tip("尺寸必须是以下格式：长*宽*高，例如10*20*30");
+                    return;
+                }
+                $("#package_detail").datagrid("appendRow",pk);
+                $("#dlg_pk_add").dialog("close");
+                $("#pk_form").form("reset");
+            }
+
+        </script>
+    }
+
+    <script>
+        $(function(){
+            $("#package_detail").datagrid({
+                rownumbers: true,
+                singleSelect: true,
+                fit: true,
+                data:@Html.Raw(pJson),
+                columns: [[
+                    { field: 'order_no', title: '订单编号', width: 120 },
+                    { field: 'item_name', title: '产品名称', width: 140 },
+                    { field: 'item_model', title: '产品型号', width: 160 },
+                    { field: 'pack_num', title: '件数', width: 100, align: 'right' },
+                    { field: 'every_qty', title: '每件数量', width: 100, align: 'right' },
+                    { field: 'pack_size', title: '尺寸（CM）', width: 100 },
+                    { field: 'every_net_weight', title: '每件净重', width: 120, align: 'right' },
+                    { field: 'every_gross_weight', title: '每件毛重', width: 100, align: 'right' },
+                    { field: 'total_net_weight', title: '总净重', width: 120, align: 'right',
+                        formatter: function(value,row,index){
+                            return (row.pack_num * row.every_net_weight).toFixed(3);
+                        } },
+                    { field: 'total_gross_weight', title: '总毛重', width: 100, align: 'right',
+                        formatter: function(value,row,index){
+                            return (row.pack_num * row.every_gross_weight).toFixed(3);;
+                        } },
+                    { field: 'order_entry_no', title: '订单行号', width: 100 }
+                ]],
+                toolbar: PackageToolBar
+            });
+        });
+    </script>
+}
+
+
+
+<script>
+    $(function () {
+
+        $("#order_detail").datagrid({
+            rownumbers: true,
+            singleSelect: true,
+            fit: true,
+            data:@Html.Raw(dJson),
+            columns: [[
+                { field: 'order_no', title: '订单编号', width: 120 },
+                { field: 'item_name', title: '产品名称', width: 140 },
+                { field: 'item_model', title: '产品型号', width: 160 },
+                { field: 'order_qty', title: '订单数量', width: 100, align: 'right' },
+                { field: 'apply_qty', title: '申请数量', width: 100, align: 'right' },
+                { field: 'real_qty', title: '实出数量', width: 100, align: 'right',
+                    styler: function (value, row, index) {
+                        if (value == row.apply_qty) {
+                            return 'color:green;';
+                        } else if (value == 0) {
+                            return 'color:red;';
+                        } else {
+                            return 'color:orange;';
+                        }
+                    } },
+                { field: 'can_apply_qty', title: '可申请数量', width: 120, align: 'right' },
+                { field: 'inv_qty', title: '库存数量', width: 100, align: 'right' },
+                { field: 'relate_qty', title: '关联数量', width: 100, align: 'right' },
+                { field: 'unit_name', title: '单位', width: 80 },
+                { field: 'customer_po', title: '客户PO', width: 140 },
+                { field: 'customer_pn', title: '客户PN', width: 140 },
+                { field: 'entry_comment', title: '行备注', width: 140 },
+                    {
+                        field: 'order_date', title: '订单日期', width: 100,
+                        formatter: function (value, row, index) {
+                            return toDateStr(value);
+                        }
+                    },
+                { field: 'order_entry_no', title: '订单行号', width: 100, align: 'center' },
+                { field: 'unit_no', hidden: true },
+                { field: 'order_id', hidden: true },
+                { field: 'item_no', hidden: true },
+                { field: 'item_id', hidden: true },
+                { field: 'unit_price', hidden: true },
+                { field: 'contract_no', hidden: true }
+            ]],
+            toolbar: toolBarArray,
+            onDblClickRow:function(index,row){
+                if("@h.step_version" == "0"){
+                    editItem();
+                }else if("@stepName".indexOf("营业员确认")>=0){                    
+                    editRealQty();
+                }
+            }
+        });
+
+
+        $("#delivery_unit").combogrid({
+            idField: "id",
+            textField: "delivery_unit",
+            panelWidth: 620,
+            required: 'true',
+            nowrap: false,
+            columns: [[
+                        { field: 'delivery_unit', title: '收货客户', width: 160 },
+        				{ field: 'delivery_attn', title: 'ATTN', width: 80 },
+                        { field: 'delivery_tel', title: '收货电话', width: 120 },
+        				{ field: 'delivery_addr', title: '收货地址', width: 230 }
+            ]]
+        });
+
+        $("#delivery_unit").combogrid('grid').datagrid({
+            onClickRow: function (rowIndex, rowData) {
+                $("#delivery_unit").combogrid("setText", rowData.delivery_unit);
+                $("#delivery_unit").combogrid("setValue", rowData.id);
+                $("#delivery_attn").textbox("setValue", rowData.delivery_attn);
+                $("#delivery_addr").textbox("setValue", rowData.delivery_addr);
+                $("#delivery_tel").textbox("setValue", rowData.delivery_tel);
+                $("#delivery_unit").combogrid('hidePanel');
+            }
+        });
+
+
+
+        //单据类型改变后，需清空查询列表
+        $("#bill_type").combobox({
+            onChange:function(n,o){
+                $("#orderList").datagrid("loadData", []);
+            }
+        });
+
+        //开始保存
+        $("#saveAllBut").on("click",function(){
+            if (!$('#order_form').form('validate')) {
+                return;
+            }
+
+            var head = getFormJson($("#order_form"));
+            var details = $("#order_detail").datagrid("getRows");
+            var pks = [];
+            Object.assign(head, getFormComboboxText($('#order_form')));
+
+            head.customer_no=$("#customer_no").combogrid("getValue");
+            head.bill_type=$("#bill_type").combobox('getValue');
+
+            if(!head.planner_id){
+                delete head.planner_id;
+            }
+
+            if(details.length<1){
+                tip("必须至少录入一行出货明细才能保存");
+                return;
+            }
+            if(head.bill_type!="正单" && head.log_out_span=="夜间"){
+                tip("非正单申请只能选择日间出货");
+                return;
+            }
+            if(head.bill_type=="正单" && head.cer_type==""){
+                tip("正单申请必须选择【已开具】类型");
+                return;
+            }
+
+            if("@stepName".indexOf("出货组")>=0){
+                //此处只有出货组审批时才能执行到
+                pks = $("#package_detail").datagrid("getRows");
+                var noPackOrder=""; //未做包装参数的订单
+                var lackNumOrder=""; //包装数量比申请数少的订单
+                for(var i = 0;i<details.length;i++){
+                    var orderPks=pks.filter(function(p){return p.order_no==details[i].order_no && p.order_entry_no == details[i].order_entry_no});
+                    var orderPkQty=0;
+                    if(orderPks.length<1){
+                        noPackOrder+=details[i].order_no+"【"+details[i].order_entry_no+"】<br/>";
+                        details[i].real_qty=0; //设置这一行实出数量是0
+                    }else{
+                        for(var j=0;j<orderPks.length;j++){
+                            orderPkQty+=orderPks[j].pack_num * orderPks[j].every_qty;
+                        }
+                        if(orderPkQty<details[i].apply_qty){
+                            lackNumOrder+=details[i].order_no+"【"+details[i].order_entry_no+"】申请数："+details[i].apply_qty+";包装数："+orderPkQty+" <br/>";
+                        }
+                        if(orderPkQty>details[i].apply_qty){
+                            tip("保存失败，原因：" + details[i].order_no+"【"+details[i].order_entry_no+"】的包装数量<"+orderPkQty+">不能大于申请数量<"+details[i].apply_qty+">");
+                            return;
+                        }
+                        details[i].real_qty=orderPkQty; //设置这一行实出数量是包装数量
+                    }
+
+                }
+
+                var saveCallback=function(){$("#order_detail").datagrid("loadData",details);} //保存成功后的回调，用于更新实出数量
+                //因为easyui的confirm框是异步的，所以有2个同步需要确认的对话框就比较麻烦
+                if(noPackOrder!="" || lackNumOrder!=""){
+                    if(noPackOrder!=""){
+                        $.messager.confirm('@Html.Lang("confirm")', '以下订单没有录入包装参数，实出数量将为0，不会出货，确定要继续保存吗？<br />'+noPackOrder, function (r) {
+                            if (r) {
+                                if(lackNumOrder!=""){
+                                    $.messager.confirm('@Html.Lang("confirm")', '以下订单的包装数量少于申请出货数量，确定要继续保存吗？<br />'+lackNumOrder, function (r) {
+                                        if (r) {
+                                            BeginSaveForm(head,details,pks,saveCallback);
+                                        }
+                                    });
+                                }else{
+                                    BeginSaveForm(head,details,pks,saveCallback);
+                                }
+                            }
+                        });
+                    }else if(lackNumOrder!=""){
+                        $.messager.confirm('@Html.Lang("confirm")', '以下订单的包装数量少于申请出货数量，确定要继续保存吗？<br />'+lackNumOrder, function (r) {
+                            if (r) {
+                                BeginSaveForm(head,details,pks,saveCallback);
+                            }
+                        });
+                    }
+
+                }else{
+                    BeginSaveForm(head,details,pks,saveCallback);
+                }
+
+            }else{
+                BeginSaveForm(head,details,pks);
+            }
+
+        });
+
+    });
+
+    function BeginSaveForm(head,details,pks,saveCallback){
+        $.messager.progress();
+        $('#saveAllBut').linkbutton('disable');
+        $('#submitApply').linkbutton('disable');
+        $.post("@Url.Content("~/NSaler/SaveBill")",
+        {
+            sys_no:"@h.sys_no",
+            head: JSON.stringify(head),
+            details: JSON.stringify(details),
+            pks:JSON.stringify(pks),
+            step_name:"@ViewData["stepName"]"
+        },
+        function (data) {
+            if (data.suc) {
+                tip("保存成功");
+                if(saveCallback){
+                    //如果有回调就执行
+                    saveCallback();
+                }
+            } else {
+                tip(data.msg);
+            }
+            $.messager.progress("close");
+            $('#saveAllBut').linkbutton('enable');
+            $('#submitApply').linkbutton('enable');
+        });
+    }
+
+</script>
+
+@if (!string.IsNullOrEmpty(h.customer_no)) {
+    if (h.step_version == 0 || stepName.Contains("营业员确认")) {
+        <script>
+            $(function(){
+                $("#customer_no").combogrid("disable");
+                $("#bill_type").combobox("disable");
+                $("#delivery_unit").combogrid("setText", "@h.delivery_unit");
+                $("#delivery_unit").combogrid("setValue", "@h.delivery_unit");
+                $.post("@Url.Content("~/NExtra/GetCHDeliveryInfos")", { customerNo: "@h.customer_no" }, function (data) {
+                    $("#delivery_unit").combogrid('grid').datagrid("loadData", data);
+                });
+            });
+
+        </script>
+    }
+    else {
+        <script>
+            $(function(){
+                $("#delivery_unit").combogrid("setText", "@h.delivery_unit");
+                $("#tail_tb .easyui-textbox").textbox("readonly");
+                $("#tail_tb .easyui-combobox").combobox("readonly");
+                $("#tail_tb .easyui-combogrid").combogrid("readonly");
+            });
+        </script>
+        if (stepName.Contains("计划")) {
+            <script>
+                $(function(){
+                    $("#out_group_id").combobox("readonly",false);
+                });
+            </script>
+        }
+    }
+}
+<div class="easyui-layout" data-options="fit:true" id="agency_div">
+    @if (h.step_version > 0) {
+        @*挂起信息*@
+        @Html.Partial("_BlockInfoPartial")
+    }
+    <div data-options="region:'center'">
+        <form id="order_form" method="post">
+            <input type="hidden" name="step_version" value="@h.step_version" />
+            <div id="order_div" class="easyui-panel" title="新增出货单" style="width: 940px; padding: 10px; background: #fafafa;">
+                <table border="0" cellpadding="0" cellspacing="3" style="width:900px" id="top_tb">
+                    <tr>
+                        <td>
+                            公司:
+                        </td>
+                        <td>
+                            <input type="text" class="easyui-textbox" id="account" name="account" value="@h.account" readonly />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            系统流水号:
+                        </td>
+                        <td>
+                            <input type="text" class="easyui-textbox" id="sys_no" name="sys_no" value="@h.sys_no" readonly />
+                        </td>
+                        <td>
+                            出货类型:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="bill_type" id="bill_type" value="@h.bill_type"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                        data:[
+                                        {value:'正单'},{value:'样品'}
+                                        ]" />
+                        </td>
+                        <td>
+                            客户名称:
+                        </td>
+                        <td>
+                            <input class="easyui-combogrid" id="customer_no" name="customer_no" value="@h.customer_no" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            出货事业部:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="bus_dep" id="bus_dep" value="@h.bus_dep"
+                                   data-options="textField:'name',valueField:'name',panelHeight:'auto', editable:false,url:'../Items/getRelateDeps?dep_type=出货事业部'
+                                        " />
+                        </td>
+                        <td>
+                            计划员:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="planner_id" id="planner_id" value="@h.planner_id"
+                                   data-options="textField:'auditorName',valueField:'auditorId',panelHeight:'auto', editable:false
+                                        " />
+                        </td>
+                        <td>
+                            制单人:
+                        </td>
+                        <td>
+                            <input type="text" class="easyui-textbox" value="@h.user_name" readonly />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            物流发货日期:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="log_out_date" id="log_out_date" value="@h.log_out_date.ToString("yyyy-MM-dd")"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                        data:[ @Html.Raw(logOutDay) ]" />
+                            @*<input name="log_out_date" id="log_out_date" class="easyui-datebox" editable="false" value="@h.log_out_date.ToString("yyyy-MM-dd")" />*@
+                        </td>
+                        <td>
+                            出货期间:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="log_out_span" id="log_out_span" value="@h.log_out_span"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                        data:[
+                                        {value:'日间'},{value:'夜间'}
+                                        ]" />
+                        </td>
+                        <td>
+                            已开具:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="cer_type" id="cer_type" value="@h.cer_type"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,
+                                        data:[
+                                        {value:''},{value:'告知函'},{value:'盖公章'}
+                                        ]" />
+                        </td>
+                    </tr>
+                    <tr>                        
+                        <td>
+                            发货地点:
+                        </td>
+                        <td>
+                            <input class="easyui-combobox" name="stock_addr" id="stock_addr" value="@h.stock_addr"
+                                   data-options="textField:'value',valueField:'value',panelHeight:'auto', editable:false,required:true,
+                                            data:[
+                                            {value:'汕尾'},{value:'仁寿'}
+                                            ]" />
+                        </td>
+                        <td>
+                            营业员电话:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" name="user_tel" id="user_tel" value="@h.user_tel" required />
+                        </td>
+                        @if (h.step_version > 0 && h.process_no == "CH") {
+                            <td>
+                                出货组人员:
+                            </td>
+                            if (stepName.Contains("计划")) {
+                                <td>
+                                    <input class="easyui-combobox" name="out_group_id" id="out_group_id" value="@h.out_group_id"
+                                           data-options="textField:'auditorName',valueField:'auditorId',panelHeight:'auto', editable:false,required:true, url:'../Items/GetAuditorsWithStep?stepName=CH_出货组&depName=@h.bus_dep'" />
+                                </td>
+                            }
+                            else {
+                                <td>
+                                    <input class="easyui-textbox" readonly value="@h.out_group_name" />
+                                </td>
+                            }
+                        }
+                    </tr>
+                    <tr>
+                        <td>备注:</td>
+                        <td colspan="5">
+                            <input class="easyui-textbox" name="comment" id="comment" multiline="true" style="width:760px;height:60px" value="@h.comment" />
+                        </td>
+                    </tr>
+                </table>
+
+                @*出货明细*@
+                <br />
+                <div id="detail_div" class="easyui-panel" title="出货明细" style="width:900px;height:280px">
+                    <table id="order_detail"></table>
+                </div>
+
+                @if (stepName.Contains("出货组") || m.packages.Count() > 0) {
+                    <div id="detail_div" class="easyui-panel" title="包装参数" style="width:900px;height:280px">
+                        <table id="package_detail"></table>
+                    </div>
+                }
+                <br />
+
+                <table border="0" cellpadding="0" cellspacing="3" style="width:900px" id="tail_tb">
+                    <tr>
+                        <td>
+                            收货单位:
+                        </td>
+                        <td>
+                            <input class="easyui-combogrid" id="delivery_unit" required style="width:240px;" />
+                        </td>
+                        <td>
+                            ATTN:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" name="delivery_attn" id="delivery_attn" value="@h.delivery_attn" style="width:120px;" />
+                        </td>
+                        <td>
+                            收货电话:
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" name="delivery_tel" id="delivery_tel" value="@h.delivery_tel" style="width:140px;" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            收货地址:
+                        </td>
+                        <td colspan="5">
+                            <input class="easyui-textbox" name="delivery_addr" id="delivery_addr" required style="width:760px" value="@h.delivery_addr" />
+                        </td>
+                    </tr>
+                </table>
+
+                <div align="center">
+                    <a id="saveAllBut" class="easyui-linkbutton" iconcls='icon-save' style="margin:10px 20px;">@Html.Lang("save_form")</a>
+                    @if (h.step_version == 0) {
+                        <a id="submitApply" class="easyui-linkbutton" iconcls='icon-document' style="margin:10px 20px;">@Html.Lang("submit_apply")</a>
+                    }
+                    else if (stepName.Contains("出货组")) {
+                        <a id="printPackageLabel" class="easyui-linkbutton" iconcls='icon-print' style="margin:10px 20px;">打印包装标签</a>
+                    }
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+@if (h.step_version == 0) {
+    @*弹出的新增对话框*@
+    <div id="dlg_add" class="easyui-dialog" style="width: 800px; height:520px;" closed="true" buttons="#dlg_add_buttons" modal="true" title="新增出货条目">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'north',collapsed:false,split:true" style="height: 70px; background: #fafafa; padding: 1px;">
+                <table cellpadding="0" cellspacing="2">
+                    <tr>
+                        <td>
+                            订单日期:
+                        </td>
+                        <td>
+                            到:
+                        </td>
+                        <td>
+                            订单号:
+                        </td>
+                        <td>
+                            规格型号:
+                        </td>
+                        <td>
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input class="easyui-datebox" id="fromDate" editable="false" style="width: 120px" value="@(DateTime.Now.AddMonths(-2).ToString("yyyy-MM-01"))" />
+                        </td>
+                        <td>
+                            <input class="easyui-datebox" id="toDate" editable="false" style="width: 120px" value="@(DateTime.Now.ToString("yyyy-MM-dd"))" />
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" id="orderNo" style="width: 140px" />
+                        </td>
+                        <td>
+                            <input class="easyui-textbox" id="itemModel" style="width: 140px" />
+                        </td>
+                        <td>
+                            <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div data-options="region:'center'">
+                <table id="orderList"></table>
+            </div>
+        </div>
+    </div>
+    <div id="dlg_add_buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="selectItem()">选择</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript: $('#dlg_add').dialog('close')">@Html.Lang("cancel")</a>
+    </div>
+
+    <div id="dlg_edit" class="easyui-dialog" style="width:560px" closed="true" buttons="#dlg_edit_buttons" modal="true" title="编辑出货条目">
+        <table style="width:540px;margin:6px;" cellpadding="3" cellspacing="3">
+            <tr>
+                <td>
+                    订单号:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_order_no" readonly />
+                </td>
+                <td>
+                    产品型号:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_item_model" readonly />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    可申请数量:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_can_apply_qty" readonly />
+                </td>
+                <td>
+                    库存数量:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_inv_qty" readonly />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    申请数量:
+                </td>
+                <td>
+                    <input class="easyui-numberbox" id="edit_apply_qty" min="1" />
+                </td>
+                <td>
+                    行备注:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_entry_comment" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    客户PO:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_customer_po" />
+                </td>
+                <td>
+                    客户PN:
+                </td>
+                <td>
+                    <input class="easyui-textbox" id="edit_customer_pn" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="dlg_edit_buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveItem()">确认保存</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript: $('#dlg_edit').dialog('close')">@Html.Lang("cancel")</a>
+    </div>
+}
+
+@if (stepName.Contains("营业员确认") && h.process_no == "CH_other") {
+    <div id="dlg_real_qty" class="easyui-dialog" style="width: 320px;padding:12px;" closed="true" buttons="#dlg_real_qty_buttons" modal="true" title="录入实出数量">
+        <div class="ftitle">出货信息</div>
+        <input type="hidden" id="qty_idx" />
+        <div class="fitem">
+            <label>订单号：</label>
+            <input class="easyui-textbox" id="qty_order_no" readonly />
+        </div>
+        <div class="fitem">
+            <label>型号：</label>
+            <input class="easyui-textbox" id="qty_item_model" readonly />
+        </div>
+        <div class="fitem">
+            <label>库存数量：</label>
+            <input class="easyui-textbox" id="qty_inv_qty" readonly />
+        </div>
+        <div class="fitem">
+            <label>申请数量：</label>
+            <input class="easyui-textbox" id="qty_apply_qty" readonly />
+        </div>
+        <div class="fitem">
+            <label>实出数量：</label>
+            <input class="easyui-numberbox" id="qty_real_qty" min="0" required />
+        </div>
+
+    </div>
+    <div id="dlg_real_qty_buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="saveRealQty()">确定</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript: $('#dlg_real_qty').dialog('close')">@Html.Lang("cancel")</a>
+    </div>
+}
+
+@if (stepName.Contains("出货组")) {
+    <div id="dlg_pk_add" class="easyui-dialog" style="width:520px" closed="true" buttons="#dlg_pk_add_buttons" modal="true" title="新增包装参数">
+        <form id="pk_form">
+            <input type="hidden" name="sys_no" value="@h.sys_no" />
+            <input type="hidden" name="item_name" />
+            <table style="width:500px;margin:6px;" cellpadding="3" cellspacing="3">
+                <tr>
+                    <td>
+                        选择出货行:
+                    </td>
+                    <td colspan="3">
+                        <input id="pk_select_ch" style="width:300px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        订单号:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" id="pk_order_no" name="order_no" style="width:130px;" readonly />
+                    </td>
+                    <td>
+                        行号:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" id="pk_order_entry_no" name="order_entry_no" style="width:130px;" readonly />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        产品型号:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" id="pk_item_model" name="item_model" style="width:130px;" readonly />
+                    </td>
+                    <td>
+                        申请数量:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" id="pk_apply_qty" name="apply_qty" style="width:130px;" readonly />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        件数:
+                    </td>
+                    <td>
+                        <input class="easyui-numberbox" id="pk_pack_num" name="pack_num" style="width:130px;" min="1" required />
+                    </td>
+                    <td>
+                        每件数量:
+                    </td>
+                    <td>
+                        <input class="easyui-numberbox" id="pk_every_qty" name="every_qty" style="width:130px;" min="1" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        尺寸（CM）:
+                    </td>
+                    <td>
+                        <input class="easyui-textbox" id="pk_pack_size" name="pack_size" style="width:130px;" required />
+                    </td>
+                    <td>
+                        每件毛重(KG):
+                    </td>
+                    <td>
+                        <input class="easyui-numberbox" id="pk_every_gross_weight" name="every_gross_weight" precision="3" style="width:130px;" required />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        每件净重(KG):
+                    </td>
+                    <td>
+                        <input class="easyui-numberbox" id="pk_every_net_weight" name="every_net_weight" precision="3" style="width:130px;" required />
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div id="dlg_pk_add_buttons">
+        <a href="#" class="easyui-linkbutton" iconcls="icon-ok" onclick="savePkItem()">确认保存</a>
+        <a href="#" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript: $('#dlg_pk_add').dialog('close')">@Html.Lang("cancel")</a>
+    </div>
+}

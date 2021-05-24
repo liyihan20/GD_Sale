@@ -105,7 +105,7 @@ namespace Sale_Order.Controllers
                 return Json(new { success = false, msg = ex.Message }, "text/html");
             }
 
-            HttpCookie cookie=new HttpCookie("order");
+            HttpCookie cookie = new HttpCookie("order");
             if ("op".Equals(cop)) {
                 cookie = new HttpCookie("order_cookie");
             }
@@ -199,17 +199,31 @@ namespace Sale_Order.Controllers
             return userIP;
         }
 
-        public string getRand()
+        //从电子CRM跳转过来的url
+        public ActionResult DirectFromEle(string userName, string code, string url)
         {
+            if (!code.Equals(utl.getMD5(userName))) {
+                ViewBag.tip = "redirect error";
+                return View("TIP");
+            }
 
-            SomeUtils utl = new SomeUtils();
-            return utl.getRandString(8);
-        }
+            var user = db.User.Where(u => u.card_number == userName || u.username == userName).FirstOrDefault();
+            if (user == null) {
+                ViewBag.tip = "你在光电CRM没有用户，请先联系市场管理部注册用户";
+                return View("TIP");
+            }
 
-        public string getBall()
-        {
-            SomeUtils utl = new SomeUtils();
-            return utl.getColorBalls(3);
+            //构造cookie
+            Session.Clear();
+            var cookie = new HttpCookie("order_cookie");
+            cookie.Expires = DateTime.Now.AddHours(12);
+            cookie.Values.Add("userid", user.id.ToString());
+            cookie.Values.Add("code", utl.getMD5(user.id.ToString()));
+            cookie.Values.Add("username", utl.EncodeToUTF8(user.username));//用于记录日志
+            cookie.Values.Add("cop", "op");
+            Response.AppendCookie(cookie);
+
+            return Redirect(url);
         }
 
         //

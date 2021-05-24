@@ -107,6 +107,13 @@ namespace Sale_Order.Models
         public string comment { get; set; }
     }
 
+    public class AuditInfoModel
+    {
+        public string editType { get; set; }
+        public string sysNo { get; set; }
+        public string stepName { get; set; }
+    }
+
     ////导出SO excel 报表
     //public class AuditorSoExcel {
     //    public string audit_status { get; set; }
