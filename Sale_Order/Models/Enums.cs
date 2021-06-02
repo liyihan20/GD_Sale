@@ -53,5 +53,6 @@ namespace Sale_Order.Models
         delivery_bill, //维护送货单
         sign_delivery_bill, //送货单回签
         clerk_customer, //营业与客户
+        bus_check_bl, //接单员查看备料单
     }
 }

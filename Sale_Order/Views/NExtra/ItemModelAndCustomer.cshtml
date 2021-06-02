@@ -12,20 +12,23 @@
     $(function () {
         $("#itemList").datagrid({
             fit: true,
+            url: "SearchItemModelAndCustomer",
             //fitColumns: true,
+            pagination: true,
+            pageSize: 50,
             rownumbers: true,
             singleSelect: true,
             columns: [[
-                        { field: 'item_name', title: '产品名称', width: 120 },
-                        { field: 'item_model', title: '规格型号', width: 180 },
-                        { field: 'item_no', title: '产品编码', width: 120 },
-    					{ field: 'customer_name', title: '客户名称', width: 160 },
+                        { field: 'item_name', title: '产品名称', width: 160 },
+                        { field: 'item_model', title: '规格型号', width: 200 },
+                        { field: 'item_no', title: '产品编码', width: 140 },
+    					{ field: 'customer_name', title: '客户名称', width: 180 },
                         { field: 'customer_no', title: '客户编码', width: 100 },
     					{ field: 'agency_name', title: '部门名称', width: 120 },
                         { field: 'agency_no', title: '部门编码', width: 100 },
-    					{ field: 'create_user', title: '创建人', width: 100 },
+    					{ field: 'create_user', title: '创建人', width: 80 },
     					{
-    					    field: 'create_date', title: '创建日期', width: 120,
+    					    field: 'create_date', title: '创建日期', width: 130,
     					    formatter: function (value, row, index) {
     					        return toDateStr(value,true);
     					    }
@@ -60,18 +63,25 @@
         });
 
         $("#checkBt").click(function () {
-            $("#itemList").datagrid("loading");
-
             var obj = getFormJson($("#fm"));
-            $.post("SearchItemModelAndCustomer", {
+            $('#itemList').datagrid('load', {
                 itemInfo: obj.itemInfo,
                 customerInfo: obj.customerInfo,
                 agencyInfo: obj.agencyInfo,
                 createUser: obj.createUser
-            }, function (data) {
-                $("#itemList").datagrid("loadData", data);
-                $("#itemList").datagrid("loaded");
-            })
+            });
+
+            //$("#itemList").datagrid("loading");
+            
+            //$.post("SearchItemModelAndCustomer", {
+            //    itemInfo: obj.itemInfo,
+            //    customerInfo: obj.customerInfo,
+            //    agencyInfo: obj.agencyInfo,
+            //    createUser: obj.createUser
+            //}, function (data) {
+            //    $("#itemList").datagrid("loadData", data);
+            //    $("#itemList").datagrid("loaded");
+            //})
         });
 
         $("#item_model").combogrid({
@@ -161,7 +171,7 @@
                 editable: editable,
                 required: required,
                 loadFilter: function (data) {
-                    return data.filter(function (d) { return d.name.indexOf("中国市场部") == 0;})
+                    return data.filter(function (d) { return d.name.indexOf("中国市场部") == 0 || d.name.indexOf("新加坡") >= 0; })
                 }
             });
         });

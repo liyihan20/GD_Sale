@@ -1,6 +1,7 @@
 ﻿@using Sale_Order.Models;
 @{
     string[] powers = (string[])ViewData["powers"];
+    string depName = ViewData["depName"] as string;
 }
 
 <ul id="menu_tree" class="easyui-tree" style="visibility:hidden">
@@ -55,12 +56,17 @@
                 </ul>
             </li> 
             }
-            @if (Array.IndexOf(powers, Powers.new_BL.ToString()) != -1) {
+            @if (Array.IndexOf(powers, Powers.new_BL.ToString()) != -1 || Array.IndexOf(powers, Powers.bus_check_bl.ToString()) != -1) {
                 <li>
                     <span>备料单</span>
                     <ul>
-                        <li id="~/Saler/CreateBLBill"><span>新建备料单</span></li>
-                        <li id="~/Saler/CheckAllOrders?bill_type=5"><span>@Html.Lang("check_add_apply")</span> </li>
+                        @if (Array.IndexOf(powers, Powers.new_BL.ToString()) != -1) { 
+                            <li id="~/Saler/CreateBLBill"><span>新建备料单</span></li>
+                            <li id="~/Saler/CheckAllOrders?bill_type=5"><span>@Html.Lang("check_add_apply")</span> </li>
+                        }
+                        @if (Array.IndexOf(powers, Powers.bus_check_bl.ToString()) != -1) {
+                            <li id="~/NExtra/CheckBusBLs"><span>接单员查看列表</span></li>
+                        }
                     </ul>
                 </li>
             }
@@ -85,7 +91,7 @@
             </li>
             }
             @if (Array.IndexOf(powers, Powers.new_CH.ToString()) != -1 || Array.IndexOf(powers, Powers.delivery_bill.ToString()) != -1 || Array.IndexOf(powers, Powers.sign_delivery_bill.ToString()) != -1 ) { 
-            <li>
+            @*<li>
                 <span>出货申请单</span>
                 <ul>
                     @if (Array.IndexOf(powers, Powers.new_CH.ToString()) != -1) { 
@@ -100,10 +106,10 @@
                     <li id="~/NExtra/CheckCHSignList">送货单回签</li>
                     }
                 </ul>
-            </li>
+            </li>*@
             }
             <li id="~/Audit/CheckAuditList"><span>@Html.Lang("audit_add_apply")</span> </li>
-            <li id="~/NAudit/CheckNAuditList"><span>审批出货申请</span> </li>
+            @*<li id="~/NAudit/CheckNAuditList"><span>审批出货申请</span> </li>*@
             @if (Array.IndexOf(powers, Powers.ceo_batch_audit.ToString()) != -1) {
                 <li id="~/Authority/CeoBatchAudit"><span>总裁办批量审批</span></li>
             }
@@ -142,7 +148,7 @@
             </ul>
         </li>
     }
-
+    @if (depName.Contains("市场") || depName.Contains("办事处") || depName.Contains("本部") || depName.Contains("中心")) { 
         <li><span>@Html.Lang("mat_manage")</span>
             <ul>
                  @if (Array.IndexOf(powers, Powers.cur_manage.ToString()) != -1)
@@ -172,10 +178,11 @@
                  }
                  @if (Array.IndexOf(powers, Powers.clerk_customer.ToString()) != -1) { 
                 <li id="~/NExtra/ClerkAndCustomer"><span>营业与客户</span></li>
-                }
-                <li id="~/NExtra/ItemModelAndCustomer"><span>产品/客户/部门关系</span></li>
+                }                
+                <li id="~/NExtra/ItemModelAndCustomer"><span>产品/客户/部门关系</span></li>                
             </ul>
         </li>
+    }
 </ul>
 @Html.Partial("_DownloadCeoExcelPartial")
 @Html.Partial("_DownloadAgencyExcelPartial")

@@ -817,6 +817,7 @@
     <Content Include="Views\NExtra\CheckCHSOList.cshtml" />
     <Content Include="Views\NFile\PrintOutBill.cshtml" />
     <Content Include="Views\NExtra\ItemModelAndCustomer.cshtml" />
+    <Content Include="Views\NExtra\CheckBusBLs.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Reports\SO_mat_A5_Report.rpt">

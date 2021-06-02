@@ -1,0 +1,100 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutNew.cshtml";
+}
+<script type="text/javascript">
+
+    document.onkeydown = function (event) {
+        var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) { // enter 键
+            $("#checkBt").click();
+        }
+    };
+    $(function () {
+        $("#itemList").datagrid({
+            fit: true,
+            rownumbers: true,
+            singleSelect: true,
+            columns: [[
+                        
+    					{
+    					    field: 'bl_date', title: '备料日期', width: 100,
+    					    formatter: function (value, row, index) {
+    					        return toDateStr(value);
+    					    }
+    					},
+                        { field: 'bill_no', title: '备料编号', width: 110 },
+                        { field: 'bus_dep', title: '事业部', width: 100 },
+                        { field: 'customer_name', title: '客户名称', width: 180 },
+                        { field: 'product_name', title: '产品名称', width: 140 },
+                        { field: 'product_model', title: '产品型号', width: 190 },
+    					{ field: 'qty', title: '订单数量', width: 100 },
+                        { field: 'market_dep', title: '市场部', width: 120 },
+    					{ field: 'clerk_name', title: '营业员', width: 80 },
+    					{ field: 'sys_no', title: '流水号', width: 120 },
+                        {
+                            field: 'finish_date', title: '审批完成日期', width: 150,
+                            formatter: function (value, row, index) {
+                                return toDateStr(value,true);
+                            }
+                        }
+            ]],
+            toolbar: [{
+                text: "查看",
+                iconCls: 'icon-search',
+                handler: function () {
+                    var row = $("#itemList").datagrid("getSelected");
+                    if (row) {
+                        window.open("../Saler/CheckOrderDetail?id=" + row.id + "&billType=BL");
+                    }
+                }
+            }, '-', {
+                text: "打印",
+                iconCls: 'icon-print',
+                handler: function(){
+                    var row = $("#itemList").datagrid("getSelected");
+                    if (row) {         
+                        window.open("../Files/printBLReport?sysNo=" + row.sys_no);
+                        
+                    }
+                }
+            }],
+        });
+
+        $("#checkBt").click(function () {
+            var obj = getFormJson($("#fm"));
+
+            $("#itemList").datagrid("loading");
+            
+            $.post("SearchBusBLs", {
+                fromDate: obj.fromDate,
+                toDate: obj.toDate,
+                productModel: obj.productModel,
+                customerName: obj.customerName
+            }, function (data) {
+                $("#itemList").datagrid("loaded");
+                if (!data.suc) {
+                    tip(data.msg);
+                    return;
+                }
+                $("#itemList").datagrid("loadData", JSON.parse(data.extra));
+            })
+        });
+        
+
+    });
+
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',collapsed:false,split:true" style="height: 50px; background: #fafafa;">
+        <form id="fm" method="post" style="padding:6px 8px;">            
+            备料日期从：<input class="easyui-datebox" name="fromDate" style="width: 120px" editable ="false" value="@DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd")" />
+            到：<input class="easyui-datebox" name="toDate" style="width: 120px"  editable ="false" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            规格型号：<input class="easyui-textbox" name="productModel" style="width: 120px" />
+            客户名称：<input class="easyui-textbox" name="customerName" style="width: 120px" />
+            <a id="checkBt" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">搜索</a>            
+        </form>
+    </div>
+    <div data-options="region:'center'">
+        <table id="itemList"></table>
+    </div>
+</div>

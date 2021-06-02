@@ -56,7 +56,11 @@
            
             // 2018-10-15T16:00:00Z 格式：
             if (value.indexOf("T") > 0) {
-                return value.split("T")[0];
+                if (hasHour) {
+                    return value.split(".")[0].replace("T", " ");
+                } else {
+                    return value.split("T")[0];
+                }
             }
 
             // /Date(1539532800000)/格式：

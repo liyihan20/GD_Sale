@@ -195,14 +195,16 @@ namespace Sale_Order.Controllers
         #region 销售订单
 
         //规格型号与客户、部门的对应关系，用于下销售订单时进行提示
+        [SessionTimeOutFilter]
         public ActionResult ItemModelAndCustomer()
         {
             return View();
         }
 
-        public JsonResult SearchItemModelAndCustomer(string itemInfo, string customerInfo, string agencyInfo,string createUser)
+        public JsonResult SearchItemModelAndCustomer(int page, int rows,string itemInfo, string customerInfo, string agencyInfo,string createUser)
         {
             var list = db.Sale_itemModelAndCustomer.Where(s => s.is_deleted == false);
+            
 
             if (!string.IsNullOrWhiteSpace(itemInfo)) {
                 list = list.Where(l => l.item_model.Contains(itemInfo) || l.item_name.Contains(itemInfo) || l.item_no.Contains(itemInfo));
@@ -220,7 +222,10 @@ namespace Sale_Order.Controllers
                 list = list.Where(l => l.create_user.Contains(createUser));
             }
 
-            return Json(list.OrderBy(l => l.customer_name).ToList());
+            int total = list.Count();
+            var result = list.OrderBy(l => l.customer_name).ThenBy(l => l.customer_no).Skip((page - 1) * rows).Take(rows).ToList();
+
+            return Json(new { rows = result, total = total });
         }
 
         public JsonResult SaveItemModelAndCustomer(string obj)
@@ -262,12 +267,12 @@ namespace Sale_Order.Controllers
             var itemNoArr=itemNos.Split(new char[]{';'},StringSplitOptions.RemoveEmptyEntries);
             var items = db.Sale_itemModelAndCustomer.Where(s => itemNoArr.Contains(s.item_no) && s.is_deleted == false).ToList();
             if (items.Count() > 0) {
-                var noMathCustomers = string.Join("<br/>", items.Where(i => i.customer_no != customerNo).Select(i => i.item_model));
+                //var noMathCustomers = string.Join("<br/>", items.Where(i => i.customer_no != customerNo).Select(i => i.item_model));
                 var noMathAgencys = string.Join("<br/>", items.Where(i => i.agency_no != agencyNo).Select(i => i.item_model));
                 string tip = "";
-                if (!string.IsNullOrWhiteSpace(noMathCustomers)) {
-                    tip += "以下型号与被绑定的客户不一致：<br/>" + noMathCustomers + "<br/>";
-                }
+                //if (!string.IsNullOrWhiteSpace(noMathCustomers)) {
+                //    tip += "以下型号与被绑定的客户不一致：<br/>" + noMathCustomers + "<br/>";
+                //}
                 if (!string.IsNullOrWhiteSpace(noMathAgencys)) {
                     tip += "以下型号与被绑定的部门不一致：<br/>" + noMathAgencys + "<br/>";
                 }
@@ -282,6 +287,56 @@ namespace Sale_Order.Controllers
 
         #endregion
 
+        #region 备料单
+
+        [SessionTimeOutFilter]
+        public ActionResult CheckBusBLs()
+        {
+            return View();
+        }
+
+        public JsonResult SearchBusBLs(DateTime fromDate, DateTime toDate, string productModel, string customerName)
+        {
+            var myDeps = (from a in db.AuditorsRelation
+                          join d in db.Department on a.relate_value equals d.dep_no
+                          where a.step_name == "BL_事业部接单员"
+                          && d.dep_type == "备料事业部"
+                          && a.auditor_id == currentUser.userId
+                          select d.name).ToList();
+
+            if (myDeps.Count() > 0) {
+                var list = (from b in db.Sale_BL
+                            join a in db.Apply on b.sys_no equals a.sys_no
+                            where a.success == true
+                            && b.bl_date >= fromDate
+                            && b.bl_date <= toDate
+                            && myDeps.Contains(b.bus_dep)
+                            && b.product_model.Contains(productModel)
+                            && b.customer_name.Contains(customerName)
+                            select new
+                            {
+                                b.id,
+                                b.bl_date,
+                                b.bill_no,
+                                b.bus_dep,
+                                b.customer_name,
+                                b.product_model,
+                                b.product_name,
+                                b.qty,
+                                b.market_dep,
+                                b.clerk_name,
+                                b.sys_no,
+                                a.finish_date
+                            }).ToList();
+                return Json(new SimpleResultModel(true, "", JsonConvert.SerializeObject(list)));
+            }
+            else {
+                return Json(new SimpleResultModel(false,"没有可查询的部门"));
+            }
+
+        }
+
+        #endregion
 
     }
 }

@@ -1395,7 +1395,7 @@
       <Column Name="item_name" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
       <Column Name="item_model" Type="System.String" DbType="NVarChar(500)" CanBeNull="true" />
       <Column Name="customer_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
-      <Column Name="customer_name" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      <Column Name="customer_name" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
       <Column Name="agency_no" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="agency_name" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
       <Column Name="create_user" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />

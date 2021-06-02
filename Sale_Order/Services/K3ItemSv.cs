@@ -17,8 +17,8 @@ namespace Sale_Order.Services
 
         private string GetDataBaseStr()
         {
-            return "[192.168.100.209].[cjl]"; //光电总部测试帐套
-            //return db.Sale_companies.Where(s => s.short_name == _account).Select(s => s.database_name).FirstOrDefault();
+            //return "[192.168.100.209].[cjl]"; //光电总部测试帐套
+            return db.Sale_companies.Where(s => s.short_name == _account).Select(s => s.database_name).FirstOrDefault();
         }
         
         public List<K3Emp> GetK3Emp(string empInfo)

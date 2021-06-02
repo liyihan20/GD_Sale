@@ -74,11 +74,11 @@ namespace Sale_Order.Controllers
                           orderby o.order_date
                           select new { o, e }).ToList();
 
-            ushort[] colWidth = new ushort[] {16,16,14,18,28,28,28,28,20,28,
+            ushort[] colWidth = new ushort[] {16,16,14,18,28,28,28,28,20,20,28,
                                             14,14,14,14,14,14,14,14,14,10,
                                             12,20,14,14,14,14,60,60};
 
-            string[] colName = new string[] { "流水号","订单号","下单日期","办事处","购货单位","海外客户","终极客户","方案公司","产品名称","型号规格",
+            string[] colName = new string[] { "流水号","订单号","下单日期","办事处","购货单位","海外客户","终极客户","方案公司","产品代码","产品名称","型号规格",
                                             "数量","成交价","成交金额","不含税单价","合同价","合同金额","成本RMB","MU","佣金RMB","币别",
                                             "汇率","结算方式","营业员1","比例1","营业员2","比例2","说明","摘要"};
 
@@ -129,6 +129,7 @@ namespace Sale_Order.Controllers
                 cells.Add(rowIndex, ++colIndex, d.o.oversea_client_name);
                 cells.Add(rowIndex, ++colIndex, d.o.final_client_name);
                 cells.Add(rowIndex, ++colIndex, d.o.plan_firm_name);
+                cells.Add(rowIndex, ++colIndex, d.e.item_no);
                 cells.Add(rowIndex, ++colIndex, d.e.item_name);
                 cells.Add(rowIndex, ++colIndex, d.e.item_modual);
 
