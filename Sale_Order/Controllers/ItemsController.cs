@@ -15,7 +15,7 @@ namespace Sale_Order.Controllers
 
         //获取各个字段的选择列表
         public JsonResult getItems(string what,string account="光电总部")
-        {            
+        {
             return Json(new K3ItemSv(account).GetK3Items(what).Select(k => new
             {
                 no = k.fid,
@@ -133,16 +133,19 @@ namespace Sale_Order.Controllers
         }
 
         //获取生产部门
-        public JsonResult getProcDeps()
+        public JsonResult getProcDeps(string account="")
         {
-            var deps = from d in db.Department
+            var deps = (from d in db.Department
                        where d.dep_type == "销售事业部"
                        orderby d.name
                        select new
                        {
                            id = d.dep_no,
                            name = d.name
-                       };
+                       }).ToList();
+            if ("光电科技".Equals(account)) {
+                deps = deps.Where(d => d.name.Contains("FPI") || d.name.Contains("CCM")).ToList();
+            }
             return Json(deps);
         }
 
@@ -548,9 +551,9 @@ namespace Sale_Order.Controllers
             return Json(new { suc = true });
         }
 
-        public JsonResult GetK3CommissionRate(string proType, double MU, string account)
+        public JsonResult GetK3CommissionRate(string proType, double MU, string account,string depName)
         {
-            return Json(new K3ItemSv(account).GetK3CommissionRate(proType, MU));
+            return Json(new K3ItemSv(account).GetK3CommissionRate(proType, MU,depName));
         }
 
 

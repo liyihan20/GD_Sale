@@ -12,7 +12,7 @@
             <li><span>@Html.Lang("sale_order")</span>
                 <ul>
                     @if (Array.IndexOf(powers, Powers.new_order.ToString()) != -1) {
-                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder&companys=光电总部,光电仁寿"><span>@Html.Lang("new_sale_order")</span> </li>
+                        <li id="~/Saler/ChooseCompany?actionName=CreateSaleOrder&companys=光电总部,光电仁寿,光电科技"><span>@Html.Lang("new_sale_order")</span> </li>
                         <li id="~/Saler/CheckAllOrders?bill_type=1"><span>@Html.Lang("check_add_apply")</span> </li>
                         @*<li id="~/NSaler/ChooseCompany?billType=SO"><span>@Html.Lang("new_sale_order")</span> </li>
                         <li id="~/NSaler/CheckBillList?billType=SO"><span>@Html.Lang("check_add_apply")</span> </li>*@
@@ -148,7 +148,7 @@
             </ul>
         </li>
     }
-    @if (depName.Contains("市场") || depName.Contains("办事处") || depName.Contains("本部") || depName.Contains("中心")) { 
+    @if (depName.Contains("市场") || depName.Contains("办事处") || depName.Contains("本部") || depName.Contains("信息")) { 
         <li><span>@Html.Lang("mat_manage")</span>
             <ul>
                  @if (Array.IndexOf(powers, Powers.cur_manage.ToString()) != -1)
@@ -177,7 +177,7 @@
                     <li id="~/Authority/ModifyBillNo"><span>单号修改</span> </li>
                  }
                  @if (Array.IndexOf(powers, Powers.clerk_customer.ToString()) != -1) { 
-                <li id="~/NExtra/ClerkAndCustomer"><span>营业与客户</span></li>
+                @*<li id="~/NExtra/ClerkAndCustomer"><span>营业与客户</span></li>*@
                 }                
                 <li id="~/NExtra/ItemModelAndCustomer"><span>产品/客户/部门关系</span></li>                
             </ul>

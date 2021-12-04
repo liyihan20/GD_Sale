@@ -31,7 +31,15 @@
                 panelHeight:penelHeight,
                 panelWidth:panelWidth,
                 editable:editable,
-                required:required
+                required:required,
+                loadFilter:function(data){
+                    if(what=="product_type"){
+                        //2021-08-26 将产品类别是字母的那些过滤掉，已经不用了。
+                        return $.grep(data,function(d,idx){return !/^(\w)/.test(d.name);}); //\w:数字、字母及下划线
+                    }else{
+                        return data;
+                    }
+                }
             });
         });
 

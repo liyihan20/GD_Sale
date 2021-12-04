@@ -324,6 +324,11 @@ namespace Sale_Order.Controllers
             try
             {
                 User user = db.User.Single(u => u.id == id);
+
+                if (!is_forbit && user.is_forbit) {
+                    user.last_login = DateTime.Now;
+                }
+
                 user.username = col.Get("username");
                 user.real_name = col.Get("real_name");
                 user.Department1 = department;
@@ -332,10 +337,7 @@ namespace Sale_Order.Controllers
                 if (is_forbit == false && user.is_forbit == true) {
                     user.last_login = DateTime.Now;
                 }
-                user.is_forbit = is_forbit;
-                if (is_forbit) {
-                    user.last_login = DateTime.Now;
-                }
+                user.is_forbit = is_forbit;                
                 db.SubmitChanges();
             }
             catch

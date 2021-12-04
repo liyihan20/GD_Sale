@@ -42,15 +42,15 @@ namespace Sale_Order.Services
         }
         public List<K3Items> GetK3Items(string what)
         {
-            return db.ExecuteQuery<K3Items>("exec dbo.getK3Items @what={0},@account={1}", what, _account).ToList();
+            return db.ExecuteQuery<K3Items>("exec dbo.getK3Items @what={0},@account={1}", what, _account).OrderBy(k => k.fname).ToList();
         }
         public decimal GetK3ExchangeRate(string currencyNo, string currencyName)
         {
             return db.getK3ExchangeRate(currencyNo, currencyName, _account).FirstOrDefault().exchange_rate ?? 0m;
         }
-        public decimal GetK3CommissionRate(string proType, double MU)
+        public decimal GetK3CommissionRate(string proType, double MU,string depName="")
         {
-            return db.ExecuteQuery<decimal?>("exec dbo.getK3CommissionRate @proType={0},@MU={1},@account={2}", proType, MU, _account).FirstOrDefault()??0m;            
+            return db.ExecuteQuery<decimal?>("exec dbo.getK3CommissionRate @proType={0},@MU={1},@account={2},@depName={3}", proType, MU, _account, depName).FirstOrDefault() ?? 0m;
         }
 
         public bool IsCustomerNameAndNoMath(string customerName, string customerNumber)

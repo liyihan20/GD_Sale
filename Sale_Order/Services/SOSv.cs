@@ -271,7 +271,7 @@ namespace Sale_Order.Services
                         d.commission_rate = 0;
                     }
                     else {
-                        d.commission_rate = new K3ItemSv(h.account).GetK3CommissionRate(h.product_type_name, (double)d.MU);
+                        d.commission_rate = new K3ItemSv(h.account).GetK3CommissionRate(h.product_type_name, (double)d.MU,h.department_name);
                     }
                     //2018-10-1开始，佣金计算公式修改，将佣金再除（1+税率%）
                     if (h.product_type_name == "CCM" && d.MU < -6) {
